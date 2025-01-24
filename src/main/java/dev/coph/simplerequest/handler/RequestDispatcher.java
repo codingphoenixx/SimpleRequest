@@ -38,8 +38,7 @@ public class RequestDispatcher {
                 regex.append("\\/");
 
                 if (part.startsWith("{") && part.endsWith("}")) {
-                    String varName = part.substring(1, part.length() - 1);
-                    regex.append("([A-Za-z0-9]+)");
+                    regex.append("(\\w+)");
                 } else {
                     regex.append(Pattern.quote(part));
                 }
@@ -50,6 +49,8 @@ public class RequestDispatcher {
             regex.append("\\/");
         }
         regex.append("$");
+
+        System.out.println(regex.toString());
         return Pattern.compile(regex.toString());
     }
 
@@ -61,14 +62,11 @@ public class RequestDispatcher {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
             if (matcher.matches()) {
-                System.out.println("MATCH");
-                System.out.println(matcher.groupCount());
                 MethodHandler handler = entry.getValue();
                 Map<String, String> pathVariables = new HashMap<>();
 
                 for (int i = 1; i <= matcher.groupCount(); i++) {
                     pathVariables.put("arg" + i, matcher.group(i));
-                    System.out.println(i + ": " + matcher.group(i));
                 }
                 handler.invoke(request, response, callback, pathVariables);
                 return;
@@ -92,11 +90,6 @@ public class RequestDispatcher {
 
             int args= 1;
             for (int i = 0; i < parameterTypes.length; i++) {
-                System.out.println(parameterTypes[i].getName());
-                System.out.println(Request.class.isAssignableFrom(parameterTypes[i]));
-                System.out.println(Response.class.isAssignableFrom(parameterTypes[i]));
-                System.out.println(Callback.class.isAssignableFrom(parameterTypes[i]));
-                System.out.println(String.class.isAssignableFrom(parameterTypes[i]));
                 if (Request.class.isAssignableFrom(parameterTypes[i])) {
                     parameters[i] = request;
                 } else if (Response.class.isAssignableFrom(parameterTypes[i])) {
@@ -111,7 +104,6 @@ public class RequestDispatcher {
                 }
             }
 
-            System.out.println(Arrays.toString(parameters));
             method.invoke(instance, parameters);
         }
     }

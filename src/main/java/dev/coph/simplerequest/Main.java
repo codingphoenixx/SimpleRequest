@@ -20,7 +20,6 @@ public class Main {
 
             @Override
             public boolean handle(Request request, Response response, Callback callback) throws Exception {
-                System.out.println("PATH INFO: " + request.getHttpURI().getPath());
                 String pathInfo = request.getHttpURI().getPath();
                 if (pathInfo != null) {
                     dispatcher.handle(pathInfo, request, response, callback);
