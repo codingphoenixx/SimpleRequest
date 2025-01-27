@@ -16,6 +16,7 @@ public class UserProvider {
 
     }
 
+
     @RequestHandler(path = "/product/{productId}/{category}")
     public void getProductInfo(Request request, Response response, Callback callback, String productId, String category) throws Exception {
         response.write(true, ByteBuffer.wrap(("Product info for " + productId + " in category " + category).getBytes()), callback);

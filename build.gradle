@@ -9,6 +9,9 @@ version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://api.netnode.dev/repo/releases")
+    }
 }
 
 dependencies {
@@ -24,6 +27,8 @@ dependencies {
     implementation 'org.eclipse.jetty:jetty-security:12.0.16'
     implementation 'org.eclipse.jetty:jetty-util:12.0.16'
     implementation 'org.json:json:20240303'
+
+    implementation("dev.coph:simplelogger:1.0.0")
 
 }
 
