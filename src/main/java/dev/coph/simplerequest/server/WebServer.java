@@ -6,19 +6,16 @@ import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import lombok.extern.java.Log;
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.server.ConnectionFactory;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.HashSet;
 import java.util.Set;
 
-
-@Slf4j
 @Getter
 @Accessors(fluent = true, chain = true)
 public class WebServer {
