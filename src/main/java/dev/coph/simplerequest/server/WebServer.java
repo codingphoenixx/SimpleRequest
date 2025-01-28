@@ -5,18 +5,22 @@ import dev.coph.simplerequest.handler.AuthenticationHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
 import dev.coph.simplerequest.ratelimit.RateLimitHandler;
-import dev.coph.simplerequest.ratelimit.RateLimitProvider;
 import dev.coph.simplerequest.util.Time;
+import jakarta.websocket.server.ServerEndpoint;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,14 +56,17 @@ public class WebServer {
         server = new Server(port);
 
 
-
         logger.info("Creating ContextHandler");
-        if(rateLimitHandler != null){
+        if (rateLimitHandler != null) {
             rateLimitHandler.addHandler(requestDispatcher.createContextHandler());
             logger.info("Successfully created ContextHandler. Adding RateLimitHandler.");
             server.setHandler(rateLimitHandler);
-        }else{
+            enableWebSockets(rateLimitHandler);
+        } else {
+            ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
             server.setHandler(requestDispatcher.createContextHandler());
+            enableWebSockets(handlerCollection);
+            server.setHandler(handlerCollection);
             logger.info("Successfully created ContextHandler. Adding it directly.");
         }
 
@@ -84,9 +91,9 @@ public class WebServer {
             }
         }
 
-        logger.success("------------------------------------------------");
+        logger.success("+----------------------------------------------+");
         logger.success("|       Successfully started WebServer         |");
-        logger.success("------------------------------------------------");
+        logger.success("+----------------------------------------------+");
         enabled = true;
     }
 
@@ -113,10 +120,56 @@ public class WebServer {
         return this;
     }
 
-    public WebServer useRateLimit(Time time, int maxRequestsPerSpan){
+    public WebServer useRateLimit(Time time, int maxRequestsPerSpan) {
         Logger.getInstance().info("Creating RateLimit Handler");
         this.rateLimitHandler = new RateLimitHandler(time, maxRequestsPerSpan);
         Logger.getInstance().success("Successfully RateLimit Handler");
+        return this;
+    }
+
+    private HashSet<WebSocketProvider> websockets = new HashSet<>();
+
+    private void enableWebSockets(ContextHandlerCollection collection) {
+        Logger.getInstance().info("Enabling WebSockets.");
+
+        if (websockets.isEmpty()) {
+            Logger.getInstance().info("No WebSockets registered.");
+            return;
+        }
+        ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        websocketHandlers.setContextPath("/websockets");
+
+
+        JakartaWebSocketServletContainerInitializer.configure(websocketHandlers, (servletContext, wsContainer) -> {
+            websockets.forEach((provider) -> {
+                try {
+                    try {
+                        wsContainer.addEndpoint(provider.getClass());
+                        Logger.getInstance().success("WebSocket for path '%s' successfully enabled");
+                    } catch (Exception e) {
+                        Logger.getInstance().error("Error enabling WebSocket for path: ", e);
+                    }
+                } catch (Exception e) {
+                    Logger.getInstance().error("Error enabling WebSocket support", e);
+                }
+
+            });
+        });
+
+        collection.addHandler(websocketHandlers);
+        Logger.getInstance().success("Successfully enabled all WebSockets.");
+    }
+
+    public WebServer registerWebsocket(WebSocketProvider websocketProvider) {
+        if (websocketProvider.getClass().isAnonymousClass()) {
+            Logger.getInstance().error("Could not register Websocket. It is an anonymous class.");
+            return this;
+        }
+        if (!websocketProvider.getClass().isAnnotationPresent(ServerEndpoint.class)) {
+            Logger.getInstance().error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
+            return this;
+        }
+        websockets.add(websocketProvider);
         return this;
     }
 }

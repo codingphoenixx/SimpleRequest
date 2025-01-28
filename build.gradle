@@ -26,8 +26,7 @@ dependencies {
     implementation 'org.eclipse.jetty:jetty-server:12.0.16'
     implementation 'org.eclipse.jetty:jetty-security:12.0.16'
     implementation 'org.eclipse.jetty:jetty-util:12.0.16'
-
-    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-server:11.0.24'
+    implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server:12.0.16'
 
     implementation 'org.json:json:20240303'
 
@@ -39,6 +38,12 @@ test {
     useJUnitPlatform()
 }
 
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 publishing {
     repositories {
