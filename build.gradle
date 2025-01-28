@@ -48,8 +48,8 @@ jar {
 publishing {
     repositories {
         maven {
-            name = "localRepository"
-            url = "http://localhost:8081/releases"
+            name = "cophrepository"
+            url = "https://api.netnode.dev/repo/releases"
             allowInsecureProtocol = true
             credentials(PasswordCredentials)
             authentication {
@@ -66,3 +66,15 @@ publishing {
         }
     }
 }
+
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
