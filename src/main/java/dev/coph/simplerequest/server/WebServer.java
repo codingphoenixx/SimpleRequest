@@ -20,7 +20,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -127,7 +126,7 @@ public class WebServer {
         return this;
     }
 
-    private HashSet<WebSocketProvider> websockets = new HashSet<>();
+    private HashSet<Class<?>> websockets = new HashSet<>();
 
     private void enableWebSockets(ContextHandlerCollection collection) {
         Logger.getInstance().info("Enabling WebSockets.");
@@ -137,14 +136,14 @@ public class WebServer {
             return;
         }
         ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        websocketHandlers.setContextPath("/websockets");
+        websocketHandlers.setContextPath("/");
 
 
         JakartaWebSocketServletContainerInitializer.configure(websocketHandlers, (servletContext, wsContainer) -> {
             websockets.forEach((provider) -> {
                 try {
                     try {
-                        wsContainer.addEndpoint(provider.getClass());
+                        wsContainer.addEndpoint(provider);
                         Logger.getInstance().success("WebSocket for path '%s' successfully enabled");
                     } catch (Exception e) {
                         Logger.getInstance().error("Error enabling WebSocket for path: ", e);
@@ -152,20 +151,19 @@ public class WebServer {
                 } catch (Exception e) {
                     Logger.getInstance().error("Error enabling WebSocket support", e);
                 }
-
             });
+            Logger.getInstance().success("Successfully enabled all WebSockets.");
         });
 
         collection.addHandler(websocketHandlers);
-        Logger.getInstance().success("Successfully enabled all WebSockets.");
     }
 
-    public WebServer registerWebsocket(WebSocketProvider websocketProvider) {
-        if (websocketProvider.getClass().isAnonymousClass()) {
+    public WebServer registerWebsocket(Class<?> websocketProvider) {
+        if (websocketProvider.isAnonymousClass()) {
             Logger.getInstance().error("Could not register Websocket. It is an anonymous class.");
             return this;
         }
-        if (!websocketProvider.getClass().isAnnotationPresent(ServerEndpoint.class)) {
+        if (!websocketProvider.isAnnotationPresent(ServerEndpoint.class)) {
             Logger.getInstance().error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
             return this;
         }
