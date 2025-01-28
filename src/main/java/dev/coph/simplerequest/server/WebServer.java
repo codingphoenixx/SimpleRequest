@@ -143,8 +143,13 @@ public class WebServer {
             websockets.forEach((provider) -> {
                 try {
                     try {
+                        if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
+                            Logger.getInstance().error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
+                            return;
+                        }
                         wsContainer.addEndpoint(provider);
-                        Logger.getInstance().success("WebSocket for path '%s' successfully enabled");
+                        var pathName = provider.getAnnotation(ServerEndpoint.class).value();
+                        Logger.getInstance().success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
                     } catch (Exception e) {
                         Logger.getInstance().error("Error enabling WebSocket for path: ", e);
                     }
