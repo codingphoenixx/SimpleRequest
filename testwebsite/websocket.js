@@ -1,24 +1,30 @@
+let socket;
 
-const socket = new WebSocket('ws://127.0.0.1:49152/testsocket');
+function connect(){
+    socket = new WebSocket('ws://127.0.0.1:49152/ws/testsocket');
 
-socket.onopen = function(event) {
-    console.log('Connection established');
-    sendHelloMessage();
-};
+    socket.onopen = function(event) {
+        console.log('Connection established');
+    };
 
-socket.onmessage = function(event) {
-    console.log('Message from server:', event.data);
-};
+    socket.onmessage = function(event) {
+        console.log('Message from server:', event.data);
+    };
 
-socket.onerror = function(error) {
-    console.error('WebSocket Error:', error);
-};
+    socket.onerror = function(error) {
+        console.error('WebSocket Error:', error);
+    };
 
-socket.onclose = function(event) {
-    console.log('Connection closed');
-};
+    socket.onclose = function(event) {
+        console.log('Connection closed');
+    };
+}
 
-function sendHelloMessage(){
+function sendMessage(){
     console.log('Send message to server');
-    socket.send('Hello Server');
+    if(socket == null || socket.closed){
+        console.error("Socket not connected.")
+    }else {
+        socket.send('Hello from client');
+    }
 }
