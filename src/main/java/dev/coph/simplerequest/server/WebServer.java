@@ -5,6 +5,7 @@ import dev.coph.simplerequest.handler.AuthenticationHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Connector;
@@ -20,6 +21,8 @@ import java.util.Set;
 @Accessors(fluent = true, chain = true)
 public class WebServer {
     private Logger logger = Logger.getInstance();
+
+    @Setter
     private AuthenticationHandler authenticationHandler;
     private RequestDispatcher requestDispatcher;
     private final int port;
@@ -80,6 +83,7 @@ public class WebServer {
             return false;
         }
     }
+
     private int findFreePort(int startPort, int endPort) {
         for (int port = Math.min(startPort, endPort); port <= Math.max(startPort, endPort); port++) {
             if (isPortAvailable(port)) {
@@ -87,5 +91,10 @@ public class WebServer {
             }
         }
         return -1;
+    }
+
+    public WebServer addAllowedOrigin(String origin) {
+        allowedOrigins.add(origin.toLowerCase());
+        return this;
     }
 }

@@ -1,6 +1,7 @@
 package dev.coph.simplerequest.handler;
 
 
+import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -84,13 +85,19 @@ public class RequestDispatcher {
             if (matcher.matches()) {
                 MethodHandler handler = entry.getValue();
 
-                if (handler.needAuth && webServer.authenticationHandler() != null) {
-                    if (!webServer.authenticationHandler().hasAccess(handler, request)) {
+                if (handler.needAuth)
+                    if (webServer.authenticationHandler() != null) {
+                        if (!webServer.authenticationHandler().hasAccess(handler, request)) {
+                            response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                            callback.succeeded();
+                            return;
+                        }
+                    } else {
+                        Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
                         callback.succeeded();
                         return;
                     }
-                }
 
                 Map<String, String> pathVariables = new HashMap<>();
 
@@ -104,6 +111,7 @@ public class RequestDispatcher {
             }
         }
         response.setStatus(HttpStatus.NOT_FOUND_404);
+        callback.succeeded();
     }
 
     public ContextHandler createContextHandler() {
@@ -114,7 +122,8 @@ public class RequestDispatcher {
                 if (pathInfo != null) {
                     RequestDispatcher.this.handle(pathInfo, request, response, callback);
                 } else {
-                    response.setStatus(404);
+                    response.setStatus(HttpStatus.NOT_FOUND_404);
+                    callback.succeeded();
                 }
                 return false;
             }
@@ -152,7 +161,6 @@ public class RequestDispatcher {
                     parameters[i] = callback;
                 } else if (String.class.isAssignableFrom(parameterTypes[i])) {
                     String paramName = method.getParameters()[args].getName();
-                    System.out.println(paramName);
                     parameters[i] = pathVariables.get(paramName);
                     args++;
                 }

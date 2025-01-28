@@ -1,6 +1,7 @@
 package dev.coph.simplerequest.provider;
 
 
+import dev.coph.simplerequest.handler.AuthenticatedRequestHandler;
 import dev.coph.simplerequest.handler.RequestHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -10,7 +11,7 @@ import java.nio.ByteBuffer;
 
 public class UserProvider {
 
-    @RequestHandler(path = "/user/{userid}/info")
+    @AuthenticatedRequestHandler(path = "/user/{userid}/info", permission = "request.user.info")
     public void getUserInfo(Request request, Response response, Callback callback, String userid) throws Exception {
         response.write(true, ByteBuffer.wrap(("User info for " + userid).getBytes()), callback);
 

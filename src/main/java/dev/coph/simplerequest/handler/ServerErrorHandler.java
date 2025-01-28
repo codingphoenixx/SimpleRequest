@@ -8,10 +8,11 @@ import org.eclipse.jetty.util.Callback;
 
 public class ServerErrorHandler extends ErrorHandler {
 
-
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
-        response.setStatus(HttpStatus.BAD_REQUEST_400);
+        if (response.getStatus() == HttpStatus.OK_200) {
+            response.setStatus(HttpStatus.BAD_REQUEST_400);
+        }
         callback.succeeded();
         return true;
     }
