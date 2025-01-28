@@ -26,6 +26,9 @@ dependencies {
     implementation 'org.eclipse.jetty:jetty-server:12.0.16'
     implementation 'org.eclipse.jetty:jetty-security:12.0.16'
     implementation 'org.eclipse.jetty:jetty-util:12.0.16'
+
+    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-server:11.0.24'
+
     implementation 'org.json:json:20240303'
 
     implementation("dev.coph:simplelogger:1.0.0")

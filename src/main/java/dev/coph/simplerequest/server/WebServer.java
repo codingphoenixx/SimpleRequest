@@ -4,6 +4,9 @@ import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.handler.AuthenticationHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
+import dev.coph.simplerequest.ratelimit.RateLimitHandler;
+import dev.coph.simplerequest.ratelimit.RateLimitProvider;
+import dev.coph.simplerequest.util.Time;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -29,6 +32,7 @@ public class WebServer {
     private final Set<String> allowedOrigins = new HashSet<>();
     private boolean enabled = false;
     private Server server;
+    private RateLimitHandler rateLimitHandler;
 
 
     public WebServer(int port) {
@@ -47,8 +51,19 @@ public class WebServer {
         logger.info("Creating new server instance with port %s.%n".formatted(port));
         server = new Server(port);
 
+
+
         logger.info("Creating ContextHandler");
-        server.setHandler(requestDispatcher.createContextHandler());
+        if(rateLimitHandler != null){
+            rateLimitHandler.addHandler(requestDispatcher.createContextHandler());
+            logger.info("Successfully created ContextHandler. Adding RateLimitHandler.");
+            server.setHandler(rateLimitHandler);
+        }else{
+            server.setHandler(requestDispatcher.createContextHandler());
+            logger.info("Successfully created ContextHandler. Adding it directly.");
+        }
+
+
         logger.info("Settings error handler");
         server.setErrorHandler(new ServerErrorHandler());
 
@@ -95,6 +110,13 @@ public class WebServer {
 
     public WebServer addAllowedOrigin(String origin) {
         allowedOrigins.add(origin.toLowerCase());
+        return this;
+    }
+
+    public WebServer useRateLimit(Time time, int maxRequestsPerSpan){
+        Logger.getInstance().info("Creating RateLimit Handler");
+        this.rateLimitHandler = new RateLimitHandler(time, maxRequestsPerSpan);
+        Logger.getInstance().success("Successfully RateLimit Handler");
         return this;
     }
 }
