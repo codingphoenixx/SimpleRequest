@@ -30,7 +30,7 @@ dependencies {
 
     implementation 'org.json:json:20240303'
 
-    implementation("dev.coph:simplelogger:1.0.2")
+    implementation("dev.coph:simplelogger:1.0.2a")
 
 }
 
