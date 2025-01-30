@@ -6,6 +6,7 @@ import dev.coph.simplerequest.server.WebServer;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -13,6 +14,8 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.Callback;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -34,13 +37,13 @@ public class RequestDispatcher {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
                 Pattern pattern = createPattern(path);
-                handlers.put(pattern, new MethodHandler(path, instance, method));
+                handlers.put(pattern, new MethodHandler(path, annotation.receiveBody(), instance, method));
             }
             if (method.isAnnotationPresent(AuthenticatedRequestHandler.class)) {
                 AuthenticatedRequestHandler annotation = method.getAnnotation(AuthenticatedRequestHandler.class);
                 String path = annotation.path();
                 Pattern pattern = createPattern(path);
-                MethodHandler methodHandler = new MethodHandler(path, instance, method);
+                MethodHandler methodHandler = new MethodHandler(path, annotation.receiveBody(), instance, method);
                 methodHandler.needAuth = true;
                 methodHandler.permission = annotation.permission();
                 handlers.put(pattern, methodHandler);
@@ -119,9 +122,12 @@ public class RequestDispatcher {
             @Override
             public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 String pathInfo = request.getHttpURI().getPath();
+                System.out.println(pathInfo);
                 if (pathInfo != null) {
+                    System.out.println("Found path info");
                     RequestDispatcher.this.handle(pathInfo, request, response, callback);
                 } else {
+                    System.out.println("NO PRIVIDER FOUND");
                     response.setStatus(HttpStatus.NOT_FOUND_404);
                     callback.succeeded();
                 }
@@ -137,29 +143,33 @@ public class RequestDispatcher {
         private String permission;
         private boolean needAuth = false;
 
-
+        private final boolean receiveBody;
         private final Object instance;
         private final Method method;
 
-        public MethodHandler(String path, Object instance, Method method) {
+        public MethodHandler(String path, boolean receiveBody, Object instance, Method method) {
             this.path = path;
+            this.receiveBody = receiveBody;
             this.instance = instance;
             this.method = method;
         }
 
         public void invoke(Request request, Response response, Callback callback, Map<String, String> pathVariables) throws Exception {
-            Class<?>[] parameterTypes = method.getParameterTypes();
+            Parameter[] parameterTypes = method.getParameters();
             Object[] parameters = new Object[parameterTypes.length];
 
             int args = 1;
             for (int i = 0; i < parameterTypes.length; i++) {
-                if (Request.class.isAssignableFrom(parameterTypes[i])) {
+                Parameter parameter = parameterTypes[i];
+                if (receiveBody && String.class.isAssignableFrom(parameter.getType()) && parameter.getName().equalsIgnoreCase("body")) {
+                    parameters[i] = Content.Source.asString(request, StandardCharsets.UTF_8);
+                } else if (Request.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = request;
-                } else if (Response.class.isAssignableFrom(parameterTypes[i])) {
+                } else if (Response.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = response;
-                } else if (Callback.class.isAssignableFrom(parameterTypes[i])) {
+                } else if (Callback.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = callback;
-                } else if (String.class.isAssignableFrom(parameterTypes[i])) {
+                } else if (String.class.isAssignableFrom(parameter.getType())) {
                     String paramName = method.getParameters()[args].getName();
                     parameters[i] = pathVariables.get(paramName);
                     args++;

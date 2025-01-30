@@ -11,4 +11,5 @@ public @interface RequestHandler {
 
     String path();
 
+    boolean receiveBody() default false;
 }

@@ -59,15 +59,15 @@ public class WebServer {
         logger.info("Creating ContextHandler");
         if (rateLimitHandler != null) {
             rateLimitHandler.addHandler(requestDispatcher.createContextHandler());
+            enableWebSockets(rateLimitHandler);
             logger.info("Successfully created ContextHandler. Adding RateLimitHandler.");
             server.setHandler(rateLimitHandler);
-            enableWebSockets(rateLimitHandler);
         } else {
             ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
             server.setHandler(requestDispatcher.createContextHandler());
             enableWebSockets(handlerCollection);
-            server.setHandler(handlerCollection);
             logger.info("Successfully created ContextHandler. Adding it directly.");
+            server.setHandler(handlerCollection);
         }
 
 
@@ -130,12 +130,13 @@ public class WebServer {
     private HashSet<WebSocketProvider> websockets = new HashSet<>();
 
     private void enableWebSockets(ContextHandlerCollection collection) {
-        Logger.getInstance().info("Enabling WebSockets.");
 
         if (websockets.isEmpty()) {
             Logger.getInstance().info("No WebSockets registered.");
             return;
         }
+        Logger.getInstance().info("Enabling WebSockets.");
+
         ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
         websocketHandlers.setContextPath("/websockets");
 

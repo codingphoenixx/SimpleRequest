@@ -14,12 +14,11 @@ public class UserProvider {
     @AuthenticatedRequestHandler(path = "/user/{userid}/info", permission = "request.user.info")
     public void getUserInfo(Request request, Response response, Callback callback, String userid) throws Exception {
         response.write(true, ByteBuffer.wrap(("User info for " + userid).getBytes()), callback);
-
     }
 
 
-    @RequestHandler(path = "/product/{productId}/{category}")
-    public void getProductInfo(Request request, Response response, Callback callback, String productId, String category) throws Exception {
-        response.write(true, ByteBuffer.wrap(("Product info for " + productId + " in category " + category).getBytes()), callback);
+    @RequestHandler(path = "/product/{productId}/{category}", receiveBody = true)
+    public void getProductInfo(Request request, Response response, Callback callback, String productId, String body,String category) throws Exception {
+        response.write(true, ByteBuffer.wrap(("Product info for " + productId + " in category " + category + " | body: " + body).getBytes()), callback);
     }
 }

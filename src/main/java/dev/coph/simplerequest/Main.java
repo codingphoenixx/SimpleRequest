@@ -10,15 +10,16 @@ import jakarta.websocket.server.ServerEndpoint;
 public class Main {
 
     public static void main(String[] args) {
-        WebServer webServer = new WebServer(8080);
+        WebServer webServer = new WebServer(49153);
         webServer.requestDispatcher().register(new UserProvider());
 
-        webServer.authenticationHandler((path, request) -> true)
-                .registerWebsocket(new WebSocketTest());
+        webServer.authenticationHandler((path, request) -> true);
+        // .registerWebsocket(new WebSocketTest());
         webServer.start();
     }
 
-    @ServerEndpoint(value="/testsocket")
+    /*
+    @ServerEndpoint(value = "/testsocket")
     public static class WebSocketTest implements WebSocketProvider {
 
         @Override
@@ -42,4 +43,6 @@ public class Main {
 
         }
     }
+     */
+
 }
