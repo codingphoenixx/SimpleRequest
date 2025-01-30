@@ -194,8 +194,8 @@ public class RequestDispatcher {
             int args = 1;
             for (int i = 0; i < parameterTypes.length; i++) {
                 Parameter parameter = parameterTypes[i];
-                if (receiveBody && String.class.isAssignableFrom(parameter.getType()) && parameter.getName().equalsIgnoreCase("body")) {
-                    parameters[i] = Content.Source.asString(request, StandardCharsets.UTF_8);
+                if (receiveBody && Body.class.isAssignableFrom(parameter.getType())) {
+                    parameters[i] = new Body(Content.Source.asString(request, StandardCharsets.UTF_8));
                 } else if (Request.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = request;
                 } else if (Response.class.isAssignableFrom(parameter.getType())) {
