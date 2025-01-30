@@ -43,3 +43,4 @@ bin/
 /logs/
 
 /src/main/java/dev/coph/simplerequest/Main.java
+/src/main/java/dev/coph/simplerequest/provider/
