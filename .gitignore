@@ -41,3 +41,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 /logs/
+
+/src/main/java/dev/coph/simplerequest/Main.java

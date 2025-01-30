@@ -20,7 +20,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,7 +63,7 @@ public class WebServer {
             server.setHandler(rateLimitHandler);
         } else {
             ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
-            server.setHandler(requestDispatcher.createContextHandler());
+            handlerCollection.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(handlerCollection);
             logger.info("Successfully created ContextHandler. Adding it directly.");
             server.setHandler(handlerCollection);
@@ -127,7 +126,7 @@ public class WebServer {
         return this;
     }
 
-    private HashSet<WebSocketProvider> websockets = new HashSet<>();
+    private HashSet<Class<?>> websockets = new HashSet<>();
 
     private void enableWebSockets(ContextHandlerCollection collection) {
 
@@ -138,35 +137,39 @@ public class WebServer {
         Logger.getInstance().info("Enabling WebSockets.");
 
         ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        websocketHandlers.setContextPath("/websockets");
+        websocketHandlers.setContextPath("/ws");
 
 
         JakartaWebSocketServletContainerInitializer.configure(websocketHandlers, (servletContext, wsContainer) -> {
             websockets.forEach((provider) -> {
                 try {
                     try {
-                        wsContainer.addEndpoint(provider.getClass());
-                        Logger.getInstance().success("WebSocket for path '%s' successfully enabled");
+                        if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
+                            Logger.getInstance().error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
+                            return;
+                        }
+                        wsContainer.addEndpoint(provider);
+                        var pathName = provider.getAnnotation(ServerEndpoint.class).value();
+                        Logger.getInstance().success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
                     } catch (Exception e) {
                         Logger.getInstance().error("Error enabling WebSocket for path: ", e);
                     }
                 } catch (Exception e) {
                     Logger.getInstance().error("Error enabling WebSocket support", e);
                 }
-
             });
+            Logger.getInstance().success("Successfully enabled all WebSockets.");
         });
 
         collection.addHandler(websocketHandlers);
-        Logger.getInstance().success("Successfully enabled all WebSockets.");
     }
 
-    public WebServer registerWebsocket(WebSocketProvider websocketProvider) {
-        if (websocketProvider.getClass().isAnonymousClass()) {
+    public WebServer registerWebsocket(Class<?> websocketProvider) {
+        if (websocketProvider.isAnonymousClass()) {
             Logger.getInstance().error("Could not register Websocket. It is an anonymous class.");
             return this;
         }
-        if (!websocketProvider.getClass().isAnnotationPresent(ServerEndpoint.class)) {
+        if (!websocketProvider.isAnnotationPresent(ServerEndpoint.class)) {
             Logger.getInstance().error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
             return this;
         }

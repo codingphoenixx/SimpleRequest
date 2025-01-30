@@ -4,7 +4,9 @@ package dev.coph.simplerequest.handler;
 import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
@@ -18,12 +20,18 @@ import java.lang.reflect.Parameter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Getter
+@Accessors(fluent = true)
 public class RequestDispatcher {
     private final WebServer webServer;
 
+
+    @Setter
+    private boolean filterPrefireRequests = true;
 
     private final Map<Pattern, MethodHandler> handlers = new HashMap<>();
 
@@ -82,6 +90,11 @@ public class RequestDispatcher {
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
         }
+       var wasPreFireRequest = addDefaultHeaders(request, response, callback);
+       if (wasPreFireRequest && filterPrefireRequests) {
+           Logger.getInstance().debug("The Request filtered out because it was a prefire request.");
+           return;
+       }
         for (Map.Entry<Pattern, MethodHandler> entry : handlers.entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
@@ -135,6 +148,26 @@ public class RequestDispatcher {
             }
         }, "/");
     }
+
+    private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
+        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
+        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        String origin = request.getHeaders().get("Origin");
+        if (origin != null && webServer.allowedOrigins().contains(origin.toLowerCase())) {
+            response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+        }
+        if (Objects.equals(request.getMethod(), "OPTIONS")) {
+            response.setStatus(HttpStatus.ACCEPTED_202);
+            callback.succeeded();
+            return true;
+        }
+        if(!response.getHeaders().contains(HttpHeader.CONTENT_TYPE)){
+            response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json;charset=utf-8");
+        }
+        return false;
+    }
+
 
     @Getter
     @Accessors(fluent = true, chain = true)
