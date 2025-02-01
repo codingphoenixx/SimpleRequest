@@ -90,11 +90,11 @@ public class RequestDispatcher {
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
         }
-       var wasPreFireRequest = addDefaultHeaders(request, response, callback);
-       if (wasPreFireRequest && filterPrefireRequests) {
-           Logger.getInstance().debug("The Request filtered out because it was a prefire request.");
-           return;
-       }
+        var wasPreFireRequest = addDefaultHeaders(request, response, callback);
+        if (wasPreFireRequest && filterPrefireRequests) {
+            Logger.getInstance().debug("The Request filtered out because it was a prefire request.");
+            return;
+        }
         for (Map.Entry<Pattern, MethodHandler> entry : handlers.entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
@@ -162,7 +162,7 @@ public class RequestDispatcher {
             callback.succeeded();
             return true;
         }
-        if(!response.getHeaders().contains(HttpHeader.CONTENT_TYPE)){
+        if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE)) {
             response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json;charset=utf-8");
         }
         return false;
@@ -202,6 +202,8 @@ public class RequestDispatcher {
                     parameters[i] = response;
                 } else if (Callback.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = callback;
+                } else if (MethodHandler.class.isAssignableFrom(parameter.getType())) {
+                    parameters[i] = this;
                 } else if (String.class.isAssignableFrom(parameter.getType())) {
                     String paramName = method.getParameters()[args].getName();
                     parameters[i] = pathVariables.get(paramName);
