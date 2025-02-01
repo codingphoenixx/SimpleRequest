@@ -135,12 +135,9 @@ public class RequestDispatcher {
             @Override
             public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 String pathInfo = request.getHttpURI().getPath();
-                System.out.println(pathInfo);
                 if (pathInfo != null) {
-                    System.out.println("Found path info");
                     RequestDispatcher.this.handle(pathInfo, request, response, callback);
                 } else {
-                    System.out.println("NO PRIVIDER FOUND");
                     response.setStatus(HttpStatus.NOT_FOUND_404);
                     callback.succeeded();
                 }

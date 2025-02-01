@@ -175,12 +175,14 @@ public class WebServer {
     }
 
     public boolean hasAccess(RequestDispatcher.MethodHandler methodHandler, Request request) {
-        if (authenticationHandler == null) return true;
+        Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        if (authenticationHandler == null) return false;
         return authenticationHandler.hasAccess(methodHandler, request);
     }
 
     public boolean hasPermission(String permission, Request request) {
-        if (authenticationHandler == null) return true;
+        Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        if (authenticationHandler == null) return false;
         return authenticationHandler.hasPermission(permission, request);
     }
 }
