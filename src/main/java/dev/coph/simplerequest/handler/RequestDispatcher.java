@@ -79,8 +79,11 @@ public class RequestDispatcher {
     }
 
     /**
-     * Registers the methods of the provided instance that are annotated with {@link RequestHandler}.
-     **/
+     * Registers all methods annotated with {@code @RequestHandler} from the provided instance.
+     * These methods are stored as handlers that can be invoked based on incoming HTTP request paths.
+     *
+     * @param instance the object containing methods annotated with {@code @RequestHandler}
+     */
     public void register(Object instance) {
         for (Method method : instance.getClass().getMethods()) {
             if (method.isAnnotationPresent(RequestHandler.class)) {

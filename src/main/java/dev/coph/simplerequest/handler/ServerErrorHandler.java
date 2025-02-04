@@ -15,6 +15,14 @@ import org.eclipse.jetty.util.Callback;
  * a registered callback of the success state.
  */
 public class ServerErrorHandler extends ErrorHandler {
+    /**
+     * Constructs a new instance of {@code ServerErrorHandler}.
+     *
+     * This constructor initializes the error handler, enabling it to process server errors
+     * by implementing specialized logic for evaluating and adjusting server responses.
+     */
+    public ServerErrorHandler() {
+    }
 
     /**
      * Handles a server error by evaluating the response status and adjusting it if necessary.

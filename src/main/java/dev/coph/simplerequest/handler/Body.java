@@ -16,9 +16,17 @@ import lombok.experimental.Accessors;
  * - Constructed as a final class to ensure immutability.
  */
 @Getter
-@AllArgsConstructor
 @Accessors(fluent = true)
 public class Body {
+
+    /**
+     * Constructs a new {@code Body} object with the specified content.
+     *
+     * @param content the content of the HTTP request body
+     */
+    public Body(String content) {
+        this.content = content;
+    }
 
     /**
      * Represents the content of the HTTP request body.
