@@ -53,7 +53,6 @@ public class RequestDispatcher {
                 Pattern pattern = createPattern(path);
                 MethodHandler methodHandler = new MethodHandler(path, annotation.receiveBody(), instance, method);
                 methodHandler.needAuth = true;
-                methodHandler.permission = annotation.permission();
                 handlers.put(pattern, methodHandler);
             }
         }
@@ -170,7 +169,6 @@ public class RequestDispatcher {
     @Accessors(fluent = true, chain = true)
     public static class MethodHandler {
         private final String path;
-        private String permission;
         private boolean needAuth = false;
 
         private final boolean receiveBody;

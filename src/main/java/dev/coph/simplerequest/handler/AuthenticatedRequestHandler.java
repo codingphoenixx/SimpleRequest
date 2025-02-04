@@ -11,8 +11,6 @@ public @interface AuthenticatedRequestHandler {
 
     String path();
 
-    String permission();
-
     boolean receiveBody() default false;
 
 }
