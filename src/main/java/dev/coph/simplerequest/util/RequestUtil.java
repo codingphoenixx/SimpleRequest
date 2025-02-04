@@ -38,6 +38,7 @@ public class RequestUtil {
     public static boolean writeAnswer(Response response, Callback callback, String answer) {
         try {
             response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
+            callback.succeeded();
         } catch (Exception e) {
             Logger.getInstance().error("Error writing answer.");
             Logger.getInstance().error(e);
@@ -77,6 +78,7 @@ public class RequestUtil {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(answerImage, format, byteArrayOutputStream);
             response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
+            callback.succeeded();
         } catch (Exception e) {
             Logger.getInstance().error("Error writing answer.");
             Logger.getInstance().error(e);
