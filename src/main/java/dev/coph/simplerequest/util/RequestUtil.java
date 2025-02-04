@@ -74,6 +74,7 @@ public class RequestUtil {
      * @return true if the image is successfully written, false if an error occurs
      */
     public static boolean writeAnswer(Response response, Callback callback, BufferedImage answerImage, String format) {
+        //TODO: CHANGE RESPONSE FORMAT
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(answerImage, format, byteArrayOutputStream);
