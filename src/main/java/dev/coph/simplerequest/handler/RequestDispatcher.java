@@ -24,40 +24,86 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The {@code RequestDispatcher} class is responsible for routing and handling HTTP requests
+ * in a web server environment. It provides methods for registering request handlers based
+ * on specific patterns and managing incoming requests by delegating them to the appropriate
+ * registered handler.
+ *
+ * The class supports features such as:
+ * - Dynamic routing with path variable resolution.
+ * - Filtering of preflight (CORS) requests.
+ * - Authentication checks for secured endpoints.
+ * - Integration with {@link WebServer} for handling HTTP processing.
+ */
 @Getter
 @Accessors(fluent = true)
 public class RequestDispatcher {
+    /**
+     * Represents the web server instance utilized by the RequestDispatcher.
+     * It is used to dispatch and manage incoming HTTP requests and responses.
+     * This variable is initialized through the constructor and is immutable.
+     */
     private final WebServer webServer;
 
-
+    /**
+     * Represents a flag to determine whether preflight requests (e.g., CORS preflight OPTIONS requests)
+     * should be filtered and handled automatically.
+     *
+     * When set to {@code true}, the system processes and responds to preflight requests, enabling
+     * functionalities such as setting appropriate CORS headers or bypassing certain processing pipelines.
+     * When set to {@code false}, such requests are passed down to the subsequent request handling logic without filtering.
+     *
+     */
     @Setter
     private boolean filterPrefireRequests = true;
 
+    /**
+     * A mapping of regular expression patterns to their corresponding method handlers.
+     * The patterns are compiled from HTTP request paths registered through the dispatcher.
+     * Each mapped {@link MethodHandler} is responsible for handling a specific HTTP request
+     * based on the pattern it matches. This map serves as the core routing mechanism used
+     * by the {@link RequestDispatcher} to delegate requests to the appropriate handlers.
+     */
     private final Map<Pattern, MethodHandler> handlers = new HashMap<>();
 
+    /**
+     * Constructs a new RequestDispatcher with the specified WebServer instance.
+     * The RequestDispatcher manages the routing of HTTP requests and delegates them
+     * to registered handlers based on their paths.
+     *
+     * @param webServer the WebServer instance used to process and dispatch HTTP requests
+     */
     public RequestDispatcher(WebServer webServer) {
         this.webServer = webServer;
     }
 
+    /**
+     * Registers the methods of the provided instance that are annotated with {@link RequestHandler}.
+     **/
     public void register(Object instance) {
         for (Method method : instance.getClass().getMethods()) {
             if (method.isAnnotationPresent(RequestHandler.class)) {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
                 Pattern pattern = createPattern(path);
-                handlers.put(pattern, new MethodHandler(path, annotation.receiveBody(), instance, method));
-            }
-            if (method.isAnnotationPresent(AuthenticatedRequestHandler.class)) {
-                AuthenticatedRequestHandler annotation = method.getAnnotation(AuthenticatedRequestHandler.class);
-                String path = annotation.path();
-                Pattern pattern = createPattern(path);
                 MethodHandler methodHandler = new MethodHandler(path, annotation.receiveBody(), instance, method);
-                methodHandler.needAuth = true;
+
+                methodHandler.needAuth = annotation.needAuth();
                 handlers.put(pattern, methodHandler);
             }
         }
     }
 
+    /**
+     * Creates a regular expression pattern from the provided path string.
+     * The path is processed to generate a regex that matches dynamic segments
+     * enclosed in curly braces (e.g., {id}) and static segments as-is.
+     * It ensures the resulting regex is properly escaped and suitable for path matching.
+     *
+     * @param path the input path string, typically containing static and/or dynamic segments
+     * @return a compiled Pattern object representing the regex derived from the input path
+     */
     private Pattern createPattern(String path) {
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
@@ -85,6 +131,17 @@ public class RequestDispatcher {
         return Pattern.compile(regex.toString());
     }
 
+    /**
+     * Handles HTTP requests by matching the given path against registered handlers
+     * and invoking the corresponding handler logic. Supports authentication checks,
+     * default header additions, and dynamic path variable resolution.
+     *
+     * @param path      the HTTP request path to be processed
+     * @param request   the HTTP request object containing the request data
+     * @param response  the HTTP response object to be populated and sent back
+     * @param callback  the callback to notify the completion of request processing
+     * @throws Exception if an error occurs during request handling or method invocation
+     */
     public void handle(String path, Request request, Response response, Callback callback) throws Exception {
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
@@ -100,26 +157,38 @@ public class RequestDispatcher {
             if (matcher.matches()) {
                 MethodHandler handler = entry.getValue();
 
-                if (handler.needAuth)
-                    if (webServer.authenticationHandler() != null) {
-                        if (!webServer.authenticationHandler().hasAccess(handler, request)) {
-                            response.setStatus(HttpStatus.UNAUTHORIZED_401);
-                            callback.succeeded();
-                            return;
-                        }
-                    } else {
+                AuthenticationAnswer authenticationAnswer = null;
+                if (handler.needAuth) {
+                    AuthenticationHandler authenticationHandler = webServer.authenticationHandler();
+
+                    if (authenticationHandler == null) {
                         Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
                         callback.succeeded();
                         return;
                     }
+                    authenticationAnswer = authenticationHandler.hasAccess(handler, request);
+
+                    if (authenticationAnswer == null) {
+                        Logger.getInstance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
+                        response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                        callback.succeeded();
+                        return;
+                    }
+
+                    if (!authenticationAnswer.hasAccess()) {
+                        response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                        callback.succeeded();
+                        return;
+                    }
+                }
 
                 Map<String, String> pathVariables = new HashMap<>();
 
                 for (int i = 1; i <= matcher.groupCount(); i++) {
                     pathVariables.put("arg" + i, matcher.group(i));
                 }
-                handler.invoke(request, response, callback, pathVariables);
+                handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
                 response.setStatus(HttpStatus.OK_200);
                 callback.succeeded();
                 return;
@@ -129,6 +198,17 @@ public class RequestDispatcher {
         callback.succeeded();
     }
 
+    /**
+     * Creates and returns a ContextHandler instance. The ContextHandler is responsible
+     * for handling requests with a specified path prefix and delegating them to the
+     * appropriate request handler logic within the RequestDispatcher class.
+     *
+     * The newly created ContextHandler:
+     * - Handles incoming HTTP requests using a Handler.
+     * - Evaluates requests based on their path and invokes the corresponding handler logic.
+     * - Returns a 404 NOT FOUND response if the path information is null or does not match any handler.
+     *
+     * @return a ContextHandler instance*/
     public ContextHandler createContextHandler() {
         return new ContextHandler(new Handler.Abstract() {
             @Override
@@ -145,6 +225,16 @@ public class RequestDispatcher {
         }, "/");
     }
 
+    /**
+     * Adds default headers to the response based on the provided request and response objects.
+     * This method also handles preflight requests and sets appropriate HTTP headers for CORS (Cross-Origin Resource Sharing).
+     * If the request method is "OPTIONS", it adjusts the response to indicate acceptance.
+     *
+     * @param request  the HTTP request being processed; used to retrieve headers and other request metadata.
+     * @param response the HTTP response being constructed; modified to include default and necessary headers.
+     * @param callback the callback to be notified when the operation is completed successfully.
+     * @return true if the request was a preflight request and has been handled; false otherwise.
+     */
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
@@ -165,16 +255,29 @@ public class RequestDispatcher {
     }
 
 
+    /**
+     * Represents a handler responsible for invoking a specific method mapped to an HTTP request path.
+     * The handler encapsulates method details, the associated instance, and configuration
+     * related to authentication and the request body.
+     */
     @Getter
     @Accessors(fluent = true, chain = true)
     public static class MethodHandler {
         private final String path;
         private boolean needAuth = false;
-
         private final boolean receiveBody;
         private final Object instance;
         private final Method method;
 
+        /**
+         * Constructs a MethodHandler instance that associates a method with a specific HTTP request path,
+         * indicating whether the HTTP body content should be received, and maintaining the instance and method to invoke.
+         *
+         * @param path         the HTTP path with which this method handler is associated
+         * @param receiveBody  whether the HTTP request body should be received by this method handler
+         * @param instance     the instance on which the method will be invoked
+         * @param method       the method to be invoked in response to HTTP requests
+         */
         public MethodHandler(String path, boolean receiveBody, Object instance, Method method) {
             this.path = path;
             this.receiveBody = receiveBody;
@@ -182,7 +285,21 @@ public class RequestDispatcher {
             this.method = method;
         }
 
-        public void invoke(Request request, Response response, Callback callback, Map<String, String> pathVariables) throws Exception {
+
+        /**
+         * Invokes the specified method associated with the instance of this handler,
+         * dynamically resolving and mapping the required parameters. This method processes
+         * the input parameters and invokes the encapsulated method based on the defined
+         * request and configuration.
+         *
+         * @param request           the HTTP request to process
+         * @param response          the HTTP response to send
+         * @param callback          the callback function to notify upon operation completion
+         * @param authenticationAnswer an object representing the result of the authentication process
+         * @param pathVariables     a map of path variable names to their corresponding values
+         * @throws Exception        if an error occurs during method invocation
+         */
+        public void invoke(Request request, Response response, Callback callback, AuthenticationAnswer authenticationAnswer, Map<String, String> pathVariables) throws Exception {
             Parameter[] parameterTypes = method.getParameters();
             Object[] parameters = new Object[parameterTypes.length];
 
@@ -193,6 +310,8 @@ public class RequestDispatcher {
                     parameters[i] = new Body(Content.Source.asString(request, StandardCharsets.UTF_8));
                 } else if (Request.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = request;
+                } else if (AuthenticationAnswer.class.isAssignableFrom(parameter.getType())) {
+                    parameters[i] = authenticationAnswer;
                 } else if (Response.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = response;
                 } else if (Callback.class.isAssignableFrom(parameter.getType())) {

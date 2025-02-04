@@ -6,16 +6,81 @@ import lombok.NonNull;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Provides functionality to enforce rate-limiting policies for different keys (e.g., users, IP addresses).
+ *
+ * The RateLimitProvider class utilizes a combination of default rate-limiting parameters
+ * (time window and maximum requests) and a dynamic mapping of contexts to {@link RateLimit} objects.
+ * Each key (representing a unique context) is associated with a {@link RateLimit} object that governs
+ * request rate management within a specified time window, ensuring controlled access to resources or services.
+ *
+ * This class supports thread-safe request evaluation via the {@link #allowRequest(String)} method,
+ * which evaluates whether a request adheres to the configured rate-limiting constraints.
+ * A default configuration is applied to new contexts dynamically, ensuring flexibility
+ * and simplicity in managing a wide range of rate-limiting scenarios.
+ */
 public class RateLimitProvider {
+
+    /**
+     * Stores rate limit configurations associated with specific keys for managing request throttling.
+     *
+     * This map maintains a collection of {@link RateLimit} objects, where each key represents a unique
+     * context for rate limiting (e.g., a user ID or an IP address). Entries in this map are dynamically
+     * created or updated as needed when handling rate-limited requests.
+     *
+     * This field is immutable and initialized during the instantiation of the {@code RateLimitProvider}.
+     * It is used primarily by the {@link RateLimitProvider#allowRequest(String)} method to enforce
+     * rate-limiting policies based on the configurations defined for each context.
+     */
     private final HashMap<String, RateLimit> rateLimits = new HashMap<>();
+
+    /**
+     * Represents the default time window duration used for rate limiting, in milliseconds.
+     *
+     * This value serves as a default configuration for the duration within which a certain
+     * number of requests are allowed. It is used when creating new {@link RateLimit} objects
+     * in the absence of a specific time window configuration for a particular entity.
+     *
+     * The field is immutable and is set during the instantiation of the {@code RateLimitProvider}
+     * class, ensuring consistent and predictable behavior for rate-limiting operations
+     * managed by the provider.
+     */
     private final long defaultTimeWindow;
+    /**
+     * Represents the maximum number of requests allowed within a specified time window
+     * for rate-limiting purposes.
+     *
+     * This value is used throughout the rate-limiting logic to determine whether a particular entity
+     * (e.g., a user or an IP address) has exceeded the allowed number of requests within the given
+     * time span. It serves as a key configuration parameter in the enforcement of rate-limiting policies.
+     *
+     * The value of this field is set during the instantiation of the containing class and remains
+     * immutable thereafter, ensuring consistent behavior of the rate-limiting mechanism.
+     */
     private final int maxRequests;
 
+    /**
+     * Constructs a RateLimitProvider with the specified time window and maximum number of requests.
+     * The created instance is used to enforce rate-limiting policies based on these configurations.
+     *
+     * @param time a {@link Time} object representing the duration of the time window for rate limiting
+     * @param maxRequests the maximum number of requests allowed within the specified time window
+     */
     public RateLimitProvider(@NonNull Time time, int maxRequests) {
         this.maxRequests = maxRequests;
         this.defaultTimeWindow = time.toMilliseconds();
     }
 
+
+    /**
+     * Determines whether a request is allowed under the current rate-limiting policy for a specific key.
+     * This method leverages a {@link RateLimit} object associated with the provided key to enforce the
+     * rate-limiting configuration. If no {@link RateLimit} object exists for the key, a new one is
+     * created using the configured maximum number of requests and default time window.
+     *
+     * @param key the identifier for the rate limit context (e.g., a user ID or IP address)
+     * @return true if the request is allowed under the rate limit; false otherwise
+     */
     public boolean allowRequest(String key){
         RateLimit rateLimit = rateLimits.computeIfAbsent(key, s -> new RateLimit(maxRequests, defaultTimeWindow));
         return rateLimit.allowRequest();
