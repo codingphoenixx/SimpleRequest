@@ -192,7 +192,6 @@ public class RequestDispatcher {
                     pathVariables.put("arg" + i, matcher.group(i));
                 }
                 handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
-                response.setStatus(HttpStatus.OK_200);
                 callback.succeeded();
                 return;
             }
