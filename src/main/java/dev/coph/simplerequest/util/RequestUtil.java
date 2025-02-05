@@ -1,6 +1,7 @@
 package dev.coph.simplerequest.util;
 
 import dev.coph.simplelogger.Logger;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.json.JSONObject;
@@ -54,7 +55,7 @@ public class RequestUtil {
      *
      * @param response the Response object to which the answer will be written
      * @param callback the Callback to be executed upon completion of the write operation
-     * @param answer the JSONObject containing the answer to be written
+     * @param answer   the JSONObject containing the answer to be written
      * @return true if the answer is successfully written, false if an error occurs
      */
     public static boolean writeAnswer(Response response, Callback callback, JSONObject answer) {
@@ -67,18 +68,23 @@ public class RequestUtil {
      * and writes it to the response. In case of an exception, it logs the
      * error and returns false.
      *
-     * @param response the Response object to which the image will be written
-     * @param callback the Callback to be executed upon completion of the write operation
+     * @param response    the Response object to which the image will be written
+     * @param callback    the Callback to be executed upon completion of the write operation
      * @param answerImage the BufferedImage containing the image to be written
-     * @param format the format in which the image should be encoded (e.g., "png", "jpg")
+     * @param format      the format in which the image should be encoded (e.g., "png", "jpg")
      * @return true if the image is successfully written, false if an error occurs
      */
     public static boolean writeAnswer(Response response, Callback callback, BufferedImage answerImage, String format) {
-        //TODO: CHANGE RESPONSE FORMAT
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(answerImage, format, byteArrayOutputStream);
             response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
+
+            if (response.getHeaders().contains(HttpHeader.CONTENT_TYPE))
+                response.getHeaders().remove(HttpHeader.CONTENT_TYPE);
+
+            response.getHeaders().add(HttpHeader.CONTENT_TYPE, "image/" + format);
+
             callback.succeeded();
         } catch (Exception e) {
             Logger.getInstance().error("Error writing answer.");
