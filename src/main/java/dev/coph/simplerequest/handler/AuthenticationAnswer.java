@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
  */
 @Getter
 @Accessors(fluent = true)
-public class AuthenticationAnswer {
+public class AuthenticationAnswer<T> {
     /**
      * Indicates whether access is granted as a result of the authentication process.
      *
@@ -21,24 +21,26 @@ public class AuthenticationAnswer {
      * {@code true} signifies that access is granted, while a value of {@code false}
      * indicates that access is denied.
      */
-    private boolean hasAccess;
-    /**
-     * Represents a descriptive message associated with the authentication result.
-     *
-     * This variable provides additional context or information related to
-     * the success or failure of the authentication process. It may
-     * include error details, success messages, or other relevant explanations.
-     */
-    private String message;
+    private final boolean hasAccess;
 
     /**
-     * Constructs an AuthenticationAnswer instance.
+     * Represents a generic object associated with the result of an authentication process.
      *
-     * @param hasAccess a boolean indicating whether access is granted
-     * @param message a string containing the message associated with the authentication result
+     * This variable is used to store additional information or a specific entity
+     * related to the authentication result. The type of the object is defined
+     * by the generic type parameter {@code T}.
      */
-    public AuthenticationAnswer(boolean hasAccess, String message) {
+    private final T object;
+
+    /**
+     * Constructs a new {@code AuthenticationAnswer} object with the specified
+     * authentication result and associated object.
+     *
+     * @param hasAccess a boolean indicating whether access is granted; {@code true} if access is granted, {@code false} otherwise
+     * @param object a generic object associated with the authentication result; can hold additional information or entity specific to the authentication process
+     */
+    public AuthenticationAnswer(boolean hasAccess, T object) {
         this.hasAccess = hasAccess;
-        this.message = message;
+        this.object = object;
     }
 }

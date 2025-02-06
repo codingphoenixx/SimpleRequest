@@ -13,7 +13,7 @@ import org.eclipse.jetty.server.Request;
  * (based on an associated RequestDispatcher.MethodHandler) and whether specific
  * permissions are granted to perform an operation.
  */
-public interface AuthenticationHandler {
+public interface AuthenticationHandler<T> {
 
     /**
      * Determines whether access is permitted to a specific method handler
@@ -26,7 +26,7 @@ public interface AuthenticationHandler {
      * @return {@code true} if access is granted to the specified method handler;
      * {@code false} otherwise.
      */
-    AuthenticationAnswer hasAccess(RequestDispatcher.MethodHandler path, Request request);
+    AuthenticationAnswer<T> hasAccess(RequestDispatcher.MethodHandler path, Request request);
 
 
     /**
@@ -36,7 +36,7 @@ public interface AuthenticationHandler {
      * @param identifier the unique identifier, such as a user ID or role, to which the permission is being applied.
      * @return true if the specified permission is granted for the given identifier; false otherwise.
      */
-    AuthenticationAnswer hasPermission(String permission, String identifier);
+    AuthenticationAnswer<T> hasPermission(String permission, String identifier);
 
 
 }

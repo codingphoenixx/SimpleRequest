@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'dev.coph'
-version = '1.0.2c'
+version = '1.0.3'
 
 repositories {
     mavenCentral()
@@ -59,7 +59,7 @@ publishing {
     }
     publications {
         maven(MavenPublication) {
-            groupId = "dev.coph"
+            groupId = group
             artifactId = "simplerequest"
             version = this.version
             from components.java
@@ -67,11 +67,11 @@ publishing {
     }
 }
 
-
 java {
     withSourcesJar()
     withJavadocJar()
 }
+
 javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
