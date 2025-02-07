@@ -118,7 +118,7 @@ public class RequestDispatcher {
                 regex.append("\\/");
 
                 if (part.startsWith("{") && part.endsWith("}")) {
-                    regex.append("(\\w+)");
+                    regex.append("(\\[\\w-\\]+)");
                 } else {
                     regex.append(Pattern.quote(part));
                 }
