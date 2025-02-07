@@ -44,7 +44,7 @@ public class Body {
      * @return a {@link JSONObject} representation of the HTTP request body content,
      *         or an empty {@link JSONObject} if the body content is null or empty
      */
-    public JSONObject getAsJSON() {
+    public JSONObject asJSON() {
         if (content == null || content.isEmpty())
             return new JSONObject();
         return new JSONObject(content);
