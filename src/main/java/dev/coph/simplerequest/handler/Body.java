@@ -1,16 +1,16 @@
 package dev.coph.simplerequest.handler;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.json.JSONObject;
 
 /**
  * Represents the body of an HTTP request. This class is commonly used to
  * encapsulate the content of a request body as a string.
- *
+ * <p>
  * This class is immutable and designed to simplify working with request bodies
  * in HTTP request handling scenarios.
- *
+ * <p>
  * Features:
  * - Fluent accessors for retrieving the body content.
  * - Constructed as a final class to ensure immutability.
@@ -30,10 +30,23 @@ public class Body {
 
     /**
      * Represents the content of the HTTP request body.
-     *
+     * <p>
      * This variable is immutable and encapsulates the raw string data of the
      * request body. It is designed to provide a straightforward mechanism for
      * accessing and working with HTTP request body content in a structured manner.
      */
     private final String content;
+
+    /**
+     * Converts the content of the HTTP request body to a {@link JSONObject}.
+     * If the body content is null or empty, an empty {@link JSONObject} is returned.
+     *
+     * @return a {@link JSONObject} representation of the HTTP request body content,
+     *         or an empty {@link JSONObject} if the body content is null or empty
+     */
+    public JSONObject getAsJSON() {
+        if (content == null || content.isEmpty())
+            return new JSONObject();
+        return new JSONObject(content);
+    }
 }
