@@ -78,8 +78,9 @@ public class RequestUtil {
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(answerImage, format, byteArrayOutputStream);
-            response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
+
             response.getHeaders().add(HttpHeader.CONTENT_TYPE, "image/" + format);
+            response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
             callback.succeeded();
         } catch (Exception e) {
             Logger.getInstance().error("Error writing answer.");
