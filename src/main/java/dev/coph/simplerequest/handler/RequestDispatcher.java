@@ -192,6 +192,9 @@ public class RequestDispatcher {
                     pathVariables.put("arg" + i, matcher.group(i));
                 }
                 handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
+                if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE)) {
+                    response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json;charset=utf-8");
+                }
                 callback.succeeded();
                 return;
             }
@@ -249,9 +252,6 @@ public class RequestDispatcher {
             response.setStatus(HttpStatus.ACCEPTED_202);
             callback.succeeded();
             return true;
-        }
-        if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE)) {
-            response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json;charset=utf-8");
         }
         return false;
     }

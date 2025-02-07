@@ -79,11 +79,8 @@ public class RequestUtil {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(answerImage, format, byteArrayOutputStream);
             response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
-
-            if (response.getHeaders().contains(HttpHeader.CONTENT_TYPE))
-                response.getHeaders().remove(HttpHeader.CONTENT_TYPE);
-
-            response.getHeaders().add(HttpHeader.CONTENT_TYPE, "image/" + format);
+            if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE))
+                response.getHeaders().put(HttpHeader.CONTENT_TYPE, "image/" + format);
 
             callback.succeeded();
         } catch (Exception e) {
