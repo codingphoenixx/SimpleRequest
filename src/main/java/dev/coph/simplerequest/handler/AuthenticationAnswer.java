@@ -32,6 +32,8 @@ public class AuthenticationAnswer<T> {
      */
     private final T object;
 
+    private final String message;
+
     /**
      * Constructs a new {@code AuthenticationAnswer} object with the specified
      * authentication result and associated object.
@@ -42,5 +44,20 @@ public class AuthenticationAnswer<T> {
     public AuthenticationAnswer(boolean hasAccess, T object) {
         this.hasAccess = hasAccess;
         this.object = object;
+        this.message = null;
+    }
+
+    /**
+     * Constructs a new {@code AuthenticationAnswer} object with the specified
+     * authentication result, associated object, and an accompanying message.
+     *
+     * @param hasAccess a boolean indicating whether access is granted; {@code true} if access is granted, {@code false} otherwise
+     * @param object a generic object associated with the authentication result; can hold additional information or entity specific to the authentication process
+     * @param message a string that provides a descriptive message about the authentication result
+     */
+    public AuthenticationAnswer(boolean hasAccess, T object, String message) {
+        this.hasAccess = hasAccess;
+        this.object = object;
+        this.message = message;
     }
 }
