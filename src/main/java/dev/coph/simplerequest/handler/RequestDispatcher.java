@@ -3,6 +3,7 @@ package dev.coph.simplerequest.handler;
 
 import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
+import dev.coph.simplerequest.util.RequestUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
  * in a web server environment. It provides methods for registering request handlers based
  * on specific patterns and managing incoming requests by delegating them to the appropriate
  * registered handler.
- *
+ * <p>
  * The class supports features such as:
  * - Dynamic routing with path variable resolution.
  * - Filtering of preflight (CORS) requests.
@@ -49,11 +50,10 @@ public class RequestDispatcher {
     /**
      * Represents a flag to determine whether preflight requests (e.g., CORS preflight OPTIONS requests)
      * should be filtered and handled automatically.
-     *
+     * <p>
      * When set to {@code true}, the system processes and responds to preflight requests, enabling
      * functionalities such as setting appropriate CORS headers or bypassing certain processing pipelines.
      * When set to {@code false}, such requests are passed down to the subsequent request handling logic without filtering.
-     *
      */
     @Setter
     private boolean filterPrefireRequests = true;
@@ -139,10 +139,10 @@ public class RequestDispatcher {
      * and invoking the corresponding handler logic. Supports authentication checks,
      * default header additions, and dynamic path variable resolution.
      *
-     * @param path      the HTTP request path to be processed
-     * @param request   the HTTP request object containing the request data
-     * @param response  the HTTP response object to be populated and sent back
-     * @param callback  the callback to notify the completion of request processing
+     * @param path     the HTTP request path to be processed
+     * @param request  the HTTP request object containing the request data
+     * @param response the HTTP response object to be populated and sent back
+     * @param callback the callback to notify the completion of request processing
      * @throws Exception if an error occurs during request handling or method invocation
      */
     public void handle(String path, Request request, Response response, Callback callback) throws Exception {
@@ -181,6 +181,7 @@ public class RequestDispatcher {
 
                     if (!authenticationAnswer.hasAccess()) {
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                        RequestUtil.writeAnswer(response, callback, authenticationAnswer.message());
                         callback.succeeded();
                         return;
                     }
@@ -207,13 +208,14 @@ public class RequestDispatcher {
      * Creates and returns a ContextHandler instance. The ContextHandler is responsible
      * for handling requests with a specified path prefix and delegating them to the
      * appropriate request handler logic within the RequestDispatcher class.
-     *
+     * <p>
      * The newly created ContextHandler:
      * - Handles incoming HTTP requests using a Handler.
      * - Evaluates requests based on their path and invokes the corresponding handler logic.
      * - Returns a 404 NOT FOUND response if the path information is null or does not match any handler.
      *
-     * @return a ContextHandler instance*/
+     * @return a ContextHandler instance
+     */
     public ContextHandler createContextHandler() {
         return new ContextHandler(new Handler.Abstract() {
             @Override
@@ -275,10 +277,10 @@ public class RequestDispatcher {
          * Constructs a MethodHandler instance that associates a method with a specific HTTP request path,
          * indicating whether the HTTP body content should be received, and maintaining the instance and method to invoke.
          *
-         * @param path         the HTTP path with which this method handler is associated
-         * @param receiveBody  whether the HTTP request body should be received by this method handler
-         * @param instance     the instance on which the method will be invoked
-         * @param method       the method to be invoked in response to HTTP requests
+         * @param path        the HTTP path with which this method handler is associated
+         * @param receiveBody whether the HTTP request body should be received by this method handler
+         * @param instance    the instance on which the method will be invoked
+         * @param method      the method to be invoked in response to HTTP requests
          */
         public MethodHandler(String path, boolean receiveBody, Object instance, Method method) {
             this.path = path;
@@ -294,12 +296,12 @@ public class RequestDispatcher {
          * the input parameters and invokes the encapsulated method based on the defined
          * request and configuration.
          *
-         * @param request           the HTTP request to process
-         * @param response          the HTTP response to send
-         * @param callback          the callback function to notify upon operation completion
+         * @param request              the HTTP request to process
+         * @param response             the HTTP response to send
+         * @param callback             the callback function to notify upon operation completion
          * @param authenticationAnswer an object representing the result of the authentication process
-         * @param pathVariables     a map of path variable names to their corresponding values
-         * @throws Exception        if an error occurs during method invocation
+         * @param pathVariables        a map of path variable names to their corresponding values
+         * @throws Exception if an error occurs during method invocation
          */
         public void invoke(Request request, Response response, Callback callback, AuthenticationAnswer authenticationAnswer, Map<String, String> pathVariables) throws Exception {
             Parameter[] parameterTypes = method.getParameters();
