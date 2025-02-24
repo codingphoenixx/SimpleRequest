@@ -49,4 +49,16 @@ public class Body {
             return new JSONObject();
         return new JSONObject(content);
     }
+
+    /**
+     * Returns a string representation of the HTTP request body content.
+     * This method provides direct access to the raw content contained
+     * within the body.
+     *
+     * @return the content of the HTTP request body as a string
+     */
+    @Override
+    public String toString() {
+        return content;
+    }
 }
