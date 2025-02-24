@@ -129,8 +129,6 @@ public class RequestDispatcher {
             regex.append("\\/");
         }
         regex.append("$");
-
-        System.out.println(regex.toString());
         return Pattern.compile(regex.toString());
     }
 
