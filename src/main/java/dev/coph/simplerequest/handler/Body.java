@@ -89,11 +89,11 @@ public class Body {
 
 
     /**
-     * Converts the content of the HTTP request body to a {@link JSONObject}.
-     * If the body content is null or empty, an empty {@link JSONObject} is returned.
+     * Converts the content of the HTTP request body into a {@link JSONObject}.
+     * If the body content is empty or null, an empty {@link JSONObject} is returned.
      *
-     * @return a {@link JSONObject} representation of the HTTP request body content,
-     * or an empty {@link JSONObject} if the body content is null or empty
+     * @return a {@link JSONObject} representation of the HTTP request body content
+     * @throws IOException if an I/O error occurs while accessing the request body content
      */
     public JSONObject asJSON() throws IOException {
         String content = asString();

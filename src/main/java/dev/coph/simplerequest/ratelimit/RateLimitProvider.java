@@ -63,10 +63,11 @@ public class RateLimitProvider {
     private final int maxRequests;
 
     /**
-     * Constructs a RateLimitProvider with the specified time window and maximum number of requests.
-     * The created instance is used to enforce rate-limiting policies based on these configurations.
+     * Constructs a RateLimitProvider instance with the supplied web server, time window, and maximum request limit.
+     * This initialization allows configuring the rate-limiting policies.
      *
-     * @param time        a {@link Time} object representing the duration of the time window for rate limiting
+     * @param webServer the web server instance to which the rate-limiting policies will be applied
+     * @param time the time window to enforce the rate limit, represented as a Time object
      * @param maxRequests the maximum number of requests allowed within the specified time window
      */
     public RateLimitProvider(WebServer webServer, @NonNull Time time, int maxRequests) {
@@ -77,13 +78,16 @@ public class RateLimitProvider {
 
 
     /**
-     * Determines whether a request is allowed under the current rate-limiting policy for a specific key.
-     * This method leverages a {@link RateLimit} object associated with the provided key to enforce the
-     * rate-limiting configuration. If no {@link RateLimit} object exists for the key, a new one is
-     * created using the configured maximum number of requests and default time window.
+     * Determines whether a request is allowed based on rate-limiting policies associated with a specific key
+     * and request path. The method assesses both default and custom rate limits for the provided input.
      *
-     * @param key the identifier for the rate limit context (e.g., a user ID or IP address)
-     * @return true if the request is allowed under the rate limit; false otherwise
+     * The method first ensures that a default rate limit is established, then it evaluates any additional
+     * custom rate limits associated with the input path. Finally, it checks if the request complies with all
+     * enforced rate limits. If any of the rate limits deny the request, the method returns false.
+     *
+     * @param key the unique identifier used to group requests and apply specific rate-limiting policies
+     * @param path the request path to evaluate for any matching custom rate-limiting rules
+     * @return true if the request complies with all rate-limiting policies; false otherwise
      */
     public boolean allowRequest(String key, String path) {
         HashMap<String, RateLimit> rateLimits = this.rateLimits.computeIfAbsent(key, s -> new HashMap<>());

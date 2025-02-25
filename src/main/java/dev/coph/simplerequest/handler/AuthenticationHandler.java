@@ -6,12 +6,13 @@ import lombok.experimental.Accessors;
 import org.eclipse.jetty.server.Request;
 
 /**
- * The AuthenticationHandler interface defines methods for managing and verifying access control
- * and permissions in an application.
- * <p>
- * It provides mechanisms to check if a user has access to a certain route or method
- * (based on an associated RequestDispatcher.MethodHandler) and whether specific
- * permissions are granted to perform an operation.
+ * Defines the contract for handling authentication and authorization processes.
+ *
+ * The {@code AuthenticationHandler} interface provides methods to check access
+ * permissions and validate if specific actions or resources are allowed for a given
+ * request or identifier.
+ *
+ * @param <T> the type of the object associated with the authentication result
  */
 public interface AuthenticationHandler<T> {
 

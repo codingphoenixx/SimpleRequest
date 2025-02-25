@@ -32,12 +32,12 @@ import java.util.regex.Pattern;
 public class RateLimitHandler extends ContextHandlerCollection {
 
     /**
-     * Constructs a RateLimitHandler instance to manage and enforce rate limiting
-     * on a given web server. It initializes the rate limit settings such as
-     * the time span and the maximum number of requests allowed within that span.
+     * Constructs a RateLimitHandler that enforces rate limiting on incoming HTTP requests.
+     * Initializes a RateLimitProvider to manage the rate limiting logic based on the provided parameters.
      *
-     * @param timeSpan           the time duration over which the rate limit is enforced
-     * @param maxRequestsPerSpan the maximum number of requests allowed within the specified time span
+     * @param webServer           the web server instance associated with this handler
+     * @param timeSpan            the time span during which requests are monitored and limited
+     * @param maxRequestsPerSpan  the maximum number of requests allowed during the specified time span
      */
     public RateLimitHandler(WebServer webServer, Time timeSpan, int maxRequestsPerSpan) {
         rateLimitProvider = new RateLimitProvider(webServer, timeSpan, maxRequestsPerSpan);
