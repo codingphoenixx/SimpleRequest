@@ -290,7 +290,7 @@ public class WebServer {
      */
     public WebServer useRateLimit(Time time, int maxRequestsPerSpan) {
         Logger.getInstance().info("Creating RateLimit Handler");
-        this.rateLimitHandler = new RateLimitHandler(time, maxRequestsPerSpan);
+        this.rateLimitHandler = new RateLimitHandler(this, time, maxRequestsPerSpan);
         Logger.getInstance().success("Successfully RateLimit Handler");
         return this;
     }

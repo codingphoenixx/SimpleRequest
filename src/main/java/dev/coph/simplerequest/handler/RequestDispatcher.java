@@ -2,6 +2,8 @@ package dev.coph.simplerequest.handler;
 
 
 import dev.coph.simplelogger.Logger;
+import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
+import dev.coph.simplerequest.ratelimit.CustomRateLimit;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.RequestUtil;
 import lombok.Getter;
@@ -9,7 +11,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -18,7 +19,6 @@ import org.eclipse.jetty.util.Callback;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +40,14 @@ import java.util.regex.Pattern;
 @Getter
 @Accessors(fluent = true)
 public class RequestDispatcher {
+    /**
+     * A mapping between regular expression patterns and custom rate limit configurations
+     * specific to each pattern.
+     * <p>
+     * This map is used to define and apply additional custom rate limiting rules for HTTP
+     * requests
+     */
+    private final HashMap<Pattern, AdditionalCustomRateLimit> additionalCustomRateLimits = new HashMap<>();
     /**
      * Represents the web server instance utilized by the RequestDispatcher.
      * It is used to dispatch and manage incoming HTTP requests and responses.
@@ -90,11 +98,17 @@ public class RequestDispatcher {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
                 Pattern pattern = createPattern(path);
-                MethodHandler methodHandler = new MethodHandler(path, annotation.receiveBody(), instance, method);
 
+                if (method.isAnnotationPresent(CustomRateLimit.class)) {
+                    CustomRateLimit customRateLimit = method.getAnnotation(CustomRateLimit.class);
+                    additionalCustomRateLimits.put(pattern, new AdditionalCustomRateLimit(customRateLimit));
+                }
+
+                MethodHandler methodHandler = new MethodHandler(path, annotation.receiveBody(), instance, method);
                 methodHandler.needAuth = annotation.needAuth();
                 handlers.put(pattern, methodHandler);
             }
+
         }
     }
 
