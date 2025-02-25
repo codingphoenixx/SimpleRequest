@@ -38,7 +38,8 @@ public class RequestUtil {
      */
     public static boolean writeAnswer(Response response, Callback callback, String answer) {
         try {
-            response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
+            if (answer != null && !answer.isEmpty())
+                response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
             callback.succeeded();
         } catch (Exception e) {
             Logger.getInstance().error("Error writing answer.");
@@ -59,7 +60,9 @@ public class RequestUtil {
      * @return true if the answer is successfully written, false if an error occurs
      */
     public static boolean writeAnswer(Response response, Callback callback, JSONObject answer) {
-        return writeAnswer(response, callback, answer.toString());
+        if (answer != null)
+            return writeAnswer(response, callback, answer.toString());
+        return writeAnswer(response, callback, "");
     }
 
     /**
@@ -75,6 +78,10 @@ public class RequestUtil {
      * @return true if the image is successfully written, false if an error occurs
      */
     public static boolean writeAnswer(Response response, Callback callback, BufferedImage answerImage, String format) {
+        if (format == null)
+            return false;
+        if (answerImage == null)
+            return false;
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(answerImage, format, byteArrayOutputStream);
