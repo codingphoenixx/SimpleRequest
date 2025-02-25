@@ -34,6 +34,14 @@ public class Body {
     }
 
     /**
+     * Determines if the HTTP request body is empty.
+     *
+     * @return true if the request body has a length of 0, false otherwise
+     */
+    public boolean isEmpty(){
+        return request.getLength() == 0;
+    }
+    /**
      * Retrieves the content of the HTTP request body as a string using UTF-8 encoding.
      *
      * @return the content of the HTTP request body as a string
