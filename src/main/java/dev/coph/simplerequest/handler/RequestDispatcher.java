@@ -309,7 +309,7 @@ public class RequestDispatcher {
             for (int i = 0; i < parameterTypes.length; i++) {
                 Parameter parameter = parameterTypes[i];
                 if (receiveBody && Body.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = new Body(Content.Source.asString(request, StandardCharsets.UTF_8));
+                    parameters[i] = new Body(request);
                 } else if (Request.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = request;
                 } else if (AuthenticationAnswer.class.isAssignableFrom(parameter.getType())) {
