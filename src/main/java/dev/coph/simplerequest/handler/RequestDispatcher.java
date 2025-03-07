@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -100,6 +101,7 @@ public class RequestDispatcher {
                 Pattern pattern = createPattern(path);
 
                 if (method.isAnnotationPresent(CustomRateLimit.class)) {
+                    Logger.getInstance().warn("The method " + method.getName() + " is annotated with @CustomRateLimit.");
                     CustomRateLimit customRateLimit = method.getAnnotation(CustomRateLimit.class);
                     additionalCustomRateLimits.put(pattern, new AdditionalCustomRateLimit(customRateLimit));
                 }

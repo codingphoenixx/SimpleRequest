@@ -23,6 +23,9 @@ import java.nio.charset.StandardCharsets;
  */
 public class Body {
     private final Request request;
+    private String stringContent;
+    private ByteBuffer byteBufferContent;
+    private InputStream inputStreamContent;
 
     /**
      * Constructs an instance of the Body class using the given HTTP request.
@@ -38,9 +41,10 @@ public class Body {
      *
      * @return true if the request body has a length of 0, false otherwise
      */
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return request.getLength() == 0;
     }
+
     /**
      * Retrieves the content of the HTTP request body as a string using UTF-8 encoding.
      *
@@ -48,7 +52,17 @@ public class Body {
      * @throws IOException if an I/O error occurs while accessing the request body content
      */
     public String asString() throws IOException {
-        return Content.Source.asString(request, StandardCharsets.UTF_8);
+        if (byteBufferContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as ByteBuffer.");
+        }
+        if (inputStreamContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as InputStream.");
+        }
+        if (stringContent != null) {
+            return stringContent;
+        }
+        stringContent = Content.Source.asString(request, StandardCharsets.UTF_8);
+        return stringContent;
     }
 
     /**
@@ -60,7 +74,17 @@ public class Body {
      * @throws IOException if an I/O error occurs while accessing the request body content
      */
     public String asString(Charset charset) throws IOException {
-        return Content.Source.asString(request, charset);
+        if (byteBufferContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as ByteBuffer.");
+        }
+        if (inputStreamContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as InputStream.");
+        }
+        if (stringContent != null) {
+            return stringContent;
+        }
+        stringContent = Content.Source.asString(request, charset);
+        return stringContent;
     }
 
     /**
@@ -72,7 +96,17 @@ public class Body {
      * @throws IOException if an I/O error occurs while accessing the request body content
      */
     public ByteBuffer asByteBuffer() throws IOException {
-        return Content.Source.asByteBuffer(request);
+        if (stringContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as String.");
+        }
+        if (inputStreamContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as InputStream.");
+        }
+        if (byteBufferContent != null) {
+            return byteBufferContent;
+        }
+        byteBufferContent = Content.Source.asByteBuffer(request);
+        return byteBufferContent;
     }
 
     /**
@@ -84,7 +118,17 @@ public class Body {
      * @throws IOException if an I/O error occurs while accessing the request body content
      */
     public InputStream asInputStream() throws IOException {
-        return Content.Source.asInputStream(request);
+        if (byteBufferContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as ByteBuffer.");
+        }
+        if (stringContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as String.");
+        }
+        if(inputStreamContent != null){
+            return inputStreamContent;
+        }
+        inputStreamContent = Content.Source.asInputStream(request);
+        return inputStreamContent;
     }
 
 
