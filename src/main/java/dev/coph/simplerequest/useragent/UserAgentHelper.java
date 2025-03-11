@@ -1,4 +1,4 @@
-package dev.coph.simplerequest;
+package dev.coph.simplerequest.useragent;
 
 import com.blueconic.browscap.BrowsCapField;
 import com.blueconic.browscap.Capabilities;
