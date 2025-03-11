@@ -10,8 +10,10 @@ import lombok.experimental.Accessors;
  * This class encapsulates information regarding whether access is granted
  * and provides an accompanying message that describes the result of the
  * authentication check.
+ * @param <T> The type of answer the result should await
  */
 public class AuthenticationAnswer<T> {
+
     /**
      * Indicates whether access is granted as a result of the authentication process.
      *
