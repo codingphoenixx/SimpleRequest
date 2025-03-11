@@ -11,6 +11,15 @@ import java.security.SecureRandom;
  * The class handles encryption and decryption utilizing the Blowfish cipher.
  */
 public class CCrypt {
+
+    /**
+     * Private constructor for the CCrypt class to prevent instantiation.
+     * This class provides static utility methods for password hashing
+     * and related operations, adhering to the OpenBSD CCrypt scheme.
+     */
+    private CCrypt() {
+    }
+
     /**
      * The default value for the logarithm base 2 of the number of
      * iterations to perform in the hashing process. This determines

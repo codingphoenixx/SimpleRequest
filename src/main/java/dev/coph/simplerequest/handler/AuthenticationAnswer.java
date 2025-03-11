@@ -11,8 +11,6 @@ import lombok.experimental.Accessors;
  * and provides an accompanying message that describes the result of the
  * authentication check.
  */
-@Getter
-@Accessors(fluent = true)
 public class AuthenticationAnswer<T> {
     /**
      * Indicates whether access is granted as a result of the authentication process.
@@ -59,5 +57,32 @@ public class AuthenticationAnswer<T> {
         this.hasAccess = hasAccess;
         this.object = object;
         this.message = message;
+    }
+
+    /**
+     * Determines whether access is granted based on the authentication process.
+     *
+     * @return true if access is granted, false otherwise
+     */
+    public boolean hasAccess() {
+        return hasAccess;
+    }
+
+    /**
+     * Retrieves the object associated with the authentication result.
+     *
+     * @return the generic object of type T associated with the authentication process
+     */
+    public T object() {
+        return object;
+    }
+
+    /**
+     * Retrieves the message associated with the authentication result.
+     *
+     * @return a string containing the message describing the authentication result, or null if no message is available
+     */
+    public String message() {
+        return message;
     }
 }

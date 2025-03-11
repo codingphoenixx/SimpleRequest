@@ -7,13 +7,20 @@ import com.blueconic.browscap.UserAgentService;
 
 import java.util.Arrays;
 
-
 /**
  * Utility class to assist in parsing user agent strings and retrieving device
  * and browser capabilities. This class utilizes a predefined set of fields
  * to parse user agent strings and extract their corresponding attributes.
  */
 public class UserAgentHelper {
+    /**
+     * Private constructor to prevent instantiation of the UserAgentHelper class.
+     * This utility class contains static methods and fields intended to facilitate
+     * operations related to parsing user agent strings and retrieving associated
+     * device or browser capabilities.
+     */
+    private UserAgentHelper() {
+    }
 
     /**
      * A static instance of the {@link UserAgentParser} used to parse user agent strings.

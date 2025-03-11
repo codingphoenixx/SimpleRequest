@@ -1,11 +1,18 @@
 package dev.coph.simplerequest.ratelimit;
 
 /**
- * Represents a custom rate-limiting configuration for a specific key, number of requests,
- * and time window duration. This class is designed to encapsulate and manage rate-limiting
- * properties that can be applied to methods or endpoints.
+ * Represents a custom rate-limiting configuration with a specific key, request limit,
+ * and time window in milliseconds.
+ *
+ * This class is designed to encapsulate the properties of a rate-limiting rule and can
+ * be constructed directly or by utilizing a CustomRateLimit annotation.
+ *
+ * @param key The Key, for the ratelimit that should be enforced
+ * @param maxRequests The maximum requests of a user that can be triggered in a specific timeframe
+ * @param timeWindowMillis The millis of how long the timeframe should be.
  */
 public record AdditionalCustomRateLimit(String key, int maxRequests, long timeWindowMillis) {
+
     /**
      * Constructs an AdditionalCustomRateLimit instance using the properties of a CustomRateLimit annotation.
      *
