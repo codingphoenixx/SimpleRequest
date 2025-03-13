@@ -122,16 +122,18 @@ public class IpLocationUtil {
     public static class Builder {
 
         /**
-         * Indicates whether the GeoLite version of the MaxMind GeoIP service is used.
-         * When set to true, the GeoLite service is utilized, which typically provides
-         * a lightweight and free version of the service with limited functionality compared
-         * to the full MaxMind GeoIP service.
-         * When set to false, the full MaxMind GeoIP service is used, offering more detailed
-         * and comprehensive location data.
-         * This field is configurable and primarily used when constructing an {@code IpLocationUtil}
-         * instance through the {@code Builder} class.
+         * A boolean field determining whether the GeoLite version of MaxMind services
+         * should be used.
+         *
+         * When set to {@code true}, the GeoLite version is enabled, which typically
+         * offers a free but less comprehensive database compared to the full MaxMind service.
+         * If {@code false}, the full MaxMind service is used, providing more detailed
+         * and accurate data.
+         *
+         * This field is configurable using the builder methods and is utilized when
+         * constructing an instance of the {@code IpLocationUtil} class.
          */
-        private boolean useLite = true;
+        private boolean useLite = false;
 
         /**
          * Represents the MaxMind user ID used for authenticating requests to the MaxMind GeoIP services.
@@ -236,14 +238,32 @@ public class IpLocationUtil {
         }
 
         /**
-         * Sets whether the GeoLite version of MaxMind services should be used.
+         * Enables the use of the GeoLite version of MaxMind services. The GeoLite database
+         * is a free version provided by MaxMind, which may have reduced accuracy or fewer
+         * features compared to the full MaxMind service.
          *
-         * @param useLite a boolean indicating whether to use the GeoLite version.
-         *                If {@code true}, the GeoLite version is enabled;
-         *                if {@code false}, the full MaxMind service is used.
+         * @return the current {@code IpLocationUtil.Builder} instance, allowing for method
+         *         chaining during the builder configuration process.
          */
-        public void useLite(boolean useLite) {
-            this.useLite = useLite;
+        public IpLocationUtil.Builder useLite() {
+            this.useLite = true;
+            return this;
+        }
+
+        /**
+         * Configures the builder with a set of locales. These locales may be used to
+         * determine localized behavior or response details in the associated
+         * {@code IpLocationUtil} instance, such as language preferences for location names.
+         *
+         * @param locales one or more locale strings to be added to the builder configuration.
+         *                Each locale should be specified in a standard format, such as "en"
+         *                for English or "fr" for French.
+         * @return the current {@code IpLocationUtil.Builder} instance, allowing for method
+         *         chaining during the builder configuration process.
+         */
+        public IpLocationUtil.Builder locale(String...locales){
+            this.locales.addAll(List.of(locales));
+            return this;
         }
     }
 }

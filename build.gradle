@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'dev.coph'
-version = '1.0.10a'
+version = '1.0.10b'
 
 repositories {
     mavenCentral()
