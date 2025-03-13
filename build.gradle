@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'dev.coph'
-version = '1.0.9c'
+version = '1.0.10'
 
 repositories {
     mavenCentral()
@@ -29,10 +29,10 @@ dependencies {
     implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server:12.0.16'
 
     implementation 'org.json:json:20240303'
-
-    implementation("dev.coph:simplelogger:1.0.2c")
+    implementation 'dev.coph:simplelogger:1.0.2c'
 
     implementation 'com.blueconic:browscap-java:1.4.5'
+    implementation 'com.maxmind.geoip2:geoip2:2.8.0'
 }
 
 test {
