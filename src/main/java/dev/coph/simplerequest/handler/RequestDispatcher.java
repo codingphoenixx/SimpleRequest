@@ -106,7 +106,7 @@ public class RequestDispatcher {
                     additionalCustomRateLimits.put(pattern, new AdditionalCustomRateLimit(customRateLimit));
                 }
 
-                MethodHandler methodHandler = new MethodHandler(path, annotation.receiveBody(), instance, method);
+                MethodHandler methodHandler = new MethodHandler(path, instance, method);
                 methodHandler.needAuth = annotation.needAuth();
                 handlers.put(pattern, methodHandler);
             }
@@ -283,7 +283,6 @@ public class RequestDispatcher {
     public static class MethodHandler {
         private final String path;
         private boolean needAuth = false;
-        private final boolean receiveBody;
         private final Object instance;
         private final Method method;
 
@@ -292,13 +291,11 @@ public class RequestDispatcher {
          * indicating whether the HTTP body content should be received, and maintaining the instance and method to invoke.
          *
          * @param path        the HTTP path with which this method handler is associated
-         * @param receiveBody whether the HTTP request body should be received by this method handler
          * @param instance    the instance on which the method will be invoked
          * @param method      the method to be invoked in response to HTTP requests
          */
-        public MethodHandler(String path, boolean receiveBody, Object instance, Method method) {
+        public MethodHandler(String path, Object instance, Method method) {
             this.path = path;
-            this.receiveBody = receiveBody;
             this.instance = instance;
             this.method = method;
         }
@@ -324,7 +321,7 @@ public class RequestDispatcher {
             int args = 1;
             for (int i = 0; i < parameterTypes.length; i++) {
                 Parameter parameter = parameterTypes[i];
-                if (receiveBody && Body.class.isAssignableFrom(parameter.getType())) {
+                if (Body.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = new Body(request);
                 } else if (Request.class.isAssignableFrom(parameter.getType())) {
                     parameters[i] = request;

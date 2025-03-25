@@ -21,12 +21,6 @@ public @interface RequestHandler {
      */
     String path();
 
-    /**
-     * Indicates whether the request handler should receive the body of the HTTP request. If false, the Body object will be null.
-     *
-     * @return true if the handler should receive the request body; false otherwise
-     */
-    boolean receiveBody() default false;
 
     /**
      * Indicates whether authentication is required for the annotated request handler.
