@@ -61,7 +61,7 @@ public class Main {
     public static void main(String[] args) {
         // Erstellen und Konfigurieren des WebServers
         WebServer webServer = new WebServer(8080)
-                .allowedOrigins("https://example.com");
+                .addAllowedOrigin("https://example.com");
         
         //Authentication Handler erstellen
         webServer.authenticationHandler(new WebAuthenticationHandler(this));
