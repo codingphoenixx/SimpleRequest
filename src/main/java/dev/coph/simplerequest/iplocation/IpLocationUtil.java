@@ -2,6 +2,7 @@ package dev.coph.simplerequest.iplocation;
 
 import com.maxmind.geoip2.WebServiceClient;
 import com.maxmind.geoip2.model.CityResponse;
+import org.eclipse.jetty.server.Request;
 import org.json.JSONObject;
 
 import java.net.InetAddress;
@@ -14,6 +15,29 @@ import java.util.List;
  * It supports both the regular MaxMind service and the GeoLite version.
  */
 public class IpLocationUtil {
+    /**
+     * Retrieves the IP address of the client making the request.
+     * If the "X-Forwarded-For" header is present, it extracts the first IP address
+     * from the header (considering cases where multiple IPs may be listed due to proxying).
+     * If the header is absent or empty, the method falls back to using the remote
+     * address directly from the request.
+     *
+     * @param request the {@code Request} object containing client request information.
+     * @return a {@code String} representing the client's IP address. If no IP address
+     *         can be determined, the method may return {@code null} or a blank string
+     *         depending on the state of the request object.
+     */
+    public static String getClientIPAddress(Request request) {
+        String forwardedFor = request.getHeaders().get("X-Forwarded-For");
+        String remoteAddr;
+        if (forwardedFor != null && !forwardedFor.isEmpty()) {
+            remoteAddr = forwardedFor.split(",")[0].trim();
+        } else {
+            remoteAddr = Request.getRemoteAddr(request);
+        }
+        System.out.println(remoteAddr);
+        return remoteAddr;
+    }
     /**
      * Specifies whether to use the GeoLite service instead of the regular MaxMind GeoIP2 service.
      * When set to true, the utility interacts with the GeoLite version, which is typically a
