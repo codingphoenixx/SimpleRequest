@@ -7,6 +7,7 @@ import org.eclipse.jetty.server.Request;
 import org.json.JSONObject;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +40,24 @@ public class IpLocationUtil {
         System.out.println(remoteAddr);
         return remoteAddr;
     }
+
+    /**
+     * Determines whether a given IP address is a local IP address.
+     * A local IP address can be either a loopback address or a site-local address.
+     *
+     * @param ip the IP address to check; expected in a standard string representation.
+     * @return true if the IP address is a loopback or site-local address, false otherwise.
+     *         Returns false if the provided IP address is invalid or cannot be resolved.
+     */
+    public static boolean isLocalIP(String ip) {
+        try {
+            InetAddress address = InetAddress.getByName(ip.replaceAll("\\[","").replaceAll("\\]",""));
+            return address.isLoopbackAddress() || address.isSiteLocalAddress();
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
     /**
      * Specifies whether to use the GeoLite service instead of the regular MaxMind GeoIP2 service.
      * When set to true, the utility interacts with the GeoLite version, which is typically a
