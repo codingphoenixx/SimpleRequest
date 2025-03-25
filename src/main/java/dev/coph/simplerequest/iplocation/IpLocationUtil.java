@@ -2,6 +2,7 @@ package dev.coph.simplerequest.iplocation;
 
 import com.maxmind.geoip2.WebServiceClient;
 import com.maxmind.geoip2.model.CityResponse;
+import dev.coph.simplelogger.Logger;
 import org.eclipse.jetty.server.Request;
 import org.json.JSONObject;
 
@@ -79,14 +80,23 @@ public class IpLocationUtil {
      * the lifecycle of the class. Ensures secure and efficient access to the MaxMind APIs.
      */
     private final WebServiceClient webServiceClient;
+
     /**
-     * Constructs an instance of the IpLocationUtil class.
+     * Constructs an instance of {@code IpLocationUtil} for interacting with the MaxMind GeoIP services.
+     * This constructor initializes the utility with the specified configurations, including
+     * whether to use the free GeoLite service or the full MaxMind service, connection preferences,
+     * authentication details, and locale settings.
      *
-     * @param useLite           a boolean indicating whether to use the Lite version of the MaxMind database.
-     * @param maxmindUserid     the MaxMind user ID for authentication.
-     * @param maxmindLicenseKey the MaxMind license key for authentication.
+     * @param useLite      a boolean indicating whether the free GeoLite version of the MaxMind
+     *                     GeoIP services should be used.
+     * @param disableHTTPS a boolean specifying whether HTTPS should be disabled for the connection.
+     * @param maxmindUserid the MaxMind user ID required for authenticating requests to the GeoIP services.
+     * @param maxmindLicenseKey the MaxMind license key needed for accessing the GeoIP services.
+     *                            This key is used in conjunction with the user ID for authentication.
+     * @param locales      a list of preferred locale strings that influence the language of
+     *                     localized responses from the MaxMind service.
      */
-    private IpLocationUtil(boolean useLite, int maxmindUserid, String maxmindLicenseKey, List<String> locales) {
+    private IpLocationUtil(boolean useLite,boolean disableHTTPS, int maxmindUserid, String maxmindLicenseKey, List<String> locales) {
         this.useLite = useLite;
         this.MAXMIND_USERID = maxmindUserid;
         this.MAXMIND_LICENSE_KEY = maxmindLicenseKey;
@@ -101,7 +111,8 @@ public class IpLocationUtil {
 
         if (useLite)
             builder.host("geolite.info");
-
+        if(disableHTTPS)
+            builder.disableHttps();
         webServiceClient = builder.build();
     }
 
@@ -116,6 +127,7 @@ public class IpLocationUtil {
             InetAddress ipAddress = InetAddress.getByName(ip);
             return new JSONObject(webServiceClient.city(ipAddress).toJson());
         } catch (Exception e) {
+            Logger.getInstance().error("Error getting Location from IP", e);
             return new JSONObject();
         }
     }
@@ -132,6 +144,7 @@ public class IpLocationUtil {
             InetAddress ipAddress = InetAddress.getByName(ip);
             return webServiceClient.city(ipAddress);
         } catch (Exception e) {
+            Logger.getInstance().error("Error getting Location from IP", e);
             return null;
         }
     }
@@ -158,6 +171,9 @@ public class IpLocationUtil {
          * constructing an instance of the {@code IpLocationUtil} class.
          */
         private boolean useLite = false;
+
+
+        private boolean disableHTTPS = false;
 
         /**
          * Represents the MaxMind user ID used for authenticating requests to the MaxMind GeoIP services.
@@ -219,7 +235,7 @@ public class IpLocationUtil {
          *         and locale preferences.
          */
         public IpLocationUtil build() {
-            return new IpLocationUtil(useLite, maxmindUserid, maxmindLicenceKey, locales);
+            return new IpLocationUtil(useLite, disableHTTPS, maxmindUserid, maxmindLicenceKey, locales);
         }
 
         /**
@@ -229,6 +245,19 @@ public class IpLocationUtil {
          */
         public boolean usingLite() {
             return useLite;
+        }
+
+        /**
+         * Disables HTTPS for connections made by the builder's configured instance.
+         * This method modifies the builder's settings to indicate that HTTPS
+         * should not be used for connections.
+         *
+         * @return the current {@code Builder} instance, allowing for method chaining
+         * during the builder configuration process.
+         */
+        public Builder disableHTTPS() {
+            this.disableHTTPS = true;
+            return this;
         }
 
         /**
