@@ -25,18 +25,20 @@ Fügen Sie die folgende Abhängigkeit in Ihre `pom.xml` ein:
 
 ```xml
 	<repositories>
-        <repository>
-            <id>cophrepository-releases</id>
-            <name>CoPh Repository</name>
-            <url>https://repo.coph.dev/releases</url>
-        </repository>
+            <repository>
+                <id>cophrepository-releases</id>
+                <name>CoPh Repository</name>
+                <url>https://repo.coph.dev/releases</url>
+            </repository>
 	</repositories>
 
-        <dependency>
-            <groupId>dev.coph</groupId>
-            <artifactId>simplerequest</artifactId>
-            <version>TAG</version>
-        </dependency>
+        <dependencies>
+	    <dependency>
+                <groupId>dev.coph</groupId>
+                <artifactId>simplerequest</artifactId>
+                <version>TAG</version>
+            </dependency>
+	<dependencies>
 ```
 
 ### Gradle
