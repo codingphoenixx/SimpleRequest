@@ -38,7 +38,7 @@ Fügen Sie die folgende Abhängigkeit in Ihre `pom.xml` ein:
                 <artifactId>simplerequest</artifactId>
                 <version>TAG</version>
             </dependency>
-	<dependencies>
+	</dependencies>
 ```
 
 ### Gradle
