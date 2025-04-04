@@ -184,7 +184,7 @@ public class RequestDispatcher {
                         callback.succeeded();
                         return;
                     }
-                    authenticationAnswer = authenticationHandler.hasAccess(handler, request);
+                    authenticationAnswer = authenticationHandler.hasGeneralAccess(request);
 
                     if (authenticationAnswer == null) {
                         Logger.getInstance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");

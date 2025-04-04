@@ -40,4 +40,16 @@ public interface AuthenticationHandler<T> {
     AuthenticationAnswer<T> hasPermission(String permission, String identifier);
 
 
+    /**
+     * Checks whether general access is permitted based on the provided HTTP request.
+     * This method determines if the incoming request satisfies general access criteria
+     * defined by the implementation.
+     *
+     * @param request the {@code Request} object containing details about the incoming HTTP request,
+     *                such as headers, parameters, or user information
+     * @return an {@code AuthenticationHandler<T>} instance representing the result of the
+     *         general access check, including any relevant context or authorization data
+     */
+    AuthenticationAnswer<T> hasGeneralAccess(Request request);
+
 }
