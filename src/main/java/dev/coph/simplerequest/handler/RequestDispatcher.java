@@ -257,7 +257,7 @@ public class RequestDispatcher {
      * @return true if the request was a preflight request and has been handled; false otherwise.
      */
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
-        if (!webServer.allowedOrigins().contains("*")) {
+        if (webServer.allowedOrigins().contains("*")) {
             Logger.getInstance().warn("The request is a star request and credentials are not allowed.");
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         }
