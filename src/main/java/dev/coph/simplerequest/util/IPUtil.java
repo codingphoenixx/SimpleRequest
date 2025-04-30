@@ -2,6 +2,11 @@ package dev.coph.simplerequest.util;
 
 import org.eclipse.jetty.server.Request;
 
+/**
+ * A utility class for processing IP addresses from incoming HTTP requests.
+ * This class provides functionality to determine the IP address of the client making the request,
+ * handling cases where the client may be behind proxies.
+ */
 public class IPUtil {
 
     /**
