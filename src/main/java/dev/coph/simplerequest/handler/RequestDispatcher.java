@@ -257,13 +257,23 @@ public class RequestDispatcher {
      * @return true if the request was a preflight request and has been handled; false otherwise.
      */
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
-        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        if (webServer.allowedOrigins().contains("*")) {
+            Logger.getInstance().warn("The request is a star request and credentials are not allowed.");
+            response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        }
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, "Origin, X-Requested-With, Content-Type, Accept, Authorization");
         String origin = request.getHeaders().get("Origin");
-        if (origin != null && webServer.allowedOrigins().contains(origin.toLowerCase())) {
-            response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+        if (origin != null) {
+            if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
+                response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            }else {
+                Logger.getInstance().warn("The origin " + origin + " is not allowed.");
+            }
+        }else {
+            Logger.getInstance().warn("The origin is null.");
         }
+
         if (Objects.equals(request.getMethod(), "OPTIONS")) {
             response.setStatus(HttpStatus.ACCEPTED_202);
             callback.succeeded();
@@ -290,9 +300,9 @@ public class RequestDispatcher {
          * Constructs a MethodHandler instance that associates a method with a specific HTTP request path,
          * indicating whether the HTTP body content should be received, and maintaining the instance and method to invoke.
          *
-         * @param path        the HTTP path with which this method handler is associated
-         * @param instance    the instance on which the method will be invoked
-         * @param method      the method to be invoked in response to HTTP requests
+         * @param path     the HTTP path with which this method handler is associated
+         * @param instance the instance on which the method will be invoked
+         * @param method   the method to be invoked in response to HTTP requests
          */
         public MethodHandler(String path, Object instance, Method method) {
             this.path = path;
