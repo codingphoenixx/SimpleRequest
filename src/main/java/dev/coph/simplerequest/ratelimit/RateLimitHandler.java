@@ -1,6 +1,7 @@
 package dev.coph.simplerequest.ratelimit;
 
 import dev.coph.simplerequest.server.WebServer;
+import dev.coph.simplerequest.util.IPUtil;
 import dev.coph.simplerequest.util.Time;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -78,7 +79,7 @@ public class RateLimitHandler extends ContextHandlerCollection {
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
         }
-        if (!rateLimitProvider.allowRequest(Request.getRemoteAddr(request), path)) {
+        if (!rateLimitProvider.allowRequest(IPUtil.getClientIPAddress(request), path)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS_429);
             response.write(true, ByteBuffer.wrap("Rate limit exceeded".getBytes()), callback);
             callback.succeeded();
