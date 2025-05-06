@@ -1,4 +1,4 @@
-package dev.coph.simplerequest.totp;
+package dev.coph.simplerequest.security.totp;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

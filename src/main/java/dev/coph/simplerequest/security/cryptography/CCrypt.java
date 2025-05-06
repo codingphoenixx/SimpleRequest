@@ -1,5 +1,5 @@
 //CCrypt is based on BCrypt but modified for use
-package dev.coph.simplerequest.cryptography;
+package dev.coph.simplerequest.security.cryptography;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
