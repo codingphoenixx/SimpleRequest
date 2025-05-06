@@ -12,6 +12,11 @@ import java.io.UnsupportedEncodingException;
  * for characters.
  */
 public class Base32 {
+    /**
+     * Private constructor to prevent instantiation of the utility class.
+     */
+    private Base32() {
+    }
 
     /**
      * The `base32Chars` variable defines the character set used for Base32 encoding. It consists
