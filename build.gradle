@@ -15,9 +15,6 @@ repositories {
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
     testCompileOnly 'org.projectlombok:lombok:1.18.34'
@@ -30,13 +27,6 @@ dependencies {
 
     implementation 'org.json:json:20240303'
     implementation 'dev.coph:simplelogger:1.0.3'
-
-    implementation 'com.blueconic:browscap-java:1.4.5'
-    implementation 'com.maxmind.geoip2:geoip2:4.2.1'
-}
-
-test {
-    useJUnitPlatform()
 }
 
 jar {

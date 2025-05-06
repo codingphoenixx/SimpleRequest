@@ -87,7 +87,6 @@ public class RateLimitHandler extends ContextHandlerCollection {
         }
 
 
-
         return super.handle(request, response, callback);
     }
 

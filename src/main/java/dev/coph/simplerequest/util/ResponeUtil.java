@@ -15,15 +15,15 @@ import java.nio.ByteBuffer;
  * Utility class for handling request-related operations.
  * This class provides methods to manage and process HTTP responses.
  */
-public class RequestUtil {
+public class ResponeUtil {
 
     /**
      * Private constructor to prevent instantiation of the utility class.
      * <p>
-     * The RequestUtil class is designed to provide static utility methods for handling
+     * The ResponeUtil class is designed to provide static utility methods for handling
      * request-related operations and should not be instantiated.
      */
-    private RequestUtil() {
+    private ResponeUtil() {
     }
 
     /**

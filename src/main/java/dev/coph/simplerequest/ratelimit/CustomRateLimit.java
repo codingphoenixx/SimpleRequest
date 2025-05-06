@@ -42,4 +42,13 @@ public @interface CustomRateLimit {
      * @return the duration of the time window in milliseconds as a long
      */
     long timeWindowMillis();
+
+    /**
+     * Specifies the rate-limiting algorithm to be used for the associated method or endpoint.
+     * The chosen algorithm determines the strategy for evaluating and enforcing the rate limits
+     * based on the configuration provided in the annotation.
+     *
+     * @return the rate-limiting algorithm to apply, defaulting to USER_FIXED_WINDOW
+     */
+    RateLimitAlgorithm algorithm() default RateLimitAlgorithm.USER_FIXED_WINDOW;
 }

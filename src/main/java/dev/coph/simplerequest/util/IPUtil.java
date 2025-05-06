@@ -10,6 +10,12 @@ import org.eclipse.jetty.server.Request;
 public class IPUtil {
 
     /**
+     * Private constructor to prevent instantiation of the utility class.
+     */
+    private IPUtil() {
+    }
+
+    /**
      * Retrieves the IP address of the client making the request.
      * If the "X-Forwarded-For" header is present, it extracts the first IP address
      * from the header (considering cases where multiple IPs may be listed due to proxying).

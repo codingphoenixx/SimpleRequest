@@ -107,4 +107,7 @@ public class RateLimit {
         }
         return false;
     }
+
+    //TODO: Implement Algorithm
+    //TODO: Add ability to add retry after header
 }

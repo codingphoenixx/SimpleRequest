@@ -5,13 +5,12 @@ import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
 import dev.coph.simplerequest.ratelimit.CustomRateLimit;
 import dev.coph.simplerequest.server.WebServer;
-import dev.coph.simplerequest.util.RequestUtil;
+import dev.coph.simplerequest.util.ResponeUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -195,7 +194,7 @@ public class RequestDispatcher {
 
                     if (!authenticationAnswer.hasAccess()) {
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
-                        RequestUtil.writeAnswer(response, callback, authenticationAnswer.message());
+                        ResponeUtil.writeAnswer(response, callback, authenticationAnswer.message());
                         callback.succeeded();
                         return;
                     }
