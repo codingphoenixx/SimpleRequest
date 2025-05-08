@@ -40,7 +40,6 @@ public class ResponseUtil {
         try {
             if (answer != null && !answer.isEmpty())
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
-            callback.succeeded();
         } catch (Exception e) {
             Logger.getInstance().error("Error writing answer.");
             Logger.getInstance().error(e);
@@ -77,7 +76,7 @@ public class ResponseUtil {
      * @param format      the format in which the image should be encoded (e.g., "png", "jpg")
      * @return true if the image is successfully written, false if an error occurs
      */
-    public static boolean writeAnswer(Response response, Callback callback, BufferedImage answerImage, String format) {
+    public static boolean writeSuccessfulAnswer(Response response, Callback callback, BufferedImage answerImage, String format) {
         if (format == null)
             return false;
         if (answerImage == null)
@@ -96,4 +95,45 @@ public class ResponseUtil {
         }
         return true;
     }
+
+
+    /**
+     * Writes the given answer as a response using the specified callback.
+     * This method attempts to encode the answer into bytes and write it to the response.
+     * In case of an exception, it logs the error and returns false.
+     *
+     * @param response the Response object to which the answer will be written
+     * @param callback the Callback to be executed upon completion of the write operation
+     * @param answer   the String containing the answer to be written
+     * @return true if the answer is successfully written, false if an error occurs
+     */
+    public static boolean writeSuccessfulAnswer(Response response, Callback callback, String answer) {
+        try {
+            if (answer != null && !answer.isEmpty())
+                response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
+            callback.succeeded();
+        } catch (Exception e) {
+            Logger.getInstance().error("Error writing answer.");
+            Logger.getInstance().error(e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Writes the given JSON answer as a response using the specified callback.
+     * This method converts the JSONObject into a string and delegates the actual
+     * writing operation to another overloaded method.
+     *
+     * @param response the Response object to which the answer will be written
+     * @param callback the Callback to be executed upon completion of the write operation
+     * @param answer   the JSONObject containing the answer to be written
+     * @return true if the answer is successfully written, false if an error occurs
+     */
+    public static boolean writeSuccessfulAnswer(Response response, Callback callback, JSONObject answer) {
+        if (answer != null)
+            return writeSuccessfulAnswer(response, callback, answer.toString());
+        return writeSuccessfulAnswer(response, callback, "");
+    }
+
 }
