@@ -5,7 +5,7 @@ import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
 import dev.coph.simplerequest.ratelimit.CustomRateLimit;
 import dev.coph.simplerequest.server.WebServer;
-import dev.coph.simplerequest.util.ResponeUtil;
+import dev.coph.simplerequest.util.ResponseUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -194,7 +194,7 @@ public class RequestDispatcher {
 
                     if (!authenticationAnswer.hasAccess()) {
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
-                        ResponeUtil.writeAnswer(response, callback, authenticationAnswer.message());
+                        ResponseUtil.writeAnswer(response, callback, authenticationAnswer.message());
                         callback.succeeded();
                         return;
                     }
