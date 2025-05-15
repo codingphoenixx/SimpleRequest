@@ -35,7 +35,6 @@ public class IPUtil {
         } else {
             remoteAddr = Request.getRemoteAddr(request);
         }
-        System.out.println(remoteAddr);
         return remoteAddr;
     }
 

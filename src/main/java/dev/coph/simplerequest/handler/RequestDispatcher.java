@@ -258,6 +258,7 @@ public class RequestDispatcher {
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
         if (webServer.allowedOrigins().contains("*")) {
             Logger.getInstance().warn("The request is a star request and credentials are not allowed.");
+        } else {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         }
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
@@ -266,11 +267,9 @@ public class RequestDispatcher {
         if (origin != null) {
             if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
                 response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-            }else {
+            } else {
                 Logger.getInstance().warn("The origin " + origin + " is not allowed.");
             }
-        }else {
-            Logger.getInstance().warn("The origin is null.");
         }
 
         if (Objects.equals(request.getMethod(), "OPTIONS")) {

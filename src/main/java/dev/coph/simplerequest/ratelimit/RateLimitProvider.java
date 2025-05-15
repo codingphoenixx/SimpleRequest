@@ -1,6 +1,5 @@
 package dev.coph.simplerequest.ratelimit;
 
-import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.Time;
 import lombok.NonNull;
@@ -109,7 +108,6 @@ public class RateLimitProvider {
 
         boolean allowed = true;
         for (RateLimit rateLimit : rateLimits.values()) {
-            Logger.getInstance().warn("Checking RateLimit for " + key);
             if (!rateLimit.allowRequest()) {
                 allowed = false;
             }
