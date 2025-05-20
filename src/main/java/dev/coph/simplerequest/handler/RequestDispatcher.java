@@ -264,11 +264,15 @@ public class RequestDispatcher {
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, "Origin, X-Requested-With, Content-Type, Accept, Authorization");
         String origin = request.getHeaders().get("Origin");
-        if (origin != null) {
-            if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
-                response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-            } else {
-                Logger.getInstance().warn("The origin " + origin + " is not allowed.");
+        if (webServer.allowedOrigins().contains("*")) {
+            response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        } else {
+            if (origin != null) {
+                if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
+                    response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                } else {
+                    Logger.getInstance().warn("The origin " + origin + " is not allowed.");
+                }
             }
         }
 
