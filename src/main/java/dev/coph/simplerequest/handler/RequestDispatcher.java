@@ -47,7 +47,7 @@ public class RequestDispatcher {
      * This map is used to define and apply additional custom rate limiting rules for HTTP
      * requests
      */
-    private final HashMap<Pattern, AdditionalCustomRateLimit> additionalCustomRateLimits = new HashMap<>();
+    private final HashMap<Pattern, AdditionalCustomRateLimit[]> additionalCustomRateLimits = new HashMap<>();
     /**
      * Represents the web server instance utilized by the RequestDispatcher.
      * It is used to dispatch and manage incoming HTTP requests and responses.
@@ -100,11 +100,18 @@ public class RequestDispatcher {
                 RequestMethode methode = annotation.methode();
                 Pattern pattern = createPattern(path);
 
-                if (method.isAnnotationPresent(CustomRateLimit.class)) {
-                    Logger.getInstance().debug("The method " + method.getName() + " is annotated with @CustomRateLimit.");
-                    CustomRateLimit customRateLimit = method.getAnnotation(CustomRateLimit.class);
-                    additionalCustomRateLimits.put(pattern, new AdditionalCustomRateLimit(customRateLimit));
+                CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
+
+                if (customRateLimits.length > 0) {
+                    Logger.getInstance().debug("The method " + method.getName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
+
+                    AdditionalCustomRateLimit[] currentAdditionalCustomRateLimits = new AdditionalCustomRateLimit[customRateLimits.length];
+                    for (int i = 0; i < customRateLimits.length; i++) {
+                        currentAdditionalCustomRateLimits[i] = new AdditionalCustomRateLimit(customRateLimits[i]);
+                    }
+                    additionalCustomRateLimits.put(pattern, currentAdditionalCustomRateLimits);
                 }
+
 
                 MethodHandler methodHandler = new MethodHandler(path, methode, instance, method);
                 methodHandler.needAuth = annotation.needAuth();

@@ -96,13 +96,16 @@ public class RateLimitProvider {
             rateLimits.put("default", new RateLimit(maxRequests, defaultTimeWindow));
         }
 
-        for (Map.Entry<Pattern, AdditionalCustomRateLimit> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
+        for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
             if (matcher.matches()) {
-                AdditionalCustomRateLimit value = entry.getValue();
-                if (!rateLimits.containsKey(value.key()))
-                    rateLimits.put(value.key(), new RateLimit(value.maxRequests(), value.timeWindowMillis()));
+                AdditionalCustomRateLimit[] additionalCustomRateLimits = entry.getValue();
+                for (AdditionalCustomRateLimit additionalCustomRateLimit : additionalCustomRateLimits) {
+                    if (!rateLimits.containsKey(additionalCustomRateLimit.key()))
+                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis()));
+                }
+
             }
         }
 

@@ -1,9 +1,6 @@
 package dev.coph.simplerequest.ratelimit;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation to define additional rate limiting configurations for a specific method or endpoint.
@@ -14,8 +11,9 @@ import java.lang.annotation.Target;
  * The rate-limiting logic should interpret the provided values for `maxRequests` and `timeWindowMillis`
  * to enforce the desired restrictions.
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(CustomRateLimits.class)
 public @interface CustomRateLimit {
     /**
      * Specifies the key used to identify the rate-limiting configuration.
