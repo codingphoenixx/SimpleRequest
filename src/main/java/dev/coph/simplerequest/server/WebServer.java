@@ -181,33 +181,34 @@ public class WebServer {
      * the state of the server during startup.
      */
     public void start() {
-        logger.info("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
+        logger.info("Configure Server");
+        logger.debug("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
         System.setProperty("https.protocols", "SSLv3,TLSv1.2,TLSv1.3");
         if (!isPortAvailable(port)) {
             logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort(49152, 65535));
             return;
         }
 
-        logger.info("Creating new server instance with port %s.%n".formatted(port));
+        logger.debug("Creating new server instance with port %s.%n".formatted(port));
         server = new Server(port);
 
 
-        logger.info("Creating ContextHandler");
+        logger.debug("Creating ContextHandler");
         if (rateLimitHandler != null) {
             rateLimitHandler.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(rateLimitHandler);
-            logger.info("Successfully created ContextHandler. Adding RateLimitHandler.");
+            logger.debug("Successfully created ContextHandler. Adding RateLimitHandler.");
             server.setHandler(rateLimitHandler);
         } else {
             ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
             handlerCollection.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(handlerCollection);
-            logger.info("Successfully created ContextHandler. Adding it directly.");
+            logger.debug("Successfully created ContextHandler. Adding it directly.");
             server.setHandler(handlerCollection);
         }
 
 
-        logger.info("Settings error handler");
+        logger.debug("Settings error handler");
         server.setErrorHandler(new ServerErrorHandler());
 
         logger.info("Starting server");
@@ -218,7 +219,7 @@ public class WebServer {
             logger.error("Error starting webserver.", e);
         }
 
-        logger.info("Disable webserver version send.");
+        logger.debug("Disable webserver version send.");
         for (Connector connector : server.getConnectors()) {
             for (ConnectionFactory connectionFactory : connector.getConnectionFactories()) {
                 if (connectionFactory instanceof HttpConnectionFactory factory) {
@@ -289,9 +290,9 @@ public class WebServer {
      * @return the current instance of the WebServer, enabling method chaining
      */
     public WebServer useRateLimit(Time time, int maxRequestsPerSpan) {
-        Logger.getInstance().info("Creating RateLimit Handler");
+        Logger.getInstance().debug("Creating RateLimit Handler");
         this.rateLimitHandler = new RateLimitHandler(this, time, maxRequestsPerSpan);
-        Logger.getInstance().success("Successfully RateLimit Handler");
+        Logger.getInstance().success("Successfully created RateLimit Handler");
         return this;
     }
 

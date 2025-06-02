@@ -15,12 +15,19 @@ import java.lang.annotation.Target;
 public @interface RequestHandler {
 
     /**
+     * Defines the HTTP request method that the annotated handler should respond to.
+     * If not explicitly specified, the default value is {@link RequestMethode#ANY}.
+     *
+     * @return the HTTP request method the handler is configured to respond to
+     */
+    RequestMethode methode();
+
+    /**
      * Defines the path for the request handler.
      *
      * @return the path of the request handler as a string
      */
     String path();
-
 
     /**
      * Indicates whether authentication is required for the annotated request handler.

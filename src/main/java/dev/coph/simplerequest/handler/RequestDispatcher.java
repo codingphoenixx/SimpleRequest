@@ -97,15 +97,16 @@ public class RequestDispatcher {
             if (method.isAnnotationPresent(RequestHandler.class)) {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
+                RequestMethode methode = annotation.methode();
                 Pattern pattern = createPattern(path);
 
                 if (method.isAnnotationPresent(CustomRateLimit.class)) {
-                    Logger.getInstance().warn("The method " + method.getName() + " is annotated with @CustomRateLimit.");
+                    Logger.getInstance().debug("The method " + method.getName() + " is annotated with @CustomRateLimit.");
                     CustomRateLimit customRateLimit = method.getAnnotation(CustomRateLimit.class);
                     additionalCustomRateLimits.put(pattern, new AdditionalCustomRateLimit(customRateLimit));
                 }
 
-                MethodHandler methodHandler = new MethodHandler(path, instance, method);
+                MethodHandler methodHandler = new MethodHandler(path, methode, instance, method);
                 methodHandler.needAuth = annotation.needAuth();
                 handlers.put(pattern, methodHandler);
             }
@@ -159,19 +160,25 @@ public class RequestDispatcher {
      * @throws Exception if an error occurs during request handling or method invocation
      */
     public void handle(String path, Request request, Response response, Callback callback) throws Exception {
-        if (path.charAt(path.length() - 1) != '/') {
+        if (path.charAt(path.length() - 1) != '/')
             path += "/";
-        }
+
         var wasPreFireRequest = addDefaultHeaders(request, response, callback);
-        if (wasPreFireRequest && filterPrefireRequests) {
-            Logger.getInstance().debug("The Request filtered out because it was a prefire request.");
+
+        if (wasPreFireRequest && filterPrefireRequests)
             return;
-        }
+
         for (Map.Entry<Pattern, MethodHandler> entry : handlers.entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
             if (matcher.matches()) {
                 MethodHandler handler = entry.getValue();
+
+
+                if(!handler.requestMethode().equals(RequestMethode.ANY) && !handler.requestMethode().name().equals(request.getMethod().toUpperCase())) {
+                    response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
+                    return;
+                }
 
                 AuthenticationAnswer authenticationAnswer = null;
                 if (handler.needAuth) {
@@ -202,13 +209,14 @@ public class RequestDispatcher {
 
                 Map<String, String> pathVariables = new HashMap<>();
 
-                for (int i = 1; i <= matcher.groupCount(); i++) {
+                for (int i = 1; i <= matcher.groupCount(); i++)
                     pathVariables.put("arg" + i, matcher.group(i));
-                }
+
                 handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
-                if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE)) {
+
+                if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE))
                     response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json;charset=utf-8");
-                }
+
                 callback.succeeded();
                 return;
             }
@@ -256,10 +264,10 @@ public class RequestDispatcher {
      * @return true if the request was a preflight request and has been handled; false otherwise.
      */
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
-        if (webServer.allowedOrigins().contains("*")) {
-            Logger.getInstance().warn("The request is a star request and credentials are not allowed.");
-        } else {
+        if (!webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        } else {
+            Logger.getInstance().debug("The request is a star request and credentials are not allowed.");
         }
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, "Origin, X-Requested-With, Content-Type, Accept, Authorization");
@@ -271,7 +279,7 @@ public class RequestDispatcher {
                 if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
                     response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
                 } else {
-                    Logger.getInstance().warn("The origin " + origin + " is not allowed.");
+                    Logger.getInstance().debug("The origin " + origin + " is not allowed.");
                 }
             }
         }
@@ -294,20 +302,27 @@ public class RequestDispatcher {
     @Accessors(fluent = true, chain = true)
     public static class MethodHandler {
         private final String path;
+        private final RequestMethode requestMethode;
         private boolean needAuth = false;
         private final Object instance;
         private final Method method;
 
         /**
-         * Constructs a MethodHandler instance that associates a method with a specific HTTP request path,
-         * indicating whether the HTTP body content should be received, and maintaining the instance and method to invoke.
+         * Constructs a new MethodHandler.
          *
-         * @param path     the HTTP path with which this method handler is associated
-         * @param instance the instance on which the method will be invoked
-         * @param method   the method to be invoked in response to HTTP requests
+         * This constructor initializes a MethodHandler instance with the provided
+         * path, HTTP request method, target instance, and method to be invoked.
+         * The MethodHandler is used to map a specific HTTP request path and method
+         * to a specific instance and handler method.
+         *
+         * @param path          the HTTP request path associated with this handler
+         * @param requestMethode the HTTP request method (e.g., GET, POST) associated with this handler
+         * @param instance      the target object instance that contains the method to be invoked
+         * @param method        the method to be invoked when handling the mapped request
          */
-        public MethodHandler(String path, Object instance, Method method) {
+        public MethodHandler(String path, RequestMethode requestMethode, Object instance, Method method) {
             this.path = path;
+            this.requestMethode = requestMethode;
             this.instance = instance;
             this.method = method;
         }
