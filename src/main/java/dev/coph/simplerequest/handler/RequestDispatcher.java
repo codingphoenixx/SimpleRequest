@@ -113,8 +113,8 @@ public class RequestDispatcher {
                 }
 
 
-                MethodHandler methodHandler = new MethodHandler(path, methode, instance, method);
-                methodHandler.needAuth = annotation.needAuth();
+                MethodHandler methodHandler = new MethodHandler(path, methode, instance, method, annotation.description());
+                methodHandler.accessLevel = annotation.accesslevel();
                 handlers.put(pattern, methodHandler);
             }
 
@@ -182,35 +182,43 @@ public class RequestDispatcher {
                 MethodHandler handler = entry.getValue();
 
 
-                if(!handler.requestMethode().equals(RequestMethode.ANY) && !handler.requestMethode().name().equals(request.getMethod().toUpperCase())) {
+                if (!handler.requestMethode().equals(RequestMethode.ANY) && !handler.requestMethode().name().equals(request.getMethod().toUpperCase())) {
                     response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
+                    callback.succeeded();
                     return;
                 }
 
                 AuthenticationAnswer authenticationAnswer = null;
-                if (handler.needAuth) {
-                    AuthenticationHandler authenticationHandler = webServer.authenticationHandler();
-
-                    if (authenticationHandler == null) {
-                        Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+                switch (handler.accessLevel()) {
+                    case DISABLED -> {
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
                         callback.succeeded();
                         return;
                     }
-                    authenticationAnswer = authenticationHandler.hasGeneralAccess(request);
+                    case AUTHENTICATED -> {
+                        AuthenticationHandler authenticationHandler = webServer.authenticationHandler();
 
-                    if (authenticationAnswer == null) {
-                        Logger.getInstance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
-                        response.setStatus(HttpStatus.UNAUTHORIZED_401);
-                        callback.succeeded();
-                        return;
-                    }
+                        if (authenticationHandler == null) {
+                            Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+                            response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                            callback.succeeded();
+                            return;
+                        }
+                        authenticationAnswer = authenticationHandler.hasGeneralAccess(request, handler.accessLevel());
 
-                    if (!authenticationAnswer.hasAccess()) {
-                        response.setStatus(HttpStatus.UNAUTHORIZED_401);
-                        ResponseUtil.writeAnswer(response, callback, authenticationAnswer.message());
-                        callback.succeeded();
-                        return;
+                        if (authenticationAnswer == null) {
+                            Logger.getInstance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
+                            response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                            callback.succeeded();
+                            return;
+                        }
+
+                        if (!authenticationAnswer.hasAccess()) {
+                            response.setStatus(HttpStatus.UNAUTHORIZED_401);
+                            ResponseUtil.writeAnswer(response, callback, authenticationAnswer.message());
+                            callback.succeeded();
+                            return;
+                        }
                     }
                 }
 
@@ -310,28 +318,30 @@ public class RequestDispatcher {
     public static class MethodHandler {
         private final String path;
         private final RequestMethode requestMethode;
-        private boolean needAuth = false;
+        private AccessLevel accessLevel = AccessLevel.PUBLIC;
         private final Object instance;
         private final Method method;
+        private final String description;
 
         /**
          * Constructs a new MethodHandler.
-         *
+         * <p>
          * This constructor initializes a MethodHandler instance with the provided
          * path, HTTP request method, target instance, and method to be invoked.
          * The MethodHandler is used to map a specific HTTP request path and method
          * to a specific instance and handler method.
          *
-         * @param path          the HTTP request path associated with this handler
+         * @param path           the HTTP request path associated with this handler
          * @param requestMethode the HTTP request method (e.g., GET, POST) associated with this handler
-         * @param instance      the target object instance that contains the method to be invoked
-         * @param method        the method to be invoked when handling the mapped request
+         * @param instance       the target object instance that contains the method to be invoked
+         * @param method         the method to be invoked when handling the mapped request
          */
-        public MethodHandler(String path, RequestMethode requestMethode, Object instance, Method method) {
+        public MethodHandler(String path, RequestMethode requestMethode, Object instance, Method method, String description) {
             this.path = path;
             this.requestMethode = requestMethode;
             this.instance = instance;
             this.method = method;
+            this.description = description;
         }
 
 

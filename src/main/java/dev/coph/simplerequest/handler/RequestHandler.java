@@ -30,9 +30,19 @@ public @interface RequestHandler {
     String path();
 
     /**
-     * Indicates whether authentication is required for the annotated request handler.
+     * Specifies the access level required to invoke the annotated request handler.
+     * This is used to determine the accessibility of the endpoint.
      *
-     * @return true if authentication is necessary for the request handler, false otherwise
+     * @return the required access level for the request handler, defaulting to {@code AccessLevel.PUBLIC}
      */
-    boolean needAuth() default false;
+    AccessLevel accesslevel() default AccessLevel.PUBLIC;
+
+    /**
+     * Provides an optional description for the request handler.
+     * This description can be used for documentation or as metadata
+     * to explain the purpose and behavior of the annotated method.
+     *
+     * @return a descriptive text about the request handler as a string, defaulting to an empty string
+     */
+    String description() default "";
 }

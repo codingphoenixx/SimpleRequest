@@ -5,6 +5,7 @@ import dev.coph.simplerequest.handler.AuthenticationAnswer;
 import dev.coph.simplerequest.handler.AuthenticationHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
+import dev.coph.simplerequest.handler.endpoint.EndpointRequestHandler;
 import dev.coph.simplerequest.ratelimit.RateLimitHandler;
 import dev.coph.simplerequest.util.Time;
 import jakarta.websocket.server.ServerEndpoint;
@@ -123,6 +124,9 @@ public class WebServer {
      */
     private boolean enabled = false;
 
+
+    private boolean enableDiscoveryEndpoint = false;
+
     /**
      * Represents the Jetty Server instance used by the WebServer for handling HTTP and HTTPS requests.
      * <p>
@@ -207,6 +211,8 @@ public class WebServer {
             server.setHandler(handlerCollection);
         }
 
+        logger.debug("Adding EndpointRequestHandler");
+        requestDispatcher.register(new EndpointRequestHandler(this));
 
         logger.debug("Settings error handler");
         server.setErrorHandler(new ServerErrorHandler());
@@ -403,7 +409,7 @@ public class WebServer {
     public AuthenticationAnswer hasAccess(RequestDispatcher.MethodHandler methodHandler, Request request) {
         Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
         if (authenticationHandler == null) return new AuthenticationAnswer(false,null);
-        return authenticationHandler.hasAccess(methodHandler, request);
+        return authenticationHandler.hasAccess(methodHandler, request, methodHandler.accessLevel());
     }
 
     /**

@@ -27,7 +27,7 @@ public interface AuthenticationHandler<T> {
      * @return {@code true} if access is granted to the specified method handler;
      * {@code false} otherwise.
      */
-    AuthenticationAnswer<T> hasAccess(RequestDispatcher.MethodHandler path, Request request);
+    AuthenticationAnswer<T> hasAccess(RequestDispatcher.MethodHandler path, Request request, AccessLevel accessLevel);
 
 
     /**
@@ -50,6 +50,6 @@ public interface AuthenticationHandler<T> {
      * @return an {@code AuthenticationHandler<T>} instance representing the result of the
      *         general access check, including any relevant context or authorization data
      */
-    AuthenticationAnswer<T> hasGeneralAccess(Request request);
+    AuthenticationAnswer<T> hasGeneralAccess(Request request, AccessLevel accessLevel);
 
 }

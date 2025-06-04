@@ -73,6 +73,19 @@ public enum RequestMethode {
      */
     OPTIONS,
     /**
+     * Represents the HTTP QUERY request method in the context of server routing or request handling.
+     * This constant is primarily used to specify or match HTTP requests that use the QUERY method.
+     * While not a standard HTTP method, it might be defined for custom purposes or specific application logic.
+     */
+    QUERY,
+    /**
+     * Represents the HTTP HEAD method.
+     * The HEAD method is used to request the headers of a resource, similar
+     * to a GET request, but without the response body. This is typically
+     * used to check for the existence or status of a resource.
+     */
+    HEAD,
+    /**
      * Represents a catch-all HTTP request method.
      * Used to match requests of any HTTP method, typically when the specific
      * method (e.g., GET, POST, PUT, etc.) is not predefined or when handling
