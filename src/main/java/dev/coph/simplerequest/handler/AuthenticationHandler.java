@@ -17,15 +17,17 @@ import org.eclipse.jetty.server.Request;
 public interface AuthenticationHandler<T> {
 
     /**
-     * Determines whether access is permitted to a specific method handler
-     * based on the provided request.
+     * Determines whether the specified request has access based on the provided path and access level.
      *
-     * @param path    the {@code RequestDispatcher.MethodHandler} representing the method or route
-     *                that is being accessed.
-     * @param request the {@code Request} object containing details about the incoming HTTP request,
-     *                such as headers, parameters, and user information.
-     * @return {@code true} if access is granted to the specified method handler;
-     * {@code false} otherwise.
+     * This method evaluates whether the endpoint or resource represented by the given
+     * {@code path} can be accessed by the requester, considering the details of the request
+     * and the required access level. The result of this evaluation is encapsulated in an
+     * {@code AuthenticationAnswer} instance.
+     *
+     * @param path the {@code RequestDispatcher.MethodHandler} object representing the endpoint or resource to evaluate
+     * @param request the {@code Request} object containing details about the request, such as headers and parameters
+     * @param accessLevel the {@code AccessLevel} that specifies the required permission level for the requested operation
+     * @return an {@code AuthenticationAnswer<T>} instance containing the result of the access evaluation, including whether access was granted and any relevant context
      */
     AuthenticationAnswer<T> hasAccess(RequestDispatcher.MethodHandler path, Request request, AccessLevel accessLevel);
 
@@ -41,14 +43,16 @@ public interface AuthenticationHandler<T> {
 
 
     /**
-     * Checks whether general access is permitted based on the provided HTTP request.
-     * This method determines if the incoming request satisfies general access criteria
-     * defined by the implementation.
+     * Determines if a general access condition is met for the provided request and access level.
      *
-     * @param request the {@code Request} object containing details about the incoming HTTP request,
-     *                such as headers, parameters, or user information
-     * @return an {@code AuthenticationHandler<T>} instance representing the result of the
-     *         general access check, including any relevant context or authorization data
+     * This method evaluates whether the given {@code Request} meets the criteria for a specified
+     * {@code AccessLevel}, and returns an {@code AuthenticationAnswer} indicating the result of
+     * the evaluation. The access determination depends on the implementation and may consider
+     * factors like authentication, permissions, and resource configuration.
+     *
+     * @param request the {@code Request} object containing details about the request, such as headers or parameters
+     * @param accessLevel the {@code AccessLevel} specifying the required permission level to grant access
+     * @return an {@code AuthenticationAnswer<T>} instance representing whether the access is granted and additional context
      */
     AuthenticationAnswer<T> hasGeneralAccess(Request request, AccessLevel accessLevel);
 

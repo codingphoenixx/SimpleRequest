@@ -324,17 +324,13 @@ public class RequestDispatcher {
         private final String description;
 
         /**
-         * Constructs a new MethodHandler.
-         * <p>
-         * This constructor initializes a MethodHandler instance with the provided
-         * path, HTTP request method, target instance, and method to be invoked.
-         * The MethodHandler is used to map a specific HTTP request path and method
-         * to a specific instance and handler method.
+         * Constructs a new MethodHandler instance with the provided parameters.
          *
-         * @param path           the HTTP request path associated with this handler
-         * @param requestMethode the HTTP request method (e.g., GET, POST) associated with this handler
-         * @param instance       the target object instance that contains the method to be invoked
-         * @param method         the method to be invoked when handling the mapped request
+         * @param path          the URI path this handler corresponds to
+         * @param requestMethode the HTTP request method associated with this handler
+         * @param instance      the object instance containing the method to be invoked
+         * @param method        the method to be executed for this handler
+         * @param description   a brief description of this handler's purpose or functionality
          */
         public MethodHandler(String path, RequestMethode requestMethode, Object instance, Method method, String description) {
             this.path = path;

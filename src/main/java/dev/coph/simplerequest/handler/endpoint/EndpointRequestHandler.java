@@ -9,14 +9,67 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.json.JSONObject;
 
+/**
+ * The {@code EndpointRequestHandler} class is responsible for handling requests
+ * to the "/endpoints" URL path. It provides an endpoint to enumerate and describe
+ * other registered request handlers in the system.
+ *
+ * This class interacts with a {@code WebServer} instance to retrieve details
+ * about registered endpoint handlers and produces a JSON-formatted response
+ * with metadata describing each endpoint. If the discovery endpoint is
+ * disabled in the {@code WebServer}, the handler returns a service unavailable
+ * status code.
+ *
+ * Constructor:
+ * - {@link #EndpointRequestHandler(WebServer)}: Initializes the handler with
+ *   the provided {@code WebServer} instance.
+ *
+ * Methods:
+ * - {@link #handleEndpointRequest(Response, Callback)}: Handles GET requests
+ *   to the "/endpoints" URL. Returns a JSON object with metadata about
+ *   registered endpoint handlers, such as request method, access level,
+ *   description, and path. If discovery is disabled, responds with a 503
+ *   Service Unavailable status.
+ */
 public class EndpointRequestHandler {
+    /**
+     * Represents the {@code WebServer} instance utilized by the {@code EndpointRequestHandler}
+     * to interact with registered endpoint handlers and manage the discovery endpoint.
+     *
+     * This variable is used to:
+     * - Retrieve details about registered request handlers within the server.
+     * - Determine whether the discovery endpoint functionality is enabled.
+     * - Access the server's request dispatcher to enumerate handlers and their metadata.
+     *
+     * This instance is critical for generating a JSON-formatted response containing metadata
+     * about registered endpoint handlers, including request methods, access levels, descriptions,
+     * and associated paths.
+     *
+     * The {@code webServer} is assigned a reference at the initialization of the
+     * {@code EndpointRequestHandler} and remains constant throughout the lifecycle of the handler.
+     */
     private final WebServer webServer;
 
+    /**
+     * Constructs an instance of EndpointRequestHandler.
+     *
+     * @param webServer the WebServer instance used for handling endpoint requests
+     */
     public EndpointRequestHandler(WebServer webServer) {
         this.webServer = webServer;
     }
 
-    @RequestHandler(path = "/endpoints", methode = RequestMethode.GET)
+    /**
+     * Handles requests to the "/endpoints" path. This method checks if the discovery
+     * endpoint is enabled on the web server and, if so, retrieves metadata about the
+     * registered request handlers, including their HTTP methods, access levels, and
+     * descriptions. If the discovery endpoint is disabled, it responds with a
+     * 503 Service Unavailable status.
+     *
+     * @param response the Response object used to construct and send the HTTP response
+     * @param callback the Callback object used to signal the completion of the request handling
+     */
+    @RequestHandler(path = "/endpoints", methode = RequestMethode.GET, description = "Lists all currently available endpoints.")
     public void handleEndpointRequest(Response response, Callback callback) {
         if(!webServer.enableDiscoveryEndpoint()){
             response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
