@@ -15,10 +15,10 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
-    testCompileOnly 'org.projectlombok:lombok:1.18.34'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    testCompileOnly 'org.projectlombok:lombok:1.18.38'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
 
     implementation 'org.eclipse.jetty:jetty-server:12.0.16'
     implementation 'org.eclipse.jetty:jetty-security:12.0.16'
@@ -26,7 +26,7 @@ dependencies {
     implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server:12.0.16'
 
     implementation 'org.json:json:20240303'
-    implementation 'dev.coph:simplelogger:2.0.0'
+    implementation 'dev.coph:simplelogger:2.1.0'
 }
 
 jar {
