@@ -17,6 +17,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.Callback;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -379,8 +380,19 @@ public class RequestDispatcher {
                     args++;
                 }
             }
-
-            method.invoke(instance, parameters);
+            try {
+                method.invoke(instance, parameters);
+            } catch (InvocationTargetException e) {
+                Logger.getInstance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
+                Logger.getInstance().error(e.getCause());
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+                callback.succeeded();
+            } catch (Exception e) {
+                Logger.getInstance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
+                Logger.getInstance().error(e);
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+                callback.succeeded();
+            }
         }
     }
 }
