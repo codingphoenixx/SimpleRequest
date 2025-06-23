@@ -4,6 +4,7 @@ import dev.coph.simplelogger.Logger;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
@@ -59,6 +60,21 @@ public class ResponseUtil {
      * @return true if the answer is successfully written, false if an error occurs
      */
     public static boolean writeAnswer(Response response, Callback callback, JSONObject answer) {
+        if (answer != null)
+            return writeAnswer(response, callback, answer.toString());
+        return writeAnswer(response, callback, "");
+    }
+    /**
+     * Writes the given JSON answer as a response using the specified callback.
+     * This method converts the JSONArray into a string and delegates the actual
+     * writing operation to another overloaded method.
+     *
+     * @param response the Response object to which the answer will be written
+     * @param callback the Callback to be executed upon completion of the write operation
+     * @param answer   the JSONArray containing the answer to be written
+     * @return true if the answer is successfully written, false if an error occurs
+     */
+    public static boolean writeAnswer(Response response, Callback callback, JSONArray answer) {
         if (answer != null)
             return writeAnswer(response, callback, answer.toString());
         return writeAnswer(response, callback, "");
@@ -131,6 +147,21 @@ public class ResponseUtil {
      * @return true if the answer is successfully written, false if an error occurs
      */
     public static boolean writeSuccessfulAnswer(Response response, Callback callback, JSONObject answer) {
+        if (answer != null)
+            return writeSuccessfulAnswer(response, callback, answer.toString());
+        return writeSuccessfulAnswer(response, callback, "");
+    }
+    /**
+     * Writes the given JSON answer as a response using the specified callback.
+     * This method converts the JSONArray into a string and delegates the actual
+     * writing operation to another overloaded method.
+     *
+     * @param response the Response object to which the answer will be written
+     * @param callback the Callback to be executed upon completion of the write operation
+     * @param answer   the JSONArray containing the answer to be written
+     * @return true if the answer is successfully written, false if an error occurs
+     */
+    public static boolean writeSuccessfulAnswer(Response response, Callback callback, JSONArray answer) {
         if (answer != null)
             return writeSuccessfulAnswer(response, callback, answer.toString());
         return writeSuccessfulAnswer(response, callback, "");
