@@ -108,6 +108,20 @@ public class RateLimit {
         return false;
     }
 
-    //TODO: Implement Algorithm
-    //TODO: Add ability to add retry after header
+    /**
+     * Returns the number of milliseconds to wait before a new request is allowed.
+     * If a request is currently allowed, this returns 0.
+     *
+     * @return milliseconds to wait before next allowed request, or 0 if allowed now
+     */
+    public synchronized long getRetryAfterMillis() {
+        long now = System.currentTimeMillis();
+        if (now - windowStart > timeWindowMillis) {
+            return 0;
+        }
+        if (requestCount < maxRequests) {
+            return 0;
+        }
+        return (windowStart + timeWindowMillis) - now;
+    }
 }

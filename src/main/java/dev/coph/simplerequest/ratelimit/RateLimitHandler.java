@@ -4,6 +4,7 @@ import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.IPUtil;
 import dev.coph.simplerequest.util.Time;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
@@ -36,13 +37,16 @@ public class RateLimitHandler extends ContextHandlerCollection {
      * Constructs a RateLimitHandler that enforces rate limiting on incoming HTTP requests.
      * Initializes a RateLimitProvider to manage the rate limiting logic based on the provided parameters.
      *
-     * @param webServer           the web server instance associated with this handler
-     * @param timeSpan            the time span during which requests are monitored and limited
-     * @param maxRequestsPerSpan  the maximum number of requests allowed during the specified time span
+     * @param webServer          the web server instance associated with this handler
+     * @param timeSpan           the time span during which requests are monitored and limited
+     * @param maxRequestsPerSpan the maximum number of requests allowed during the specified time span
      */
     public RateLimitHandler(WebServer webServer, Time timeSpan, int maxRequestsPerSpan) {
         rateLimitProvider = new RateLimitProvider(webServer, timeSpan, maxRequestsPerSpan);
     }
+
+    @Setter
+    private boolean announceRetryAfter;
 
     /**
      * A {@code RateLimitProvider} instance used to manage rate-limiting functionality
@@ -79,9 +83,12 @@ public class RateLimitHandler extends ContextHandlerCollection {
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
         }
-        if (!rateLimitProvider.allowRequest(IPUtil.getClientIPAddress(request), path)) {
+        String key = IPUtil.getClientIPAddress(request);
+        if (!rateLimitProvider.allowRequest(key, path)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS_429);
             response.write(true, ByteBuffer.wrap("Rate limit exceeded".getBytes()), callback);
+            if (announceRetryAfter)
+                response.getHeaders().put("Retry-After", Math.max(0, rateLimitProvider.getEarliestAllowedTimestamp(key, path) - System.currentTimeMillis()) / 1000);
             callback.succeeded();
             return false;
         }
