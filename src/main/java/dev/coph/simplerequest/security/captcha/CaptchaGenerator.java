@@ -266,6 +266,7 @@ public class CaptchaGenerator {
      * no wave distortion will be applied.<br>
      */
     private boolean waveDistortion = false;
+
     /**
      * Private constructor for the CaptchaGenerator class.<br>
      * <br>
@@ -417,13 +418,13 @@ public class CaptchaGenerator {
     }
 
     /**
-         * Represents a CAPTCHA composed of an image and the corresponding text.<br>
-         * <br>
-         * The Captcha class encapsulates a generated CAPTCHA image and its associated
-         * text, typically used for validating user input in forms or other authentication
-         * mechanisms. This class provides methods to access the CAPTCHA image and text.
-         */
-        public record Captcha(BufferedImage image, String text) {
+     * Represents a CAPTCHA composed of an image and the corresponding text.<br>
+     * <br>
+     * The Captcha class encapsulates a generated CAPTCHA image and its associated
+     * text, typically used for validating user input in forms or other authentication
+     * mechanisms. This class provides methods to access the CAPTCHA image and text.
+     */
+    public record Captcha(BufferedImage image, String text) {
         /**
          * Initializes a new instance of the Captcha class with the specified image and text.
          *
@@ -433,24 +434,24 @@ public class CaptchaGenerator {
         public Captcha {
         }
 
-            /**
-             * Retrieves the CAPTCHA image.
-             *
-             * @return The BufferedImage object representing the generated CAPTCHA image.
-             */
-            @Override
-            public BufferedImage image() {
-                return image;
-            }
-
-            /**
-             * Retrieves the text associated with the CAPTCHA.
-             *
-             * @return The String containing the text of the CAPTCHA.
-             */
-            @Override
-            public String text() {
-                return text;
-            }
+        /**
+         * Retrieves the CAPTCHA image.
+         *
+         * @return The BufferedImage object representing the generated CAPTCHA image.
+         */
+        @Override
+        public BufferedImage image() {
+            return image;
         }
+
+        /**
+         * Retrieves the text associated with the CAPTCHA.
+         *
+         * @return The String containing the text of the CAPTCHA.
+         */
+        @Override
+        public String text() {
+            return text;
+        }
+    }
 }

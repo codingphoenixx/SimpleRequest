@@ -13,9 +13,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.Callback;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A handler for managing and enforcing rate limits on incoming requests in a server application.
@@ -34,21 +31,6 @@ import java.util.regex.Pattern;
 public class RateLimitHandler extends ContextHandlerCollection {
 
     /**
-     * Constructs a RateLimitHandler that enforces rate limiting on incoming HTTP requests.
-     * Initializes a RateLimitProvider to manage the rate limiting logic based on the provided parameters.
-     *
-     * @param webServer          the web server instance associated with this handler
-     * @param timeSpan           the time span during which requests are monitored and limited
-     * @param maxRequestsPerSpan the maximum number of requests allowed during the specified time span
-     */
-    public RateLimitHandler(WebServer webServer, Time timeSpan, int maxRequestsPerSpan) {
-        rateLimitProvider = new RateLimitProvider(webServer, timeSpan, maxRequestsPerSpan);
-    }
-
-    @Setter
-    private boolean announceRetryAfter;
-
-    /**
      * A {@code RateLimitProvider} instance used to manage rate-limiting functionality
      * for incoming requests. This provider evaluates requests against defined rate limits
      * and determines whether they comply with the allowed request thresholds.
@@ -63,6 +45,20 @@ public class RateLimitHandler extends ContextHandlerCollection {
      * application.
      */
     private final RateLimitProvider rateLimitProvider;
+    @Setter
+    private boolean announceRetryAfter;
+
+    /**
+     * Constructs a RateLimitHandler that enforces rate limiting on incoming HTTP requests.
+     * Initializes a RateLimitProvider to manage the rate limiting logic based on the provided parameters.
+     *
+     * @param webServer          the web server instance associated with this handler
+     * @param timeSpan           the time span during which requests are monitored and limited
+     * @param maxRequestsPerSpan the maximum number of requests allowed during the specified time span
+     */
+    public RateLimitHandler(WebServer webServer, Time timeSpan, int maxRequestsPerSpan) {
+        rateLimitProvider = new RateLimitProvider(webServer, timeSpan, maxRequestsPerSpan);
+    }
 
     /**
      * Handles incoming requests and enforces rate limiting for them. If the request exceeds
