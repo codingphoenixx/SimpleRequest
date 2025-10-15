@@ -42,8 +42,8 @@ public class ResponseUtil {
             if (answer != null && !answer.isEmpty())
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
         } catch (Exception e) {
-            Logger.getInstance().error("Error writing answer.");
-            Logger.getInstance().error(e);
+            Logger.instance().error("Error writing answer.");
+            Logger.instance().error(e);
             return false;
         }
         return true;
@@ -64,6 +64,7 @@ public class ResponseUtil {
             return writeAnswer(response, callback, answer.toString());
         return writeAnswer(response, callback, "");
     }
+
     /**
      * Writes the given JSON answer as a response using the specified callback.
      * This method converts the JSONArray into a string and delegates the actual
@@ -105,8 +106,8 @@ public class ResponseUtil {
             response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.getInstance().error("Error writing answer.");
-            Logger.getInstance().error(e);
+            Logger.instance().error("Error writing answer.");
+            Logger.instance().error(e);
             return false;
         }
         return true;
@@ -129,8 +130,8 @@ public class ResponseUtil {
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.getInstance().error("Error writing answer.");
-            Logger.getInstance().error(e);
+            Logger.instance().error("Error writing answer.");
+            Logger.instance().error(e);
             return false;
         }
         return true;
@@ -151,6 +152,7 @@ public class ResponseUtil {
             return writeSuccessfulAnswer(response, callback, answer.toString());
         return writeSuccessfulAnswer(response, callback, "");
     }
+
     /**
      * Writes the given JSON answer as a response using the specified callback.
      * This method converts the JSONArray into a string and delegates the actual

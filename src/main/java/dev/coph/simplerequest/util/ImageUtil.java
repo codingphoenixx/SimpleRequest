@@ -41,8 +41,8 @@ public class ImageUtil {
         try {
             image = ImageIO.read(inputStream);
         } catch (IOException e) {
-            Logger.getInstance().error("Failed to read image.");
-            Logger.getInstance().error(e);
+            Logger.instance().error("Failed to read image.");
+            Logger.instance().error(e);
             return null;
         }
         if (image == null) {
@@ -69,8 +69,8 @@ public class ImageUtil {
     /**
      * Scales the given image to the specified width and height using a fast scaling algorithm.
      *
-     * @param image the BufferedImage to be scaled
-     * @param width the desired width of the scaled image
+     * @param image  the BufferedImage to be scaled
+     * @param width  the desired width of the scaled image
      * @param height the desired height of the scaled image
      * @return a new BufferedImage object representing the scaled image
      */

@@ -29,57 +29,51 @@ import java.util.Random;
 @Accessors(fluent = true, chain = true)
 public class CaptchaGenerator {
     /**
-     * Private constructor for the CaptchaGenerator class.<br>
+     * The name of the font used for generating CAPTCHA text.<br>
      * <br>
-     * This constructor is intentionally private to prevent instantiation of the class.<br>
-     * CaptchaGenerator is designed to function as a utility class that provides methods
-     * to generate CAPTCHAs. All functionalities are handled through static methods, and
-     * no instances of this class are required or allowed.<br>
+     * This variable holds the font name as a String, which determines the
+     * typeface applied to the text displayed in the CAPTCHA image. The
+     * specified font name must be available on the system where the CAPTCHA
+     * is generated to ensure proper rendering of the text.<br>
      */
-    private CaptchaGenerator() {
-    }
-
+    private final String fontName = "Arial";
     /**
-     * Represents a CAPTCHA composed of an image and the corresponding text.<br>
+     * Defines the style of the font used for generating the CAPTCHA text.<br>
      * <br>
-     * The Captcha class encapsulates a generated CAPTCHA image and its associated
-     * text, typically used for validating user input in forms or other authentication
-     * mechanisms. This class provides methods to access the CAPTCHA image and text.
+     * The fontStyle variable determines styling attributes such as boldness or italics
+     * for the font used in the CAPTCHA text rendering. It influences the visual
+     * representation of the text, enhancing its obfuscation to prevent automated
+     * recognition while maintaining readability for human users.<br>
+     * <br>
+     * The value for this variable is derived from predefined constant values
+     * in the {@link Font} class (e.g., Font.PLAIN, Font.BOLD, Font.ITALIC).<br>
      */
-    public static class Captcha {
-        private final BufferedImage image;
-        private final String text;
-
-        /**
-         * Initializes a new instance of the Captcha class with the specified image and text.
-         *
-         * @param image The BufferedImage object representing the generated CAPTCHA image.
-         * @param text  The String containing the text associated with the CAPTCHA.
-         */
-        public Captcha(BufferedImage image, String text) {
-            this.image = image;
-            this.text = text;
-        }
-
-        /**
-         * Retrieves the CAPTCHA image.
-         *
-         * @return The BufferedImage object representing the generated CAPTCHA image.
-         */
-        public BufferedImage image() {
-            return image;
-        }
-
-        /**
-         * Retrieves the text associated with the CAPTCHA.
-         *
-         * @return The String containing the text of the CAPTCHA.
-         */
-        public String text() {
-            return text;
-        }
-    }
-
+    private final int fontStyle = Font.BOLD;
+    /**
+     * Represents the frequency of the sine wave used in the wave distortion effect
+     * for the CAPTCHA image.<br>
+     * <br>
+     * This value determines how many oscillations occur per unit length in the wave
+     * distortion. A higher value increases the frequency, resulting in a more tightly
+     * packed wave pattern, while a lower value decreases the frequency, creating a
+     * broader wave pattern.<br>
+     * <br>
+     * The wave distortion is applied as part of the CAPTCHA generation process to
+     * make the image more resistant to automated recognition attempts.<br>
+     */
+    private final double waveFrequency = 0.1;
+    /**
+     * Represents the amplitude of the wave distortion applied to the CAPTCHA image.<br>
+     * <br>
+     * The wave amplitude determines the maximum displacement of the wave from its
+     * central axis, directly affecting the intensity of the distortion. A higher
+     * value increases the distortion effect, making the CAPTCHA image more challenging
+     * to decode while potentially improving its resistance to automated attacks.<br>
+     * <br>
+     * This value is used in conjunction with the wave frequency to define the overall
+     * wave distortion applied to the generated CAPTCHA.<br>
+     */
+    private final double waveAmplitude = 2.0;
     /**
      * A string containing the characters used to generate CAPTCHA text.<br>
      * <br>
@@ -141,27 +135,6 @@ public class CaptchaGenerator {
      * indicating a longer and potentially more secure CAPTCHA.<br>
      */
     private int captchaLength = 6;
-    /**
-     * The name of the font used for generating CAPTCHA text.<br>
-     * <br>
-     * This variable holds the font name as a String, which determines the
-     * typeface applied to the text displayed in the CAPTCHA image. The
-     * specified font name must be available on the system where the CAPTCHA
-     * is generated to ensure proper rendering of the text.<br>
-     */
-    private final String fontName = "Arial";
-    /**
-     * Defines the style of the font used for generating the CAPTCHA text.<br>
-     * <br>
-     * The fontStyle variable determines styling attributes such as boldness or italics
-     * for the font used in the CAPTCHA text rendering. It influences the visual
-     * representation of the text, enhancing its obfuscation to prevent automated
-     * recognition while maintaining readability for human users.<br>
-     * <br>
-     * The value for this variable is derived from predefined constant values
-     * in the {@link Font} class (e.g., Font.PLAIN, Font.BOLD, Font.ITALIC).<br>
-     */
-    private final int fontStyle = Font.BOLD;
     /**
      * Specifies the font size used for rendering CAPTCHA text.<br>
      * <br>
@@ -294,30 +267,15 @@ public class CaptchaGenerator {
      */
     private boolean waveDistortion = false;
     /**
-     * Represents the frequency of the sine wave used in the wave distortion effect
-     * for the CAPTCHA image.<br>
+     * Private constructor for the CaptchaGenerator class.<br>
      * <br>
-     * This value determines how many oscillations occur per unit length in the wave
-     * distortion. A higher value increases the frequency, resulting in a more tightly
-     * packed wave pattern, while a lower value decreases the frequency, creating a
-     * broader wave pattern.<br>
-     * <br>
-     * The wave distortion is applied as part of the CAPTCHA generation process to
-     * make the image more resistant to automated recognition attempts.<br>
+     * This constructor is intentionally private to prevent instantiation of the class.<br>
+     * CaptchaGenerator is designed to function as a utility class that provides methods
+     * to generate CAPTCHAs. All functionalities are handled through static methods, and
+     * no instances of this class are required or allowed.<br>
      */
-    private final double waveFrequency = 0.1;
-    /**
-     * Represents the amplitude of the wave distortion applied to the CAPTCHA image.<br>
-     * <br>
-     * The wave amplitude determines the maximum displacement of the wave from its
-     * central axis, directly affecting the intensity of the distortion. A higher
-     * value increases the distortion effect, making the CAPTCHA image more challenging
-     * to decode while potentially improving its resistance to automated attacks.<br>
-     * <br>
-     * This value is used in conjunction with the wave frequency to define the overall
-     * wave distortion applied to the generated CAPTCHA.<br>
-     */
-    private final double waveAmplitude = 2.0;
+    private CaptchaGenerator() {
+    }
 
     /**
      * Generates a CAPTCHA which consists of an image and its associated text.<br>
@@ -457,4 +415,42 @@ public class CaptchaGenerator {
 
         return new Captcha(image, text);
     }
+
+    /**
+         * Represents a CAPTCHA composed of an image and the corresponding text.<br>
+         * <br>
+         * The Captcha class encapsulates a generated CAPTCHA image and its associated
+         * text, typically used for validating user input in forms or other authentication
+         * mechanisms. This class provides methods to access the CAPTCHA image and text.
+         */
+        public record Captcha(BufferedImage image, String text) {
+        /**
+         * Initializes a new instance of the Captcha class with the specified image and text.
+         *
+         * @param image The BufferedImage object representing the generated CAPTCHA image.
+         * @param text  The String containing the text associated with the CAPTCHA.
+         */
+        public Captcha {
+        }
+
+            /**
+             * Retrieves the CAPTCHA image.
+             *
+             * @return The BufferedImage object representing the generated CAPTCHA image.
+             */
+            @Override
+            public BufferedImage image() {
+                return image;
+            }
+
+            /**
+             * Retrieves the text associated with the CAPTCHA.
+             *
+             * @return The String containing the text of the CAPTCHA.
+             */
+            @Override
+            public String text() {
+                return text;
+            }
+        }
 }

@@ -1,43 +1,37 @@
 package dev.coph.simplerequest.util;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Utility class for encoding and decoding Base32 data. Base32 is a binary-to-text encoding
  * scheme that represents binary data in an ASCII string format using a restricted set
  * of 32 characters.
- *
+ * <p>
  * This class provides methods for encoding byte arrays into Base32 strings, decoding
  * Base32 strings back into byte arrays, and modified decoding to handle specific conversions
  * for characters.
  */
 public class Base32 {
     /**
-     * Private constructor to prevent instantiation of the utility class.
-     */
-    private Base32() {
-    }
-
-    /**
      * The `base32Chars` variable defines the character set used for Base32 encoding. It consists
      * of 32 unique characters: the uppercase English alphabet letters (A-Z) and the digits 2-7.
-     *
+     * <p>
      * This character set is used to represent binary data in a Base32 string format and follows
      * the standard Base32 encoding rules defined in RFC 4648.
-     *
+     * <p>
      * Each character in this set corresponds to a 5-bit sequence in the encoded data.
      */
     private static final String base32Chars =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
     /**
      * Lookup table for decoding Base32 encoded characters.
      * This array maps ASCII character values to their corresponding Base32 value or a sentinel value (0xFF)
      * for unsupported characters.
-     *
+     * <p>
      * Each valid Base32 character is represented by a value in the range of 0x00 to 0x1F,
      * while unsupported characters are represented by 0xFF.
-     *
+     * <p>
      * This table is used in decoding operations to efficiently convert a Base32 character
      * to its corresponding 5-bit binary value.
      */
@@ -55,19 +49,26 @@ public class Base32 {
             };
 
     /**
+     * Private constructor to prevent instantiation of the utility class.
+     */
+    private Base32() {
+    }
+
+    /**
      * Encodes the given byte array to a lower-cased Base32-encoded byte array
      * in US-ASCII character set.
-     *
+     * <p>
      * The method uses the {@link #encodeOriginal(byte[])} method to generate an
      * intermediate Base32-encoded string, converts it to lowercase, and then
      * encodes it into bytes using the US-ASCII encoding.
      *
      * @param data the byte array to be encoded
      * @return the resulting byte array representing the encoded string in US-ASCII
-     * @throws UnsupportedEncodingException if the US-ASCII character encoding is not supported*/
+     * @throws UnsupportedEncodingException if the US-ASCII character encoding is not supported
+     */
     public static byte[] encodeBytes(byte[] data) throws UnsupportedEncodingException {
         String lower = encodeOriginal(data).toLowerCase();
-        return lower.getBytes("US-ASCII");
+        return lower.getBytes(StandardCharsets.US_ASCII);
     }
 
     /**
@@ -142,7 +143,7 @@ public class Base32 {
      * Decodes a Base32-encoded string into its corresponding byte array representation.
      * The method processes each character of the input string, converts it using a predefined
      * Base32 lookup table, and assembles the decoded bytes iteratively based on Base32 decoding rules.
-     *
+     * <p>
      * Invalid characters in the input string (those not part of the Base32 alphabet or those
      * corresponding to an invalid lookup) are ignored during the decoding process.
      *

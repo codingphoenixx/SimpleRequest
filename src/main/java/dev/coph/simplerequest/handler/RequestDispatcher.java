@@ -55,7 +55,14 @@ public class RequestDispatcher {
      * This variable is initialized through the constructor and is immutable.
      */
     private final WebServer webServer;
-
+    /**
+     * A mapping of regular expression patterns to their corresponding method handlers.
+     * The patterns are compiled from HTTP request paths registered through the dispatcher.
+     * Each mapped {@link MethodHandler} is responsible for handling a specific HTTP request
+     * based on the pattern it matches. This map serves as the core routing mechanism used
+     * by the {@link RequestDispatcher} to delegate requests to the appropriate handlers.
+     */
+    private final Map<Pattern, MethodHandler> handlers = new HashMap<>();
     /**
      * Represents a flag to determine whether preflight requests (e.g., CORS preflight OPTIONS requests)
      * should be filtered and handled automatically.
@@ -66,15 +73,6 @@ public class RequestDispatcher {
      */
     @Setter
     private boolean filterPrefireRequests = true;
-
-    /**
-     * A mapping of regular expression patterns to their corresponding method handlers.
-     * The patterns are compiled from HTTP request paths registered through the dispatcher.
-     * Each mapped {@link MethodHandler} is responsible for handling a specific HTTP request
-     * based on the pattern it matches. This map serves as the core routing mechanism used
-     * by the {@link RequestDispatcher} to delegate requests to the appropriate handlers.
-     */
-    private final Map<Pattern, MethodHandler> handlers = new HashMap<>();
 
     /**
      * Constructs a new RequestDispatcher with the specified WebServer instance.
@@ -104,7 +102,7 @@ public class RequestDispatcher {
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
 
                 if (customRateLimits.length > 0) {
-                    Logger.getInstance().debug("The method " + method.getName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
+                    Logger.instance().debug("The method " + method.getName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
 
                     AdditionalCustomRateLimit[] currentAdditionalCustomRateLimits = new AdditionalCustomRateLimit[customRateLimits.length];
                     for (int i = 0; i < customRateLimits.length; i++) {
@@ -200,7 +198,7 @@ public class RequestDispatcher {
                         AuthenticationHandler authenticationHandler = webServer.authenticationHandler();
 
                         if (authenticationHandler == null) {
-                            Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+                            Logger.instance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
                             response.setStatus(HttpStatus.UNAUTHORIZED_401);
                             callback.succeeded();
                             return;
@@ -208,7 +206,7 @@ public class RequestDispatcher {
                         authenticationAnswer = authenticationHandler.hasGeneralAccess(request, handler.accessLevel());
 
                         if (authenticationAnswer == null) {
-                            Logger.getInstance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
+                            Logger.instance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
                             response.setStatus(HttpStatus.UNAUTHORIZED_401);
                             callback.succeeded();
                             return;
@@ -283,7 +281,7 @@ public class RequestDispatcher {
         if (!webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         } else {
-            Logger.getInstance().debug("The request is a star request and credentials are not allowed.");
+            Logger.instance().debug("The request is a star request and credentials are not allowed.");
         }
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, "Origin, X-Requested-With, Content-Type, Accept, Authorization");
@@ -295,7 +293,7 @@ public class RequestDispatcher {
                 if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
                     response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
                 } else {
-                    Logger.getInstance().debug("The origin " + origin + " is not allowed.");
+                    Logger.instance().debug("The origin " + origin + " is not allowed.");
                 }
             }
         }
@@ -319,19 +317,19 @@ public class RequestDispatcher {
     public static class MethodHandler {
         private final String path;
         private final RequestMethode requestMethode;
-        private AccessLevel accessLevel = AccessLevel.PUBLIC;
         private final Object instance;
         private final Method method;
         private final String description;
+        private AccessLevel accessLevel = AccessLevel.PUBLIC;
 
         /**
          * Constructs a new MethodHandler instance with the provided parameters.
          *
-         * @param path          the URI path this handler corresponds to
+         * @param path           the URI path this handler corresponds to
          * @param requestMethode the HTTP request method associated with this handler
-         * @param instance      the object instance containing the method to be invoked
-         * @param method        the method to be executed for this handler
-         * @param description   a brief description of this handler's purpose or functionality
+         * @param instance       the object instance containing the method to be invoked
+         * @param method         the method to be executed for this handler
+         * @param description    a brief description of this handler's purpose or functionality
          */
         public MethodHandler(String path, RequestMethode requestMethode, Object instance, Method method, String description) {
             this.path = path;
@@ -383,13 +381,13 @@ public class RequestDispatcher {
             try {
                 method.invoke(instance, parameters);
             } catch (InvocationTargetException e) {
-                Logger.getInstance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-                Logger.getInstance().error(e.getCause());
+                Logger.instance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
+                Logger.instance().error(e.getCause());
                 response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                 callback.succeeded();
             } catch (Exception e) {
-                Logger.getInstance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-                Logger.getInstance().error(e);
+                Logger.instance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
+                Logger.instance().error(e);
                 response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                 callback.succeeded();
             }

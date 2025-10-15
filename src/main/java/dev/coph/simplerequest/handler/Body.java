@@ -124,7 +124,7 @@ public class Body {
         if (stringContent != null) {
             throw new IOException("Cannot convert body to ByteBuffer. Body is already read as String.");
         }
-        if(inputStreamContent != null){
+        if (inputStreamContent != null) {
             return inputStreamContent;
         }
         inputStreamContent = Content.Source.asInputStream(request);

@@ -7,7 +7,7 @@ import java.lang.annotation.*;
  * This annotation allows specifying maximum request limits and the time window for which these limits
  * are applicable. It is typically used for applying fine-grained control over request rates
  * in scenarios where different methods or endpoints have varying rate-limiting requirements.
- *
+ * <p>
  * The rate-limiting logic should interpret the provided values for `maxRequests` and `timeWindowMillis`
  * to enforce the desired restrictions.
  */
@@ -23,6 +23,7 @@ public @interface CustomRateLimit {
      * @return the key as a string
      */
     String key();
+
     /**
      * Specifies the maximum number of requests allowed within a defined time window
      * for the annotated method or endpoint. This value is intended to be used for

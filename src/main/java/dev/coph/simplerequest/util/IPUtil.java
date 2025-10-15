@@ -24,8 +24,8 @@ public class IPUtil {
      *
      * @param request the {@code Request} object containing client request information.
      * @return a {@code String} representing the client's IP address. If no IP address
-     *         can be determined, the method may return {@code null} or a blank string
-     *         depending on the state of the request object.
+     * can be determined, the method may return {@code null} or a blank string
+     * depending on the state of the request object.
      */
     public static String getClientIPAddress(Request request) {
         String forwardedFor = request.getHeaders().get("X-Forwarded-For");

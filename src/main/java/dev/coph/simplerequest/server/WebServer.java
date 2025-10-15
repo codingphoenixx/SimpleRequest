@@ -20,18 +20,17 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 /**
  * The {@code WebServer} class is a highly customizable and extensible web server
  * implementation designed for managing incoming HTTP requests, rate limiting,
  * WebSocket support, and authentication/authorization functionalities.
- *
+ * <p>
  * The server uses a request dispatcher to handle routing and execution of HTTP requests
  * and supports advanced configurations such as CORS, rate limiting, and WebSocket registration.
  * It provides robust error handling and extensive logging for monitoring server operations.
- *
+ * <p>
  * Fields:
  * - {@code logger}: The logger instance used for logging server operations and errors.
  * - {@code authenticationHandler}: An optional handler for managing authentication and authorization logic.
@@ -50,30 +49,11 @@ public class WebServer {
      * The logger instance used for logging messages within the {@code WebServer} class.
      * This logger is responsible for recording runtime information, error messages, and
      * operational details to aid in debugging and monitoring the application's behavior.
-     *
-     * The logger is a singleton instance obtained via {@code Logger.getInstance()},
+     * <p>
+     * The logger is a singleton instance obtained via {@code Logger.instance()},
      * ensuring consistency and preventing multiple logger instances throughout the application.
      */
-    private final Logger logger = Logger.getInstance();
-    /**
-     * Handles user authentication and authorization logic within the WebServer.
-     *
-     * The authenticationHandler is used for validating user permissions and
-     * access rights for incoming requests. It interacts with the implementations
-     * of the {@code AuthenticationHandler} interface to enforce security policies.
-     * This field must be set for features involving access control to function
-     * properly.
-     *
-     * Responsibilities of the associated {@code AuthenticationHandler} may include:
-     * - Verifying whether a user has the necessary permissions to access a resource.
-     * - Checking access to specific routes or method handlers.
-     * - Parsing and validating authorization credentials from incoming requests.
-     *
-     * If the authentication handler is not configured, all access-related checks
-     * will fail, and certain API endpoints may not be accessible.
-     */
-    @Setter
-    private AuthenticationHandler authenticationHandler;
+    private final Logger logger = Logger.instance();
     /**
      * Manages the dispatching of incoming HTTP requests to the appropriate
      * handler or resource within the web server.
@@ -102,7 +82,6 @@ public class WebServer {
      * Once the server is started, the value of this variable is final and cannot be changed.
      */
     private final int port;
-
     /**
      * A set of allowed origins for Cross-Origin Resource Sharing (CORS) in the web server.
      * <p>
@@ -114,6 +93,38 @@ public class WebServer {
      */
     private final Set<String> allowedOrigins = new HashSet<>();
     /**
+     * A collection that holds registered WebSocket provider classes for the WebServer.
+     * <p>
+     * This set contains classes that are annotated with {@code @ServerEndpoint}
+     * and are registered through the appropriate methods. These classes enable WebSocket
+     * functionality within the server context. If no WebSocket providers are registered,
+     * WebSocket support will not be enabled for the server.
+     * <p>
+     * Each entry in this collection represents a valid WebSocket endpoint provider
+     * that must adhere to the restrictions imposed by the WebSocket API (e.g., non-anonymous class,
+     * properly annotated with {@code @ServerEndpoint}).
+     */
+    private final HashSet<Class<?>> websockets = new HashSet<>();
+    /**
+     * Handles user authentication and authorization logic within the WebServer.
+     * <p>
+     * The authenticationHandler is used for validating user permissions and
+     * access rights for incoming requests. It interacts with the implementations
+     * of the {@code AuthenticationHandler} interface to enforce security policies.
+     * This field must be set for features involving access control to function
+     * properly.
+     * <p>
+     * Responsibilities of the associated {@code AuthenticationHandler} may include:
+     * - Verifying whether a user has the necessary permissions to access a resource.
+     * - Checking access to specific routes or method handlers.
+     * - Parsing and validating authorization credentials from incoming requests.
+     * <p>
+     * If the authentication handler is not configured, all access-related checks
+     * will fail, and certain API endpoints may not be accessible.
+     */
+    @Setter
+    private AuthenticationHandler authenticationHandler;
+    /**
      * Represents whether the web server is currently enabled or active.
      * <p>
      * This field is used to track the operational state of the server.
@@ -123,10 +134,8 @@ public class WebServer {
      * while {@code false} signifies that the server is stopped or inactive.
      */
     private boolean enabled = false;
-
-
+    @Setter
     private boolean enableDiscoveryEndpoint = false;
-
     /**
      * Represents the Jetty Server instance used by the WebServer for handling HTTP and HTTPS requests.
      * <p>
@@ -140,7 +149,6 @@ public class WebServer {
      * ensures the proper initialization, security settings, and behavior of the server during runtime.
      */
     private Server server;
-
     /**
      * Handles rate limiting for incoming requests to the web server.
      * <p>
@@ -296,25 +304,11 @@ public class WebServer {
      * @return the current instance of the WebServer, enabling method chaining
      */
     public WebServer useRateLimit(Time time, int maxRequestsPerSpan) {
-        Logger.getInstance().debug("Creating RateLimit Handler");
+        Logger.instance().debug("Creating RateLimit Handler");
         this.rateLimitHandler = new RateLimitHandler(this, time, maxRequestsPerSpan);
-        Logger.getInstance().success("Successfully created RateLimit Handler");
+        Logger.instance().success("Successfully created RateLimit Handler");
         return this;
     }
-
-    /**
-     * A collection that holds registered WebSocket provider classes for the WebServer.
-     * <p>
-     * This set contains classes that are annotated with {@code @ServerEndpoint}
-     * and are registered through the appropriate methods. These classes enable WebSocket
-     * functionality within the server context. If no WebSocket providers are registered,
-     * WebSocket support will not be enabled for the server.
-     * <p>
-     * Each entry in this collection represents a valid WebSocket endpoint provider
-     * that must adhere to the restrictions imposed by the WebSocket API (e.g., non-anonymous class,
-     * properly annotated with {@code @ServerEndpoint}).
-     */
-    private HashSet<Class<?>> websockets = new HashSet<>();
 
     /**
      * Enables WebSocket support for the given context handlers in the web server.
@@ -327,10 +321,10 @@ public class WebServer {
     private void enableWebSockets(ContextHandlerCollection collection) {
 
         if (websockets.isEmpty()) {
-            Logger.getInstance().info("No WebSockets registered.");
+            Logger.instance().info("No WebSockets registered.");
             return;
         }
-        Logger.getInstance().info("Enabling WebSockets.");
+        Logger.instance().info("Enabling WebSockets.");
 
         ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
         websocketHandlers.setContextPath("/ws");
@@ -341,20 +335,20 @@ public class WebServer {
                 try {
                     try {
                         if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
-                            Logger.getInstance().error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
+                            Logger.instance().error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
                             return;
                         }
                         wsContainer.addEndpoint(provider);
                         var pathName = provider.getAnnotation(ServerEndpoint.class).value();
-                        Logger.getInstance().success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
+                        Logger.instance().success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
                     } catch (Exception e) {
-                        Logger.getInstance().error("Error enabling WebSocket for path: ", e);
+                        Logger.instance().error("Error enabling WebSocket for path: ", e);
                     }
                 } catch (Exception e) {
-                    Logger.getInstance().error("Error enabling WebSocket support", e);
+                    Logger.instance().error("Error enabling WebSocket support", e);
                 }
             });
-            Logger.getInstance().success("Successfully enabled all WebSockets.");
+            Logger.instance().success("Successfully enabled all WebSockets.");
         });
 
         collection.addHandler(websocketHandlers);
@@ -371,11 +365,11 @@ public class WebServer {
      */
     public WebServer registerWebsocket(Class<?> websocketProvider) {
         if (websocketProvider.isAnonymousClass()) {
-            Logger.getInstance().error("Could not register Websocket. It is an anonymous class.");
+            Logger.instance().error("Could not register Websocket. It is an anonymous class.");
             return this;
         }
         if (!websocketProvider.isAnnotationPresent(ServerEndpoint.class)) {
-            Logger.getInstance().error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
+            Logger.instance().error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
             return this;
         }
         websockets.add(websocketProvider);
@@ -392,7 +386,7 @@ public class WebServer {
      *                 with the web server's {@code RequestDispatcher}
      * @return the current instance of {@code WebServer}, enabling method chaining
      */
-    public WebServer registerRequestHandler(Object instance){
+    public WebServer registerRequestHandler(Object instance) {
         requestDispatcher.register(instance);
         return this;
     }
@@ -404,11 +398,11 @@ public class WebServer {
      * @param methodHandler an object that handles the HTTP method invoked in the request
      * @param request       the incoming HTTP request containing necessary data
      * @return an {@code AuthenticationAnswer} object indicating whether the access
-     *         is granted and including additional information about the result
+     * is granted and including additional information about the result
      */
     public AuthenticationAnswer hasAccess(RequestDispatcher.MethodHandler methodHandler, Request request) {
-        Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
-        if (authenticationHandler == null) return new AuthenticationAnswer(false,null);
+        Logger.instance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasAccess(methodHandler, request, methodHandler.accessLevel());
     }
 
@@ -420,12 +414,12 @@ public class WebServer {
      * @param permission the required permission to validate for the given request
      * @param request    the current HTTP request containing headers and other contextual information
      * @return an {@code AuthenticationAnswer} object indicating whether access is granted
-     *         and providing additional information regarding the result
+     * and providing additional information regarding the result
      */
     public AuthenticationAnswer hasPermission(String permission, Request request) {
-        Logger.getInstance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
-        if (authenticationHandler == null) return new AuthenticationAnswer(false,null);
-        if (!request.getHeaders().contains("Authorization")) return new AuthenticationAnswer(false,null);
+        Logger.instance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
+        if (!request.getHeaders().contains("Authorization")) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasPermission(permission, request.getHeaders().get("Authorization"));
     }
 }

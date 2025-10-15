@@ -9,7 +9,7 @@ import org.eclipse.jetty.util.Callback;
 /**
  * The ServerErrorHandler class is a specialized error handler that extends the base functionality
  * of the {@link ErrorHandler} class to process and handle server errors.
- *
+ * <p>
  * This class analyzes the server response and, based on specific conditions, can adjust
  * the status of the response to ensure errors are managed appropriately before notifying
  * a registered callback of the success state.
@@ -17,7 +17,7 @@ import org.eclipse.jetty.util.Callback;
 public class ServerErrorHandler extends ErrorHandler {
     /**
      * Constructs a new instance of {@code ServerErrorHandler}.
-     *
+     * <p>
      * This constructor initializes the error handler, enabling it to process server errors
      * by implementing specialized logic for evaluating and adjusting server responses.
      */

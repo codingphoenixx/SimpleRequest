@@ -13,38 +13,38 @@ import org.json.JSONObject;
  * The {@code EndpointRequestHandler} class is responsible for handling requests
  * to the "/endpoints" URL path. It provides an endpoint to enumerate and describe
  * other registered request handlers in the system.
- *
+ * <p>
  * This class interacts with a {@code WebServer} instance to retrieve details
  * about registered endpoint handlers and produces a JSON-formatted response
  * with metadata describing each endpoint. If the discovery endpoint is
  * disabled in the {@code WebServer}, the handler returns a service unavailable
  * status code.
- *
+ * <p>
  * Constructor:
  * - {@link #EndpointRequestHandler(WebServer)}: Initializes the handler with
- *   the provided {@code WebServer} instance.
- *
+ * the provided {@code WebServer} instance.
+ * <p>
  * Methods:
  * - {@link #handleEndpointRequest(Response, Callback)}: Handles GET requests
- *   to the "/endpoints" URL. Returns a JSON object with metadata about
- *   registered endpoint handlers, such as request method, access level,
- *   description, and path. If discovery is disabled, responds with a 503
- *   Service Unavailable status.
+ * to the "/endpoints" URL. Returns a JSON object with metadata about
+ * registered endpoint handlers, such as request method, access level,
+ * description, and path. If discovery is disabled, responds with a 503
+ * Service Unavailable status.
  */
 public class EndpointRequestHandler {
     /**
      * Represents the {@code WebServer} instance utilized by the {@code EndpointRequestHandler}
      * to interact with registered endpoint handlers and manage the discovery endpoint.
-     *
+     * <p>
      * This variable is used to:
      * - Retrieve details about registered request handlers within the server.
      * - Determine whether the discovery endpoint functionality is enabled.
      * - Access the server's request dispatcher to enumerate handlers and their metadata.
-     *
+     * <p>
      * This instance is critical for generating a JSON-formatted response containing metadata
      * about registered endpoint handlers, including request methods, access levels, descriptions,
      * and associated paths.
-     *
+     * <p>
      * The {@code webServer} is assigned a reference at the initialization of the
      * {@code EndpointRequestHandler} and remains constant throughout the lifecycle of the handler.
      */
@@ -71,7 +71,7 @@ public class EndpointRequestHandler {
      */
     @RequestHandler(path = "/endpoints", methode = RequestMethode.GET, description = "Lists all currently available endpoints.")
     public void handleEndpointRequest(Response response, Callback callback) {
-        if(!webServer.enableDiscoveryEndpoint()){
+        if (!webServer.enableDiscoveryEndpoint()) {
             response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
             callback.succeeded();
             return;

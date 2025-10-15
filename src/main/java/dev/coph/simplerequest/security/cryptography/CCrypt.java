@@ -13,14 +13,6 @@ import java.security.SecureRandom;
 public class CCrypt {
 
     /**
-     * Private constructor for the CCrypt class to prevent instantiation.
-     * This class provides static utility methods for password hashing
-     * and related operations, adhering to the OpenBSD CCrypt scheme.
-     */
-    private CCrypt() {
-    }
-
-    /**
      * The default value for the logarithm base 2 of the number of
      * iterations to perform in the hashing process. This determines
      * the computational cost of the password hashing mechanism. A value
@@ -61,7 +53,6 @@ public class CCrypt {
             0xc0ac29b7, 0xc97c50dd, 0x3f84d5b5, 0xb5470917,
             0x9216d5d9, 0x8979fb1b
     };
-
     /**
      * S_orig is a constant static array of integers utilized for cryptographic
      * or algorithmic purposes. The array contains predefined hexadecimal values
@@ -329,7 +320,6 @@ public class CCrypt {
             0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f,
             0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6
     };
-
     /**
      * A static final array containing the initial values used during the
      * key setup phase of the Blowfish encryption process in the CCrypt
@@ -344,12 +334,11 @@ public class CCrypt {
             0x4f727068, 0x65616e42, 0x65686f6c,
             0x64657253, 0x63727944, 0x6f756274
     };
-
     /**
      * Character array containing the modified Base64 encoding scheme used in CCrypt.
      * This array defines the 64 characters used for encoding, in the specific
      * order required by CCrypt's implementation.
-     *
+     * <p>
      * Note that this encoding scheme is slightly different from the standard
      * MIME Base64 encoding.
      */
@@ -361,7 +350,6 @@ public class CCrypt {
             'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5',
             '6', '7', '8', '9'
     };
-
     /**
      * A lookup table used for decoding base64-encoded characters.
      * The table maps ASCII character codes to their corresponding values
@@ -385,7 +373,6 @@ public class CCrypt {
             41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
             51, 52, 53, -1, -1, -1, -1, -1
     };
-
     /**
      * The P array used as part of the key schedule in the Blowfish cipher
      * algorithm. It contains the P-array, which is a series of 18
@@ -393,19 +380,26 @@ public class CCrypt {
      * This array is used during encryption and decryption operations.
      */
     private int[] P;
-
     /**
      * The `S` variable is an array of integers representing the substitution
      * boxes (S-boxes) used in the Blowfish encryption algorithm. S-boxes are
      * a key component of the Blowfish cipher, responsible for providing
      * nonlinearity and complexity to the encryption process.
-     *
+     * <p>
      * In this implementation, the `S` array is initialized based on a cloned
      * version of the original S-boxes (`S_orig`), and it is used throughout
      * the encryption and key scheduling process to modify input data
      * during enciphering and other operations.
      */
     private int[] S;
+
+    /**
+     * Private constructor for the CCrypt class to prevent instantiation.
+     * This class provides static utility methods for password hashing
+     * and related operations, adhering to the OpenBSD CCrypt scheme.
+     */
+    private CCrypt() {
+    }
 
     /**
      * Encode a byte array using CCrypt's slightly-modified base64
@@ -460,7 +454,7 @@ public class CCrypt {
     private static byte char64(char x) {
         if ((int) x < 0 || (int) x > index_64.length)
             return -1;
-        return index_64[(int) x];
+        return index_64[x];
     }
 
     /**
@@ -477,7 +471,7 @@ public class CCrypt {
             throws IllegalArgumentException {
         StringBuffer rs = new StringBuffer();
         int off = 0, slen = s.length(), olen = 0;
-        byte ret[];
+        byte[] ret;
         byte c1, c2, c3, c4, o;
 
         if (maxolen <= 0)
@@ -515,36 +509,6 @@ public class CCrypt {
     }
 
     /**
-     * Blowfish encipher a single 64-bit block encoded as
-     * two 32-bit halves
-     *
-     * @param lr  an array containing the two 32-bit half blocks
-     * @param off the position in the array of the blocks
-     */
-    private final void encipher(int lr[], int off) {
-        int i, n, l = lr[off], r = lr[off + 1];
-
-        l ^= P[0];
-        for (i = 0; i <= BLOWFISH_NUM_ROUNDS - 2; ) {
-            // Feistel substitution on left word
-            n = S[(l >> 24) & 0xff];
-            n += S[0x100 | ((l >> 16) & 0xff)];
-            n ^= S[0x200 | ((l >> 8) & 0xff)];
-            n += S[0x300 | (l & 0xff)];
-            r ^= n ^ P[++i];
-
-            // Feistel substitution on right word
-            n = S[(r >> 24) & 0xff];
-            n += S[0x100 | ((r >> 16) & 0xff)];
-            n ^= S[0x200 | ((r >> 8) & 0xff)];
-            n += S[0x300 | (r & 0xff)];
-            l ^= n ^ P[++i];
-        }
-        lr[off] = r ^ P[BLOWFISH_NUM_ROUNDS + 1];
-        lr[off + 1] = l;
-    }
-
-    /**
      * Cycically extract a word of key material
      *
      * @param data the string to extract the data from
@@ -552,7 +516,7 @@ public class CCrypt {
      *             current offset into data
      * @return the next word of material from data
      */
-    private static int streamtoword(byte data[], int offp[]) {
+    private static int streamtoword(byte[] data, int[] offp) {
         int i;
         int word = 0;
         int off = offp[0];
@@ -564,120 +528,6 @@ public class CCrypt {
 
         offp[0] = off;
         return word;
-    }
-
-    /**
-     * Initialise the Blowfish key schedule
-     */
-    private void init_key() {
-        P = (int[]) P_orig.clone();
-        S = (int[]) S_orig.clone();
-    }
-
-    /**
-     * Key the Blowfish cipher
-     *
-     * @param key an array containing the key
-     */
-    private void key(byte key[]) {
-        int i;
-        int koffp[] = {0};
-        int lr[] = {0, 0};
-        int plen = P.length, slen = S.length;
-
-        for (i = 0; i < plen; i++)
-            P[i] = P[i] ^ streamtoword(key, koffp);
-
-        for (i = 0; i < plen; i += 2) {
-            encipher(lr, 0);
-            P[i] = lr[0];
-            P[i + 1] = lr[1];
-        }
-
-        for (i = 0; i < slen; i += 2) {
-            encipher(lr, 0);
-            S[i] = lr[0];
-            S[i + 1] = lr[1];
-        }
-    }
-
-    /**
-     * Perform the "enhanced key schedule" step described by
-     * Provos and Mazieres in "A Future-Adaptable Password Scheme"
-     * http://www.openbsd.org/papers/CCrypt-paper.ps
-     *
-     * @param data salt information
-     * @param key  password information
-     */
-    private void ekskey(byte data[], byte key[]) {
-        int i;
-        int koffp[] = {0}, doffp[] = {0};
-        int lr[] = {0, 0};
-        int plen = P.length, slen = S.length;
-
-        for (i = 0; i < plen; i++)
-            P[i] = P[i] ^ streamtoword(key, koffp);
-
-        for (i = 0; i < plen; i += 2) {
-            lr[0] ^= streamtoword(data, doffp);
-            lr[1] ^= streamtoword(data, doffp);
-            encipher(lr, 0);
-            P[i] = lr[0];
-            P[i + 1] = lr[1];
-        }
-
-        for (i = 0; i < slen; i += 2) {
-            lr[0] ^= streamtoword(data, doffp);
-            lr[1] ^= streamtoword(data, doffp);
-            encipher(lr, 0);
-            S[i] = lr[0];
-            S[i + 1] = lr[1];
-        }
-    }
-
-    /**
-     * Perform the central password hashing step in the
-     * CCrypt scheme
-     *
-     * @param password   the password to hash
-     * @param salt       the binary salt to hash with the password
-     * @param log_rounds the binary logarithm of the number
-     *                   of rounds of hashing to apply
-     * @param cdata      the plaintext to encrypt
-     * @return an array containing the binary hashed password
-     */
-    public byte[] crypt_raw(byte password[], byte salt[], int log_rounds,
-                            int cdata[]) {
-        int rounds, i, j;
-        int clen = cdata.length;
-        byte ret[];
-
-        if (log_rounds < 4 || log_rounds > 30)
-            throw new IllegalArgumentException("Bad number of rounds");
-        rounds = 1 << log_rounds;
-        if (salt.length != CCrypt_SALT_LEN)
-            throw new IllegalArgumentException("Bad salt length");
-
-        init_key();
-        ekskey(salt, password);
-        for (i = 0; i != rounds; i++) {
-            key(password);
-            key(salt);
-        }
-
-        for (i = 0; i < 64; i++) {
-            for (j = 0; j < (clen >> 1); j++)
-                encipher(cdata, j << 1);
-        }
-
-        ret = new byte[clen * 4];
-        for (i = 0, j = 0; i < clen; i++) {
-            ret[j++] = (byte) ((cdata[i] >> 24) & 0xff);
-            ret[j++] = (byte) ((cdata[i] >> 16) & 0xff);
-            ret[j++] = (byte) ((cdata[i] >> 8) & 0xff);
-            ret[j++] = (byte) (cdata[i] & 0xff);
-        }
-        return ret;
     }
 
     /**
@@ -718,7 +568,7 @@ public class CCrypt {
 
         C = new CCrypt();
         hashed = C.crypt_raw(passwordb, saltb, rounds,
-                (int[]) bf_crypt_ciphertext.clone());
+                bf_crypt_ciphertext.clone());
 
         rs.append("$2");
         if (minor >= 'a')
@@ -730,7 +580,7 @@ public class CCrypt {
             throw new IllegalArgumentException(
                     "rounds exceeds maximum (30)");
         }
-        rs.append(Integer.toString(rounds));
+        rs.append(rounds);
         rs.append("$");
         rs.append(encode_base64(saltb, saltb.length));
         rs.append(encode_base64(hashed,
@@ -749,7 +599,7 @@ public class CCrypt {
      */
     public static String gensalt(int log_rounds, SecureRandom random) {
         StringBuffer rs = new StringBuffer();
-        byte rnd[] = new byte[CCrypt_SALT_LEN];
+        byte[] rnd = new byte[CCrypt_SALT_LEN];
 
         random.nextBytes(rnd);
 
@@ -760,7 +610,7 @@ public class CCrypt {
             throw new IllegalArgumentException(
                     "log_rounds exceeds maximum (30)");
         }
-        rs.append(Integer.toString(log_rounds));
+        rs.append(log_rounds);
         rs.append("$");
         rs.append(encode_base64(rnd, rnd.length));
         return rs.toString();
@@ -809,5 +659,149 @@ public class CCrypt {
         for (int i = 0; i < try_bytes.length; i++)
             ret |= hashed_bytes[i] ^ try_bytes[i];
         return ret == 0;
+    }
+
+    /**
+     * Blowfish encipher a single 64-bit block encoded as
+     * two 32-bit halves
+     *
+     * @param lr  an array containing the two 32-bit half blocks
+     * @param off the position in the array of the blocks
+     */
+    private final void encipher(int[] lr, int off) {
+        int i, n, l = lr[off], r = lr[off + 1];
+
+        l ^= P[0];
+        for (i = 0; i <= BLOWFISH_NUM_ROUNDS - 2; ) {
+            // Feistel substitution on left word
+            n = S[(l >> 24) & 0xff];
+            n += S[0x100 | ((l >> 16) & 0xff)];
+            n ^= S[0x200 | ((l >> 8) & 0xff)];
+            n += S[0x300 | (l & 0xff)];
+            r ^= n ^ P[++i];
+
+            // Feistel substitution on right word
+            n = S[(r >> 24) & 0xff];
+            n += S[0x100 | ((r >> 16) & 0xff)];
+            n ^= S[0x200 | ((r >> 8) & 0xff)];
+            n += S[0x300 | (r & 0xff)];
+            l ^= n ^ P[++i];
+        }
+        lr[off] = r ^ P[BLOWFISH_NUM_ROUNDS + 1];
+        lr[off + 1] = l;
+    }
+
+    /**
+     * Initialise the Blowfish key schedule
+     */
+    private void init_key() {
+        P = P_orig.clone();
+        S = S_orig.clone();
+    }
+
+    /**
+     * Key the Blowfish cipher
+     *
+     * @param key an array containing the key
+     */
+    private void key(byte[] key) {
+        int i;
+        int[] koffp = {0};
+        int[] lr = {0, 0};
+        int plen = P.length, slen = S.length;
+
+        for (i = 0; i < plen; i++)
+            P[i] = P[i] ^ streamtoword(key, koffp);
+
+        for (i = 0; i < plen; i += 2) {
+            encipher(lr, 0);
+            P[i] = lr[0];
+            P[i + 1] = lr[1];
+        }
+
+        for (i = 0; i < slen; i += 2) {
+            encipher(lr, 0);
+            S[i] = lr[0];
+            S[i + 1] = lr[1];
+        }
+    }
+
+    /**
+     * Perform the "enhanced key schedule" step described by
+     * Provos and Mazieres in "A Future-Adaptable Password Scheme"
+     * http://www.openbsd.org/papers/CCrypt-paper.ps
+     *
+     * @param data salt information
+     * @param key  password information
+     */
+    private void ekskey(byte[] data, byte[] key) {
+        int i;
+        int[] koffp = {0}, doffp = {0};
+        int[] lr = {0, 0};
+        int plen = P.length, slen = S.length;
+
+        for (i = 0; i < plen; i++)
+            P[i] = P[i] ^ streamtoword(key, koffp);
+
+        for (i = 0; i < plen; i += 2) {
+            lr[0] ^= streamtoword(data, doffp);
+            lr[1] ^= streamtoword(data, doffp);
+            encipher(lr, 0);
+            P[i] = lr[0];
+            P[i + 1] = lr[1];
+        }
+
+        for (i = 0; i < slen; i += 2) {
+            lr[0] ^= streamtoword(data, doffp);
+            lr[1] ^= streamtoword(data, doffp);
+            encipher(lr, 0);
+            S[i] = lr[0];
+            S[i + 1] = lr[1];
+        }
+    }
+
+    /**
+     * Perform the central password hashing step in the
+     * CCrypt scheme
+     *
+     * @param password   the password to hash
+     * @param salt       the binary salt to hash with the password
+     * @param log_rounds the binary logarithm of the number
+     *                   of rounds of hashing to apply
+     * @param cdata      the plaintext to encrypt
+     * @return an array containing the binary hashed password
+     */
+    public byte[] crypt_raw(byte[] password, byte[] salt, int log_rounds,
+                            int[] cdata) {
+        int rounds, i, j;
+        int clen = cdata.length;
+        byte[] ret;
+
+        if (log_rounds < 4 || log_rounds > 30)
+            throw new IllegalArgumentException("Bad number of rounds");
+        rounds = 1 << log_rounds;
+        if (salt.length != CCrypt_SALT_LEN)
+            throw new IllegalArgumentException("Bad salt length");
+
+        init_key();
+        ekskey(salt, password);
+        for (i = 0; i != rounds; i++) {
+            key(password);
+            key(salt);
+        }
+
+        for (i = 0; i < 64; i++) {
+            for (j = 0; j < (clen >> 1); j++)
+                encipher(cdata, j << 1);
+        }
+
+        ret = new byte[clen * 4];
+        for (i = 0, j = 0; i < clen; i++) {
+            ret[j++] = (byte) ((cdata[i] >> 24) & 0xff);
+            ret[j++] = (byte) ((cdata[i] >> 16) & 0xff);
+            ret[j++] = (byte) ((cdata[i] >> 8) & 0xff);
+            ret[j++] = (byte) (cdata[i] & 0xff);
+        }
+        return ret;
     }
 }

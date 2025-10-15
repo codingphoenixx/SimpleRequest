@@ -20,7 +20,7 @@ public class Time {
      * Constructs a Time object with the specified duration and unit of time.
      *
      * @param duration the amount of time to be represented
-     * @param unit the unit of time for the duration (e.g., seconds, minutes, hours)
+     * @param unit     the unit of time for the duration (e.g., seconds, minutes, hours)
      */
     public Time(int duration, TimeUnit unit) {
         milliseconds = unit.toMillis(duration);
@@ -30,7 +30,7 @@ public class Time {
      * Constructs a Time object with the specified duration and unit of time.
      *
      * @param duration the amount of time to be represented
-     * @param unit the unit of time for the duration (e.g., seconds, minutes, hours)
+     * @param unit     the unit of time for the duration (e.g., seconds, minutes, hours)
      */
     public Time(long duration, TimeUnit unit) {
         milliseconds = unit.toMillis(duration);
@@ -40,7 +40,7 @@ public class Time {
      * Adds the specified duration to the current time value.
      *
      * @param duration the amount of time to add
-     * @param unit the unit of time for the duration (e.g., seconds, minutes, hours)
+     * @param unit     the unit of time for the duration (e.g., seconds, minutes, hours)
      * @return the updated Time object after adding the specified duration
      */
     public Time add(int duration, TimeUnit unit) {
@@ -52,7 +52,7 @@ public class Time {
      * Decreases the stored time value by the specified duration in the given time unit.
      *
      * @param duration the amount of time to subtract
-     * @param unit the unit of time for the duration (e.g., seconds, minutes, hours)
+     * @param unit     the unit of time for the duration (e.g., seconds, minutes, hours)
      * @return the updated Time object after subtracting the specified duration
      */
     public Time remove(int duration, TimeUnit unit) {
