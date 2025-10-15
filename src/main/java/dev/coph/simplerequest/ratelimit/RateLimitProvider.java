@@ -118,4 +118,44 @@ public class RateLimitProvider {
 
         return allowed;
     }
+
+    /**
+     * Returns the earliest timestamp (in milliseconds since epoch) at which a new request
+     * would be allowed for the given key and path, considering all active rate limits.
+     * If a request is currently allowed by all rate limits, this returns the current time.
+     *
+     * @param key  the unique identifier used to group requests and apply specific rate-limiting policies
+     * @param path the request path to evaluate for any matching custom rate-limiting rules
+     * @return earliest allowed timestamp in milliseconds since epoch
+     */
+    public long getEarliestAllowedTimestamp(String key, String path) {
+        HashMap<String, RateLimit> rateLimits = this.rateLimits.computeIfAbsent(key, s -> new HashMap<>());
+
+        if (!rateLimits.containsKey("default")) {
+            rateLimits.put("default", new RateLimit(maxRequests, defaultTimeWindow));
+        }
+
+        for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
+            Pattern pattern = entry.getKey();
+            Matcher matcher = pattern.matcher(path.trim());
+            if (matcher.matches()) {
+                AdditionalCustomRateLimit[] additionalCustomRateLimits = entry.getValue();
+                for (AdditionalCustomRateLimit additionalCustomRateLimit : additionalCustomRateLimits) {
+                    if (!rateLimits.containsKey(additionalCustomRateLimit.key()))
+                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis()));
+                }
+            }
+        }
+
+        long now = System.currentTimeMillis();
+        long maxTimestamp = now;
+        for (RateLimit rateLimit : rateLimits.values()) {
+            long retryAfter = rateLimit.getRetryAfterMillis();
+            long allowedAt = now + retryAfter;
+            if (allowedAt > maxTimestamp) {
+                maxTimestamp = allowedAt;
+            }
+        }
+        return maxTimestamp;
+    }
 }
