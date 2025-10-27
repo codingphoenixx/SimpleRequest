@@ -41,8 +41,8 @@ public class ImageUtil {
         try {
             image = ImageIO.read(inputStream);
         } catch (IOException e) {
-            Logger.instance().error("Failed to read image.");
-            Logger.instance().error(e);
+            Logger.error("Failed to read image.");
+            Logger.error(e);
             return null;
         }
         if (image == null) {

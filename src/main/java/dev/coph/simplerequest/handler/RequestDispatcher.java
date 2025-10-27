@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * The {@code RequestDispatcher} class is responsible for routing and handling HTTP requests
@@ -102,7 +103,7 @@ public class RequestDispatcher {
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
 
                 if (customRateLimits.length > 0) {
-                    Logger.instance().debug("The method " + method.getName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
+                    Logger.debug("The method " + method.getName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
 
                     AdditionalCustomRateLimit[] currentAdditionalCustomRateLimits = new AdditionalCustomRateLimit[customRateLimits.length];
                     for (int i = 0; i < customRateLimits.length; i++) {
@@ -198,7 +199,7 @@ public class RequestDispatcher {
                         AuthenticationHandler authenticationHandler = webServer.authenticationHandler();
 
                         if (authenticationHandler == null) {
-                            Logger.instance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+                            Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
                             response.setStatus(HttpStatus.UNAUTHORIZED_401);
                             callback.succeeded();
                             return;
@@ -206,7 +207,7 @@ public class RequestDispatcher {
                         authenticationAnswer = authenticationHandler.hasGeneralAccess(request, handler.accessLevel());
 
                         if (authenticationAnswer == null) {
-                            Logger.instance().error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
+                            Logger.error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
                             response.setStatus(HttpStatus.UNAUTHORIZED_401);
                             callback.succeeded();
                             return;
@@ -281,10 +282,12 @@ public class RequestDispatcher {
         if (!webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         } else {
-            Logger.instance().debug("The request is a star request and credentials are not allowed.");
+            Logger.debug("The request is a star request and credentials are not allowed.");
         }
-        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, "GET,PUT,POST,OPTIONS");
-        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+
+        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, String.join(",", webServer.allowedMethods()));
+        response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, String.join(",", webServer.allowedHeaders()));
+        
         String origin = request.getHeaders().get("Origin");
         if (webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
@@ -293,7 +296,7 @@ public class RequestDispatcher {
                 if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
                     response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
                 } else {
-                    Logger.instance().debug("The origin " + origin + " is not allowed.");
+                    Logger.debug("The origin " + origin + " is not allowed.");
                 }
             }
         }
@@ -381,13 +384,13 @@ public class RequestDispatcher {
             try {
                 method.invoke(instance, parameters);
             } catch (InvocationTargetException e) {
-                Logger.instance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-                Logger.instance().error(e.getCause());
+                Logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
+                Logger.error(e.getCause());
                 response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                 callback.succeeded();
             } catch (Exception e) {
-                Logger.instance().error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-                Logger.instance().error(e);
+                Logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
+                Logger.error(e);
                 response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                 callback.succeeded();
             }

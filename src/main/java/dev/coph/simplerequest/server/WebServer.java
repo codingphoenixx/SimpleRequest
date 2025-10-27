@@ -45,15 +45,7 @@ import java.util.Set;
 @Getter
 @Accessors(fluent = true, chain = true)
 public class WebServer {
-    /**
-     * The logger instance used for logging messages within the {@code WebServer} class.
-     * This logger is responsible for recording runtime information, error messages, and
-     * operational details to aid in debugging and monitoring the application's behavior.
-     * <p>
-     * The logger is a singleton instance obtained via {@code Logger.instance()},
-     * ensuring consistency and preventing multiple logger instances throughout the application.
-     */
-    private final Logger logger = Logger.instance();
+
     /**
      * Manages the dispatching of incoming HTTP requests to the appropriate
      * handler or resource within the web server.
@@ -92,6 +84,31 @@ public class WebServer {
      * use the {@code addAllowedOrigin} method provided in the {@code WebServer} class
      */
     private final Set<String> allowedOrigins = new HashSet<>();
+
+    /**
+     * A collection of HTTP methods allowed by the WebServer to handle incoming requests.
+     * <p>
+     * This set is initialized with default HTTP methods that include:<p>
+     * - "GET": Used to retrieve information from the server.<p>
+     * - "PUT": Used to create or update a resource on the server.<p>
+     * - "POST": Used to submit data to the server.<p>
+     * - "OPTIONS": Used to describe the communication options for the target resource.<p>
+     * <p>
+     * Having a predefined set of allowed methods ensures that the server only supports
+     * specific HTTP methods, which helps in improving security and controlling server behavior.
+     */
+    private final Set<String> allowedMethods = new HashSet<>(Set.of("GET", "PUT", "POST", "OPTIONS"));
+    /**
+     * A set of allowed HTTP headers utilized primarily for Cross-Origin Resource Sharing (CORS) and request validation.
+     * This set contains header names that the web server recognizes and permits when processing incoming HTTP requests.
+     * <p>
+     * The default allowed headers include: <p>
+     * - "Origin": Represents the origin of the request, used in CORS configurations. <p>
+     * - "Content-Type": Specifies the media type of the request payload. <p>
+     * <p>
+     * This field is immutable, ensuring thread safety when accessed concurrently.
+     */
+    private final Set<String> allowedHeaders = new HashSet<>(Set.of("Origin","Content-Type"));
     /**
      * A collection that holds registered WebSocket provider classes for the WebServer.
      * <p>
@@ -193,47 +210,47 @@ public class WebServer {
      * the state of the server during startup.
      */
     public void start() {
-        logger.info("Configure Server");
-        logger.debug("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
+        Logger.info("Configure Server");
+        Logger.debug("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
         System.setProperty("https.protocols", "SSLv3,TLSv1.2,TLSv1.3");
         if (!isPortAvailable(port)) {
-            logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort(49152, 65535));
+            Logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort(49152, 65535));
             return;
         }
 
-        logger.debug("Creating new server instance with port %s.%n".formatted(port));
+        Logger.debug("Creating new server instance with port %s.%n".formatted(port));
         server = new Server(port);
 
 
-        logger.debug("Creating ContextHandler");
+        Logger.debug("Creating ContextHandler");
         if (rateLimitHandler != null) {
             rateLimitHandler.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(rateLimitHandler);
-            logger.debug("Successfully created ContextHandler. Adding RateLimitHandler.");
+            Logger.debug("Successfully created ContextHandler. Adding RateLimitHandler.");
             server.setHandler(rateLimitHandler);
         } else {
             ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
             handlerCollection.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(handlerCollection);
-            logger.debug("Successfully created ContextHandler. Adding it directly.");
+            Logger.debug("Successfully created ContextHandler. Adding it directly.");
             server.setHandler(handlerCollection);
         }
 
-        logger.debug("Adding EndpointRequestHandler");
+        Logger.debug("Adding EndpointRequestHandler");
         requestDispatcher.register(new EndpointRequestHandler(this));
 
-        logger.debug("Settings error handler");
+        Logger.debug("Settings error handler");
         server.setErrorHandler(new ServerErrorHandler());
 
-        logger.info("Starting server");
+        Logger.info("Starting server");
         try {
             server.start();
-            logger.success("Successfully started webserver.");
+            Logger.success("Successfully started webserver.");
         } catch (Exception e) {
-            logger.error("Error starting webserver.", e);
+            Logger.error("Error starting webserver.", e);
         }
 
-        logger.debug("Disable webserver version send.");
+        Logger.debug("Disable webserver version send.");
         for (Connector connector : server.getConnectors()) {
             for (ConnectionFactory connectionFactory : connector.getConnectionFactories()) {
                 if (connectionFactory instanceof HttpConnectionFactory factory) {
@@ -242,9 +259,9 @@ public class WebServer {
             }
         }
 
-        logger.success("+----------------------------------------------+");
-        logger.success("|       Successfully started WebServer         |");
-        logger.success("+----------------------------------------------+");
+        Logger.success("+----------------------------------------------+");
+        Logger.success("|       Successfully started WebServer         |");
+        Logger.success("+----------------------------------------------+");
         enabled = true;
     }
 
@@ -304,9 +321,9 @@ public class WebServer {
      * @return the current instance of the WebServer, enabling method chaining
      */
     public WebServer useRateLimit(Time time, int maxRequestsPerSpan) {
-        Logger.instance().debug("Creating RateLimit Handler");
+        Logger.debug("Creating RateLimit Handler");
         this.rateLimitHandler = new RateLimitHandler(this, time, maxRequestsPerSpan);
-        Logger.instance().success("Successfully created RateLimit Handler");
+        Logger.success("Successfully created RateLimit Handler");
         return this;
     }
 
@@ -321,10 +338,10 @@ public class WebServer {
     private void enableWebSockets(ContextHandlerCollection collection) {
 
         if (websockets.isEmpty()) {
-            Logger.instance().info("No WebSockets registered.");
+            Logger.info("No WebSockets registered.");
             return;
         }
-        Logger.instance().info("Enabling WebSockets.");
+        Logger.info("Enabling WebSockets.");
 
         ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
         websocketHandlers.setContextPath("/ws");
@@ -335,20 +352,20 @@ public class WebServer {
                 try {
                     try {
                         if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
-                            Logger.instance().error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
+                            Logger.error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
                             return;
                         }
                         wsContainer.addEndpoint(provider);
                         var pathName = provider.getAnnotation(ServerEndpoint.class).value();
-                        Logger.instance().success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
+                        Logger.success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
                     } catch (Exception e) {
-                        Logger.instance().error("Error enabling WebSocket for path: ", e);
+                        Logger.error("Error enabling WebSocket for path: ", e);
                     }
                 } catch (Exception e) {
-                    Logger.instance().error("Error enabling WebSocket support", e);
+                    Logger.error("Error enabling WebSocket support", e);
                 }
             });
-            Logger.instance().success("Successfully enabled all WebSockets.");
+            Logger.success("Successfully enabled all WebSockets.");
         });
 
         collection.addHandler(websocketHandlers);
@@ -365,11 +382,11 @@ public class WebServer {
      */
     public WebServer registerWebsocket(Class<?> websocketProvider) {
         if (websocketProvider.isAnonymousClass()) {
-            Logger.instance().error("Could not register Websocket. It is an anonymous class.");
+            Logger.error("Could not register Websocket. It is an anonymous class.");
             return this;
         }
         if (!websocketProvider.isAnnotationPresent(ServerEndpoint.class)) {
-            Logger.instance().error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
+            Logger.error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
             return this;
         }
         websockets.add(websocketProvider);
@@ -401,7 +418,7 @@ public class WebServer {
      * is granted and including additional information about the result
      */
     public AuthenticationAnswer hasAccess(RequestDispatcher.MethodHandler methodHandler, Request request) {
-        Logger.instance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
         if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasAccess(methodHandler, request, methodHandler.accessLevel());
     }
@@ -417,7 +434,7 @@ public class WebServer {
      * and providing additional information regarding the result
      */
     public AuthenticationAnswer hasPermission(String permission, Request request) {
-        Logger.instance().error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
         if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         if (!request.getHeaders().contains("Authorization")) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasPermission(permission, request.getHeaders().get("Authorization"));

@@ -6,6 +6,7 @@ import dev.coph.simplerequest.util.Time;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -75,6 +76,9 @@ public class RateLimitHandler extends ContextHandlerCollection {
      */
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        if(request.getMethod().equals(HttpMethod.OPTIONS.asString()))
+            return super.handle(request, response, callback);
+
         String path = request.getHttpURI().getPath();
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";

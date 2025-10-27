@@ -42,8 +42,8 @@ public class ResponseUtil {
             if (answer != null && !answer.isEmpty())
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
         } catch (Exception e) {
-            Logger.instance().error("Error writing answer.");
-            Logger.instance().error(e);
+            Logger.error("Error writing answer.");
+            Logger.error(e);
             return false;
         }
         return true;
@@ -106,8 +106,8 @@ public class ResponseUtil {
             response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.instance().error("Error writing answer.");
-            Logger.instance().error(e);
+            Logger.error("Error writing answer.");
+            Logger.error(e);
             return false;
         }
         return true;
@@ -130,8 +130,8 @@ public class ResponseUtil {
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.instance().error("Error writing answer.");
-            Logger.instance().error(e);
+            Logger.error("Error writing answer.");
+            Logger.error(e);
             return false;
         }
         return true;
