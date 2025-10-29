@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * The {@code RequestDispatcher} class is responsible for routing and handling HTTP requests
@@ -103,7 +102,7 @@ public class RequestDispatcher {
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
 
                 if (customRateLimits.length > 0) {
-                    Logger.debug("The method " + method.getName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
+                    Logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
 
                     AdditionalCustomRateLimit[] currentAdditionalCustomRateLimits = new AdditionalCustomRateLimit[customRateLimits.length];
                     for (int i = 0; i < customRateLimits.length; i++) {
@@ -287,7 +286,7 @@ public class RequestDispatcher {
 
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, String.join(",", webServer.allowedMethods()));
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_HEADERS, String.join(",", webServer.allowedHeaders()));
-        
+
         String origin = request.getHeaders().get("Origin");
         if (webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
