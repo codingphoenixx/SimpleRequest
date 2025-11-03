@@ -226,7 +226,14 @@ public class RequestDispatcher {
                 for (int i = 1; i <= matcher.groupCount(); i++)
                     pathVariables.put("arg" + i, matcher.group(i));
 
-                handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
+                try {
+                    handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
+                } catch (Exception e) {
+                    Logger.error("An error occurred while invoking the method " + handler.method().getName() + " of the class " + handler.instance.getClass().getName() + ".", e);
+                    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+                    callback.succeeded();
+                    return;
+                }
 
                 if (!response.getHeaders().contains(HttpHeader.CONTENT_TYPE))
                     response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json;charset=utf-8");
