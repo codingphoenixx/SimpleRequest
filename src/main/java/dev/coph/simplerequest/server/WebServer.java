@@ -9,8 +9,6 @@ import dev.coph.simplerequest.handler.endpoint.EndpointRequestHandler;
 import dev.coph.simplerequest.ratelimit.RateLimitHandler;
 import dev.coph.simplerequest.util.Time;
 import jakarta.websocket.server.ServerEndpoint;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
@@ -42,8 +40,6 @@ import java.util.Set;
  * - {@code rateLimitHandler}: A handler for managing rate-limiting policies on incoming requests.
  * - {@code websockets}: A collection of WebSocket provider classes registered with the server.
  */
-@Getter
-@Accessors(fluent = true, chain = true)
 public class WebServer {
 
     /**
@@ -108,7 +104,7 @@ public class WebServer {
      * <p>
      * This field is immutable, ensuring thread safety when accessed concurrently.
      */
-    private final Set<String> allowedHeaders = new HashSet<>(Set.of("Origin","Content-Type"));
+    private final Set<String> allowedHeaders = new HashSet<>(Set.of("Origin", "Content-Type"));
     /**
      * A collection that holds registered WebSocket provider classes for the WebServer.
      * <p>
@@ -139,7 +135,6 @@ public class WebServer {
      * If the authentication handler is not configured, all access-related checks
      * will fail, and certain API endpoints may not be accessible.
      */
-    @Setter
     private AuthenticationHandler authenticationHandler;
     /**
      * Represents whether the web server is currently enabled or active.
@@ -151,7 +146,6 @@ public class WebServer {
      * while {@code false} signifies that the server is stopped or inactive.
      */
     private boolean enabled = false;
-    @Setter
     private boolean enableDiscoveryEndpoint = false;
     /**
      * Represents the Jetty Server instance used by the WebServer for handling HTTP and HTTPS requests.
@@ -438,5 +432,59 @@ public class WebServer {
         if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         if (!request.getHeaders().contains("Authorization")) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasPermission(permission, request.getHeaders().get("Authorization"));
+    }
+
+    public RequestDispatcher requestDispatcher() {
+        return this.requestDispatcher;
+    }
+
+    public int port() {
+        return this.port;
+    }
+
+    public Set<String> allowedOrigins() {
+        return this.allowedOrigins;
+    }
+
+    public Set<String> allowedMethods() {
+        return this.allowedMethods;
+    }
+
+    public Set<String> allowedHeaders() {
+        return this.allowedHeaders;
+    }
+
+    public HashSet<Class<?>> websockets() {
+        return this.websockets;
+    }
+
+    public AuthenticationHandler authenticationHandler() {
+        return this.authenticationHandler;
+    }
+
+    public boolean enabled() {
+        return this.enabled;
+    }
+
+    public boolean enableDiscoveryEndpoint() {
+        return this.enableDiscoveryEndpoint;
+    }
+
+    public Server server() {
+        return this.server;
+    }
+
+    public RateLimitHandler rateLimitHandler() {
+        return this.rateLimitHandler;
+    }
+
+    public WebServer authenticationHandler(AuthenticationHandler authenticationHandler) {
+        this.authenticationHandler = authenticationHandler;
+        return this;
+    }
+
+    public WebServer enableDiscoveryEndpoint(boolean enableDiscoveryEndpoint) {
+        this.enableDiscoveryEndpoint = enableDiscoveryEndpoint;
+        return this;
     }
 }
