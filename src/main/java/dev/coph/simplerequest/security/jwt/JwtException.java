@@ -11,13 +11,17 @@ public final class JwtException extends Exception {
      *
      * @param msg the detail message providing additional information about the exception.
      */
-    public JwtException(String msg) { super(msg); }
+    public JwtException(String msg) {
+        super(msg);
+    }
 
     /**
      * Constructs a new JwtException with the specified detail message and cause.
      *
-     * @param msg the detail message providing additional information about the exception.
+     * @param msg   the detail message providing additional information about the exception.
      * @param cause the underlying cause of the exception, which may be null.
      */
-    public JwtException(String msg, Throwable cause) { super(msg, cause); }
+    public JwtException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 }

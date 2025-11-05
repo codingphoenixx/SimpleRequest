@@ -2,13 +2,16 @@ package dev.coph.simplerequest.handler;
 
 
 import dev.coph.simplelogger.Logger;
-import dev.coph.simplerequest.authentication.AccessLevel;
 import dev.coph.simplerequest.authentication.AuthenticationAnswer;
 import dev.coph.simplerequest.authentication.AuthenticationHandler;
 import dev.coph.simplerequest.body.Body;
+import dev.coph.simplerequest.handler.field.FieldResponse;
+import dev.coph.simplerequest.handler.field.FieldRoute;
+import dev.coph.simplerequest.handler.field.FieldSelection;
 import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
 import dev.coph.simplerequest.ratelimit.CustomRateLimit;
 import dev.coph.simplerequest.server.WebServer;
+import dev.coph.simplerequest.util.JsonUtil;
 import dev.coph.simplerequest.util.ResponseUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,12 +24,8 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.Callback;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,6 +66,8 @@ public class RequestDispatcher {
      * by the {@link RequestDispatcher} to delegate requests to the appropriate handlers.
      */
     private final Map<Pattern, MethodHandler> handlers = new HashMap<>();
+    private final List<FieldRoute> fieldRoutes = new ArrayList<>();
+
     /**
      * Represents a flag to determine whether preflight requests (e.g., CORS preflight OPTIONS requests)
      * should be filtered and handled automatically.
@@ -97,6 +98,25 @@ public class RequestDispatcher {
      */
     public void register(Object instance) {
         for (Method method : instance.getClass().getMethods()) {
+            if (method.isAnnotationPresent(FieldRequestHandler.class)) {
+                FieldRequestHandler fieldRequestHandler = method.getAnnotation(FieldRequestHandler.class);
+                if (fieldRequestHandler != null) {
+                    method.setAccessible(true);
+                    fieldRoutes.add(new FieldRoute(
+                            instance,
+                            method,
+                            fieldRequestHandler.path(),
+                            fieldRequestHandler.method(),
+                            fieldRequestHandler.headerName(),
+                            FieldSelection.normalize(fieldRequestHandler.required()),
+                            FieldSelection.normalize(fieldRequestHandler.optional()),
+                            FieldSelection.normalize(fieldRequestHandler.defaults())
+                    ));
+                    Logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + fieldRequestHandler.path() + " and registered as a FieldRequestHandler.");
+                    continue;
+                }
+                continue;
+            }
             if (method.isAnnotationPresent(RequestHandler.class)) {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
@@ -119,6 +139,7 @@ public class RequestDispatcher {
                 MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description());
                 methodHandler.accessLevel = annotation.accesslevel();
                 handlers.put(pattern, methodHandler);
+                continue;
             }
 
         }
@@ -177,6 +198,33 @@ public class RequestDispatcher {
         if (wasPreFireRequest && filterPrefireRequests)
             return;
 
+        for (FieldRoute r : fieldRoutes) {
+            Pattern pattern = createPattern(r.path());
+            Matcher matcher = pattern.matcher(path.trim());
+            if (matcher.matches()) {
+                if (!r.requestMethod().equals(RequestMethod.ANY) && !r.requestMethod().name().equals(request.getMethod().toUpperCase())) {
+                    response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
+                    callback.succeeded();
+                    return;
+                }
+
+                Map<String, String> pathVariables = new HashMap<>();
+                for (int i = 1; i <= matcher.groupCount(); i++)
+                    pathVariables.put("arg" + i, matcher.group(i));
+
+
+                try {
+                    handleFieldRoute(r, request, response, callback, pathVariables);
+                } catch (Exception e) {
+                    Logger.error("An error occurred while invoking the method " + r.method().getName() + " of the class " + r.method().getClass().getName() + ".", e);
+                    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+                    callback.succeeded();
+                    return;
+                }
+                return;
+            }
+        }
+
         for (Map.Entry<Pattern, MethodHandler> entry : handlers.entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
@@ -232,7 +280,7 @@ public class RequestDispatcher {
                 try {
                     handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
                 } catch (Exception e) {
-                    Logger.error("An error occurred while invoking the method " + handler.method().getName() + " of the class " + handler.instance.getClass().getName() + ".", e);
+                    Logger.error("An error occurred while invoking the method " + handler.method().getName() + " of the class " + handler.instance().getClass().getName() + ".", e);
                     response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                     callback.succeeded();
                     return;
@@ -319,89 +367,67 @@ public class RequestDispatcher {
     }
 
 
-    /**
-     * Represents a handler responsible for invoking a specific method mapped to an HTTP request path.
-     * The handler encapsulates method details, the associated instance, and configuration
-     * related to authentication and the request body.
-     */
-    @Getter
-    @Accessors(fluent = true, chain = true)
-    public static class MethodHandler {
-        private final String path;
-        private final RequestMethod requestMethod;
-        private final Object instance;
-        private final Method method;
-        private final String description;
-        private AccessLevel accessLevel = AccessLevel.PUBLIC;
 
-        /**
-         * Constructs a new MethodHandler instance with the provided parameters.
-         *
-         * @param path           the URI path this handler corresponds to
-         * @param requestMethod the HTTP request method associated with this handler
-         * @param instance       the object instance containing the method to be invoked
-         * @param method         the method to be executed for this handler
-         * @param description    a brief description of this handler's purpose or functionality
-         */
-        public MethodHandler(String path, RequestMethod requestMethod, Object instance, Method method, String description) {
-            this.path = path;
-            this.requestMethod = requestMethod;
-            this.instance = instance;
-            this.method = method;
-            this.description = description;
+    private void handleFieldRoute(FieldRoute route, Request request, Response response, Callback callback,
+                                  Map<String, String> pathVariables) throws Exception {
+        Body body = new Body(request);
+        Set<String> requested = FieldSelection.read(request, route.headerName());
+        if (requested.isEmpty()) requested = route.defaults();
+
+        LinkedHashSet<String> safe = new LinkedHashSet<>();
+        for (String f : requested) {
+            if (route.optional().contains(f)) safe.add(f);
         }
 
-
-        /**
-         * Invokes the specified method associated with the instance of this handler,
-         * dynamically resolving and mapping the required parameters. This method processes
-         * the input parameters and invokes the encapsulated method based on the defined
-         * request and configuration.
-         *
-         * @param request              the HTTP request to process
-         * @param response             the HTTP response to send
-         * @param callback             the callback function to notify upon operation completion
-         * @param authenticationAnswer an object representing the result of the authentication process
-         * @param pathVariables        a map of path variable names to their corresponding values
-         */
-        public void invoke(Request request, Response response, Callback callback, AuthenticationAnswer authenticationAnswer, Map<String, String> pathVariables) {
-            Parameter[] parameterTypes = method.getParameters();
-            Object[] parameters = new Object[parameterTypes.length];
-
-            int args = 1;
-            for (int i = 0; i < parameterTypes.length; i++) {
-                Parameter parameter = parameterTypes[i];
-                if (Body.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = new Body(request);
-                } else if (Request.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = request;
-                } else if (AuthenticationAnswer.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = authenticationAnswer;
-                } else if (Response.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = response;
-                } else if (Callback.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = callback;
-                } else if (MethodHandler.class.isAssignableFrom(parameter.getType())) {
-                    parameters[i] = this;
-                } else if (String.class.isAssignableFrom(parameter.getType())) {
-                    String paramName = method.getParameters()[args].getName();
-                    parameters[i] = pathVariables.get(paramName);
-                    args++;
+        Object result;
+        Method m = route.method();
+        Class<?>[] pts = m.getParameterTypes();
+        Object[] args = new Object[pts.length];
+        for (int i = 0; i < pts.length; i++) {
+            Class<?> p = pts[i];
+            if (p.isAssignableFrom(Request.class)) args[i] = request;
+            else if (p.isAssignableFrom(Response.class)) args[i] = response;
+            else if (p.isAssignableFrom(Callback.class)) args[i] = callback;
+            else if (p.isAssignableFrom(Body.class)) args[i] = new Body(request);
+            else if (String.class.isAssignableFrom(p)) {
+                String paramName = m.getParameters()[i].getName();
+                Object val = pathVariables.get(paramName);
+                if (val == null) {
+                    val = pathVariables.get("arg" + (i + 1));
                 }
-            }
-            try {
-                method.invoke(instance, parameters);
-            } catch (InvocationTargetException e) {
-                Logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-                Logger.error(e.getCause());
-                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
-                callback.succeeded();
-            } catch (Exception e) {
-                Logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-                Logger.error(e);
-                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
-                callback.succeeded();
-            }
+                args[i] = val;
+            } else args[i] = null;
+
         }
+        result = m.invoke(route.instance(), args);
+
+        if (!(result instanceof FieldResponse fr)) {
+
+            if (result instanceof Map<?, ?> map) {
+                writeJson(response, callback, map);
+                return;
+            }
+            if (result instanceof String s) {
+                response.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json");
+                ResponseUtil.writeAnswer(response, callback, s);
+                callback.succeeded();
+                return;
+            }
+
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            ResponseUtil.writeAnswer(response, callback, "FieldRequestHandler must return FieldResponse or JSON-compatible type");
+            callback.succeeded();
+            return;
+        }
+
+        Map<String, Object> payload = fr.build(safe, route.required());
+        response.getHeaders().add("X-Fields-Resolved", String.join(",", payload.keySet()));
+        writeJson(response, callback, payload);
+    }
+
+    private void writeJson(Response resp, Callback callback, Map<?, ?> map) throws Exception {
+        resp.getHeaders().add(HttpHeader.CONTENT_TYPE, "application/json");
+        ResponseUtil.writeAnswer(resp, callback, JsonUtil.toJsonObject(map));
+        callback.succeeded();
     }
 }

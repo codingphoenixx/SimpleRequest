@@ -76,7 +76,7 @@ public class RateLimitHandler extends ContextHandlerCollection {
      */
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
-        if(request.getMethod().equals(HttpMethod.OPTIONS.asString()))
+        if (request.getMethod().equals(HttpMethod.OPTIONS.asString()))
             return super.handle(request, response, callback);
 
         String path = request.getHttpURI().getPath();

@@ -1,9 +1,10 @@
 package dev.coph.simplerequest.server;
 
 import dev.coph.simplelogger.Logger;
-import dev.coph.simplerequest.endpointdiscovery.EndpointDiscoveryRequestHandler;
 import dev.coph.simplerequest.authentication.AuthenticationAnswer;
 import dev.coph.simplerequest.authentication.AuthenticationHandler;
+import dev.coph.simplerequest.endpointdiscovery.EndpointDiscoveryRequestHandler;
+import dev.coph.simplerequest.handler.MethodHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
 import dev.coph.simplerequest.ratelimit.RateLimitHandler;
@@ -304,6 +305,14 @@ public class WebServer {
         allowedOrigins.add(origin.toLowerCase());
         return this;
     }
+    public WebServer addAllowedMethod(String method) {
+        allowedMethods.add(method);
+        return this;
+    }
+    public WebServer addAllowedHeader(String header) {
+        allowedHeaders.add(header);
+        return this;
+    }
 
     /**
      * Configures the web server to use rate limiting by setting the specified time span
@@ -410,7 +419,7 @@ public class WebServer {
      * @return an {@code AuthenticationAnswer} object indicating whether the access
      * is granted and including additional information about the result
      */
-    public AuthenticationAnswer hasAccess(RequestDispatcher.MethodHandler methodHandler, Request request) {
+    public AuthenticationAnswer hasAccess(MethodHandler methodHandler, Request request) {
         Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
         if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasAccess(methodHandler, request, methodHandler.accessLevel());
