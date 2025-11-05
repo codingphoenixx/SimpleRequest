@@ -3,11 +3,11 @@ package dev.coph.simplerequest.ratelimit;
 /**
  * Lists the various algorithms used for rate-limiting mechanisms.<br>
  * <br>
- * This enumeration defines different approaches to manage and restrict<br>
- * the rate at which requests are processed. These algorithms are used<br>
- * to enforce rate limits in distributed systems, APIs, or any system<br>
- * requiring controlled consumption of resources. Each algorithm provides<br>
- * a unique way of maintaining request count and evaluating rate limits.<br>
+ * This enumeration defines different approaches to manage and restrict
+ * the rate at which requests are processed. These algorithms are used
+ * to enforce rate limits in distributed systems, APIs, or any system
+ * requiring controlled consumption of resources. Each algorithm provides
+ * a unique way of maintaining request count and evaluating rate limits.
  * <br>
  * The algorithms include:<br>
  * - FIXED_WINDOW: The fixed window algorithm divides time into fixed intervals

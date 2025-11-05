@@ -5,12 +5,12 @@ package dev.coph.simplerequest.ratelimit;
  * time window in milliseconds and algorithm.
  * <p>
  * This class is designed to encapsulate the properties of a rate-limiting rule and can
- * be constructed directly or by utilizing a CustomRateLimit annotation.
+ * be constructed directly or by using a CustomRateLimit annotation.
  *
- * @param key               The Key for the ratelimit that should be enforced
+ * @param key               The Key for the rate limit that should be enforced
  * @param maxRequests       The maximum requests of a user that can be triggered in a specific timeframe
  * @param timeWindowMillis  The millis of how long the timeframe should be
- * @param algorithm         The algorithm used to enforce the ratelimit
+ * @param algorithm         The algorithm used to enforce the rate limit
  */
 public record AdditionalCustomRateLimit(String key, int maxRequests, long timeWindowMillis, RateLimitAlgorithm algorithm) {
 

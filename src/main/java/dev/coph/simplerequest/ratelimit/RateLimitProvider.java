@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 /**
  * Provides functionality to enforce rate-limiting policies for different keys (e.g., users, IP addresses).
  * <p>
- * The RateLimitProvider class utilizes a combination of default rate-limiting parameters
+ * The RateLimitProvider class uses a combination of default rate-limiting parameters
  * (time window and maximum requests) and a dynamic mapping of contexts to {@link RateLimit} objects.
  * Each key (representing a unique context) is associated with a {@link RateLimit} object that governs
  * request rate management within a specified time window, ensuring controlled access to resources or services.
@@ -81,7 +81,7 @@ public class RateLimitProvider {
      * Determines whether a request is allowed based on rate-limiting policies associated with a specific key
      * and request path. The method assesses both default and custom rate limits for the provided input.
      * <p>
-     * The method first ensures that a default rate limit is established, then it evaluates any additional
+     * The method first ensures that a default rate limit is established. Then it evaluates any additional
      * custom rate limits associated with the input path. Finally, it checks if the request complies with all
      * enforced rate limits. If any of the rate limits deny the request, the method returns false.
      *

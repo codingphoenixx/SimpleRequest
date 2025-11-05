@@ -13,12 +13,7 @@ import org.json.JSONObject;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public class JsonBody {
-    private final String json;
-
-    public JsonBody(String json) {
-        this.json = json;
-    }
+public record JsonBody(String json) {
 
     public boolean isEmpty() {
         return json == null || json.isEmpty();

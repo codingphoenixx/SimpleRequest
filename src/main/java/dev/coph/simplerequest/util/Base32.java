@@ -56,7 +56,7 @@ public class Base32 {
 
     /**
      * Encodes the given byte array to a lower-cased Base32-encoded byte array
-     * in US-ASCII character set.
+     * in a US-ASCII character set.
      * <p>
      * The method uses the {@link #encodeOriginal(byte[])} method to generate an
      * intermediate Base32-encoded string, converts it to lowercase, and then
@@ -64,9 +64,8 @@ public class Base32 {
      *
      * @param data the byte array to be encoded
      * @return the resulting byte array representing the encoded string in US-ASCII
-     * @throws UnsupportedEncodingException if the US-ASCII character encoding is not supported
      */
-    public static byte[] encodeBytes(byte[] data) throws UnsupportedEncodingException {
+    public static byte[] encodeBytes(byte[] data) {
         String lower = encodeOriginal(data).toLowerCase();
         return lower.getBytes(StandardCharsets.US_ASCII);
     }
@@ -107,9 +106,9 @@ public class Base32 {
      * @return a string containing the Base32-encoded representation of the input byte array
      */
     public static String encodeOriginal(final byte[] bytes) {
-        int i = 0, index = 0, digit = 0;
+        int i = 0, index = 0, digit;
         int currByte, nextByte;
-        StringBuffer base32 = new StringBuffer((bytes.length + 7) * 8 / 5);
+        StringBuilder base32 = new StringBuilder((bytes.length + 7) * 8 / 5);
 
         while (i < bytes.length) {
             currByte = (bytes[i] >= 0) ? bytes[i] : (bytes[i] + 256); // unsign
@@ -170,22 +169,22 @@ public class Base32 {
             if (index <= 3) {
                 index = (index + 5) % 8;
                 if (index == 0) {
-                    bytes[offset] |= digit;
+                    bytes[offset] |= (byte) digit;
                     offset++;
                     if (offset >= bytes.length)
                         break;
                 } else {
-                    bytes[offset] |= digit << (8 - index);
+                    bytes[offset] |= (byte) (digit << (8 - index));
                 }
             } else {
                 index = (index + 5) % 8;
-                bytes[offset] |= (digit >>> index);
+                bytes[offset] |= (byte) (digit >>> index);
                 offset++;
 
                 if (offset >= bytes.length) {
                     break;
                 }
-                bytes[offset] |= digit << (8 - index);
+                bytes[offset] |= (byte) (digit << (8 - index));
             }
         }
         return bytes;

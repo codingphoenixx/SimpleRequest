@@ -32,10 +32,9 @@ public class ServerErrorHandler extends ErrorHandler {
      * @param response the HTTP response to be modified
      * @param callback a callback to notify when the operation is completed
      * @return <code>true</code> indicating the handler has processed the request
-     * @throws Exception if an error occurs during handling
      */
     @Override
-    public boolean handle(Request request, Response response, Callback callback) throws Exception {
+    public boolean handle(Request request, Response response, Callback callback) {
         if (response.getStatus() == HttpStatus.OK_200) {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }

@@ -15,7 +15,7 @@ import java.util.*;
  * This class provides methods for generating signed JWT strings and validating their structure,
  * signature, and claims.
  * JWT payload claims can be customized and include standard claims such as "iat", "exp", and "nbf".
- *
+ * <p>
  * This class is designed for use with HMAC SHA-256 (HS256) signing and does not support other algorithms.
  */
 public final class JWT {
@@ -74,8 +74,8 @@ public final class JWT {
      * Validate a JWT:
      * - Structure, header typ & alg
      * - Signature
-     * - nbf <= now + skew, now <= exp + skew
-     * Returns claims map (LinkedHashMap) with JSON-native values (JSONObject/JSONArray preserved).
+     * - nbf <= now + skew, now <= exp and skew
+     * Returns a claims map (LinkedHashMap) with JSON-native values (JSONObject/JSONArray preserved).
      *
      * @param secret   HMAC secret
      * @param token    compact JWS
@@ -310,7 +310,7 @@ public final class JWT {
         /**
          * Sets the "not before" claim ("nbf") for the JSON Web Token (JWT).
          * The "nbf" claim specifies the time before which the token must not be accepted for processing.
-         * The value is expressed as seconds since the epoch (Unix timestamp).
+         * The value has been expressed as seconds since the epoch (Unix timestamp).
          *
          * @param seconds the timestamp, in seconds since the epoch, indicating the time before which
          *                the token is not considered valid.

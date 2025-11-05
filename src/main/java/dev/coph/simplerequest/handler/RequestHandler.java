@@ -33,7 +33,7 @@ public @interface RequestHandler {
 
     /**
      * Specifies the access level required to invoke the annotated request handler.
-     * This is used to determine the accessibility of the endpointdiscovery.
+     * This is used to determine the accessibility of the endpoint-discovery.
      *
      * @return the required access level for the request handler, defaulting to {@code AccessLevel.PUBLIC}
      */

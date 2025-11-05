@@ -36,11 +36,11 @@ import java.util.regex.Pattern;
  * on specific patterns and managing incoming requests by delegating them to the appropriate
  * registered handler.
  * <p>
- * The class supports features such as:
- * - Dynamic routing with path variable resolution.
- * - Filtering of preflight (CORS) requests.
- * - Authentication checks for secured endpoints.
- * - Integration with {@link WebServer} for handling HTTP processing.
+ * The class supports features such as <br>
+ * - Dynamic routing with path variable resolution.<br>
+ * - Filtering of preflight (CORS) requests.<br>
+ * - Authentication checks for secured endpoints.<br>
+ * - Integration with {@link WebServer} for handling HTTP processing.<br>
  */
 @Getter
 @Accessors(fluent = true)
@@ -54,7 +54,7 @@ public class RequestDispatcher {
      */
     private final HashMap<Pattern, AdditionalCustomRateLimit[]> additionalCustomRateLimits = new HashMap<>();
     /**
-     * Represents the web server instance utilized by the RequestDispatcher.
+     * Represents the web server instance used by the RequestDispatcher.
      * It is used to dispatch and manage incoming HTTP requests and responses.
      * This variable is initialized through the constructor and is immutable.
      */
@@ -73,7 +73,7 @@ public class RequestDispatcher {
      * <p>
      * When set to {@code true}, the system processes and responds to preflight requests, enabling
      * functionalities such as setting appropriate CORS headers or bypassing certain processing pipelines.
-     * When set to {@code false}, such requests are passed down to the subsequent request handling logic without filtering.
+     * When set to {@code false}, such requests are passed down to the later request handling logic without filtering.
      */
     @Setter
     private boolean filterPrefireRequests = true;
@@ -167,9 +167,8 @@ public class RequestDispatcher {
      * @param request  the HTTP request object containing the request data
      * @param response the HTTP response object to be populated and sent back
      * @param callback the callback to notify the completion of request processing
-     * @throws Exception if an error occurs during request handling or method invocation
      */
-    public void handle(String path, Request request, Response response, Callback callback) throws Exception {
+    public void handle(String path, Request request, Response response, Callback callback) {
         if (path.charAt(path.length() - 1) != '/')
             path += "/";
 
@@ -265,7 +264,7 @@ public class RequestDispatcher {
     public ContextHandler createContextHandler() {
         return new ContextHandler(new Handler.Abstract() {
             @Override
-            public boolean handle(Request request, Response response, Callback callback) throws Exception {
+            public boolean handle(Request request, Response response, Callback callback) {
                 String pathInfo = request.getHttpURI().getPath();
                 if (pathInfo != null) {
                     RequestDispatcher.this.handle(pathInfo, request, response, callback);
@@ -364,9 +363,8 @@ public class RequestDispatcher {
          * @param callback             the callback function to notify upon operation completion
          * @param authenticationAnswer an object representing the result of the authentication process
          * @param pathVariables        a map of path variable names to their corresponding values
-         * @throws Exception if an error occurs during method invocation
          */
-        public void invoke(Request request, Response response, Callback callback, AuthenticationAnswer authenticationAnswer, Map<String, String> pathVariables) throws Exception {
+        public void invoke(Request request, Response response, Callback callback, AuthenticationAnswer authenticationAnswer, Map<String, String> pathVariables) {
             Parameter[] parameterTypes = method.getParameters();
             Object[] parameters = new Object[parameterTypes.length];
 

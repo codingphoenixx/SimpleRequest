@@ -37,7 +37,7 @@ public class ImageUtil {
      */
     public static BufferedImage getImageFromRequest(Request request) {
         InputStream inputStream = Content.Source.asInputStream(request);
-        BufferedImage image = null;
+        BufferedImage image;
         try {
             image = ImageIO.read(inputStream);
         } catch (IOException e) {

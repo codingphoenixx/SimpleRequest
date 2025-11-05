@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation to apply multiple {@link CustomRateLimit} configurations to a single method.
  * <p>
  * This annotation acts as a container for defining multiple rate-limiting rules that
- * can be applied to a single method or endpointdiscovery. It enables combining multiple instances
+ * can be applied to a single method or endpoint-discovery. It enables combining multiple instances
  * of the {@link CustomRateLimit} annotation for scenarios requiring more complex
  * or granular rate-limiting configurations. Each {@link CustomRateLimit} specifies its own
  * key, request limit, time window, and optional rate-limiting algorithm.

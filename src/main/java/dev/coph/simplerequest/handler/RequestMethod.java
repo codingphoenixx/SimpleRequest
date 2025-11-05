@@ -4,7 +4,7 @@ package dev.coph.simplerequest.handler;
  * Enum representing HTTP request methods.
  * <p>
  * This enum is used to define the various types of HTTP request methods
- * that are commonly utilized in web communication and API interactions.
+ * that are commonly used in web communication and API interactions.
  * <br><br>
  * Each constant represents a specific HTTP request method:<br>
  * - GET: Retrieves data from a server.<br>
@@ -46,7 +46,7 @@ public enum RequestMethod {
      * Enum constant representing the HTTP DELETE request method.
      * <p>
      * The DELETE method is used to request the removal of a specific resource
-     * from the server. It is commonly utilized to delete resources identified
+     * from the server. It is commonly used to delete resources identified
      * by a given URI. The operation is expected to be idempotent, meaning multiple
      * identical DELETE requests should have the same effect as a single request.
      */

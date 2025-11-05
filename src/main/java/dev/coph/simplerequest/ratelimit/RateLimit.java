@@ -54,11 +54,6 @@ public class RateLimit {
                 this.windowStart = alignToWindow(now);
                 this.requestCount = 0;
             }
-            case USER_FIXED_WINDOW, MINIMUM_COOLDOWN_USER_FIXED_WINDOW -> {
-                this.requestTimestamps = null;
-                this.windowStart = now;
-                this.requestCount = 0;
-            }
             default -> {
                 this.requestTimestamps = null;
                 this.windowStart = now;

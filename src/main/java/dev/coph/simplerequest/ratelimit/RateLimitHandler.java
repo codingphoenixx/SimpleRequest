@@ -51,7 +51,7 @@ public class RateLimitHandler extends ContextHandlerCollection {
 
     /**
      * Constructs a RateLimitHandler that enforces rate limiting on incoming HTTP requests.
-     * Initializes a RateLimitProvider to manage the rate limiting logic based on the provided parameters.
+     * Initializes a RateLimitProvider to manage the rate-limiting logic based on the provided parameters.
      *
      * @param webServer          the web server instance associated with this handler
      * @param timeSpan           the time span during which requests are monitored and limited
