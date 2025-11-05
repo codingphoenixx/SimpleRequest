@@ -65,7 +65,7 @@ public class RequestDispatcher {
      * based on the pattern it matches. This map serves as the core routing mechanism used
      * by the {@link RequestDispatcher} to delegate requests to the appropriate handlers.
      */
-    private final Map<Pattern, MethodHandler> handlers = new HashMap<>();
+    private final LinkedHashMap<Pattern, MethodHandler> handlers = new LinkedHashMap<>();
     private final List<FieldRoute> fieldRoutes = new ArrayList<>();
 
     /**
@@ -139,10 +139,46 @@ public class RequestDispatcher {
                 MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description());
                 methodHandler.accessLevel = annotation.accesslevel();
                 handlers.put(pattern, methodHandler);
+                resortHandlers();
                 continue;
             }
 
         }
+    }
+
+    private void resortHandlers() {
+        LinkedHashMap<Pattern, MethodHandler> temp = new LinkedHashMap<>(handlers);
+        handlers.clear();
+        temp.entrySet().stream().sorted(
+                (a, b) -> {
+                    String pa = a.getValue().path();
+                    String pb = b.getValue().path();
+                    int dynA = countDynamicSegments(pa);
+                    int dynB = countDynamicSegments(pb);
+                    if (dynA != dynB) return Integer.compare(dynA, dynB);
+                    int segA = countSegments(pa);
+                    int segB = countSegments(pb);
+                    if (segA != segB) return Integer.compare(segB, segA);
+                    return pa.compareTo(pb);
+                }
+        ).forEachOrdered(e -> handlers.put(e.getKey(), e.getValue()));
+    }
+
+    private int countDynamicSegments(String path) {
+        String p = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+        int count = 0;
+        for (String part : p.split("/")) {
+            if (part.isEmpty()) continue;
+            if (part.startsWith("{") && part.endsWith("}")) count++;
+        }
+        return count;
+    }
+
+    private int countSegments(String path) {
+        String p = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+        int count = 0;
+        for (String part : p.split("/")) if (!part.isEmpty()) count++;
+        return count;
     }
 
     /**
@@ -225,7 +261,8 @@ public class RequestDispatcher {
             }
         }
 
-        for (Map.Entry<Pattern, MethodHandler> entry : handlers.entrySet()) {
+        var entries = handlers.entrySet();
+        for (Map.Entry<Pattern, MethodHandler> entry : entries) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(path.trim());
             if (matcher.matches()) {
@@ -365,7 +402,6 @@ public class RequestDispatcher {
         }
         return false;
     }
-
 
 
     private void handleFieldRoute(FieldRoute route, Request request, Response response, Callback callback,
