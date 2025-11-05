@@ -1,5 +1,7 @@
 package dev.coph.simplerequest.handler;
 
+import dev.coph.simplerequest.authentication.AccessLevel;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,11 +18,11 @@ public @interface RequestHandler {
 
     /**
      * Defines the HTTP request method that the annotated handler should respond to.
-     * If not explicitly specified, the default value is {@link RequestMethode#ANY}.
+     * If not explicitly specified, the default value is {@link RequestMethod#ANY}.
      *
      * @return the HTTP request method the handler is configured to respond to
      */
-    RequestMethode methode();
+    RequestMethod method();
 
     /**
      * Defines the path for the request handler.
@@ -31,7 +33,7 @@ public @interface RequestHandler {
 
     /**
      * Specifies the access level required to invoke the annotated request handler.
-     * This is used to determine the accessibility of the endpoint.
+     * This is used to determine the accessibility of the endpoint-discovery.
      *
      * @return the required access level for the request handler, defaulting to {@code AccessLevel.PUBLIC}
      */

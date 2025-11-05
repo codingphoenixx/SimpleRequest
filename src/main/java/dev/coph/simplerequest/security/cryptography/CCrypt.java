@@ -8,7 +8,7 @@ import java.security.SecureRandom;
  * CCrypt is a cryptographic implementation based on the OpenBSD Blowfish
  * password hashing scheme. It supports a modified base64 encoding scheme
  * and provides methods for hashing, salt generation, and password verification.
- * The class handles encryption and decryption utilizing the Blowfish cipher.
+ * The class handles encryption and decryption using the Blowfish cipher.
  */
 public class CCrypt {
 
@@ -19,7 +19,7 @@ public class CCrypt {
      * of 10 means 2^10 (1024) iterations will be applied, balancing
      * security with performance.
      */
-    private static final int GENSALT_DEFAULT_LOG2_ROUNDS = 10;
+    public static int GENSALT_DEFAULT_LOG2_ROUNDS = 14;
     /**
      * The length of the salt used in the CCrypt hashing process.
      * This constant defines the fixed size, in bytes, for the salt value
@@ -54,7 +54,7 @@ public class CCrypt {
             0x9216d5d9, 0x8979fb1b
     };
     /**
-     * S_orig is a constant static array of integers utilized for cryptographic
+     * S_orig is a constant static array of integers used for cryptographic
      * or algorithmic purposes. The array contains predefined hexadecimal values
      * that are often used in encryption or substitution mechanisms as part of
      * broader computational processes. This data is immutable and is intended to
@@ -383,7 +383,7 @@ public class CCrypt {
     /**
      * The `S` variable is an array of integers representing the substitution
      * boxes (S-boxes) used in the Blowfish encryption algorithm. S-boxes are
-     * a key component of the Blowfish cipher, responsible for providing
+     * a key part of the Blowfish cipher, responsible for providing
      * nonlinearity and complexity to the encryption process.
      * <p>
      * In this implementation, the `S` array is initialized based on a cloned
@@ -402,7 +402,7 @@ public class CCrypt {
     }
 
     /**
-     * Encode a byte array using CCrypt's slightly-modified base64
+     * Encode a byte array using CCrypt's slightly modified base64
      * encoding scheme. Note that this is *not* compatible with
      * the standard MIME-base64 encoding.
      *
@@ -414,7 +414,7 @@ public class CCrypt {
     private static String encode_base64(byte[] d, int len)
             throws IllegalArgumentException {
         int off = 0;
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
         int c1, c2;
 
         if (len <= 0 || len > d.length)
@@ -452,48 +452,47 @@ public class CCrypt {
      * @return the decoded value of x
      */
     private static byte char64(char x) {
-        if ((int) x < 0 || (int) x > index_64.length)
+        if ((int) x > index_64.length)
             return -1;
         return index_64[x];
     }
 
     /**
-     * Decode a string encoded  to a
+     * Decode a string encoded to a
      * byte array. Note that this is *not* compatible with
      * the standard MIME-base64 encoding.
      *
-     * @param s       the string to decode
-     * @param maxolen the maximum number of bytes to decode
+     * @param s the string to decode
      * @return an array containing the decoded bytes
      * @throws IllegalArgumentException if maxolen is invalid
      */
-    private static byte[] decode_base64(String s, int maxolen)
+    private static byte[] decode_base64(String s)
             throws IllegalArgumentException {
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
         int off = 0, slen = s.length(), olen = 0;
         byte[] ret;
         byte c1, c2, c3, c4, o;
 
-        if (maxolen <= 0)
+        if (CCrypt.CCrypt_SALT_LEN <= 0)
             throw new IllegalArgumentException("Invalid maxolen");
 
-        while (off < slen - 1 && olen < maxolen) {
+        while (off < slen - 1 && olen < CCrypt.CCrypt_SALT_LEN) {
             c1 = char64(s.charAt(off++));
             c2 = char64(s.charAt(off++));
             if (c1 == -1 || c2 == -1)
                 break;
             o = (byte) (c1 << 2);
-            o |= (c2 & 0x30) >> 4;
+            o |= (byte) ((c2 & 0x30) >> 4);
             rs.append((char) o);
-            if (++olen >= maxolen || off >= slen)
+            if (++olen >= CCrypt.CCrypt_SALT_LEN || off >= slen)
                 break;
             c3 = char64(s.charAt(off++));
             if (c3 == -1)
                 break;
             o = (byte) ((c2 & 0x0f) << 4);
-            o |= (c3 & 0x3c) >> 2;
+            o |= (byte) ((c3 & 0x3c) >> 2);
             rs.append((char) o);
-            if (++olen >= maxolen || off >= slen)
+            if (++olen >= CCrypt.CCrypt_SALT_LEN || off >= slen)
                 break;
             c4 = char64(s.charAt(off++));
             o = (byte) ((c3 & 0x03) << 6);
@@ -543,8 +542,8 @@ public class CCrypt {
         String real_salt;
         byte[] passwordb, saltb, hashed;
         char minor = (char) 0;
-        int rounds, off = 0;
-        StringBuffer rs = new StringBuffer();
+        int rounds, off;
+        StringBuilder rs = new StringBuilder();
 
         if (salt.charAt(0) != '$' || salt.charAt(1) != '2')
             throw new IllegalArgumentException("Invalid salt version");
@@ -562,16 +561,16 @@ public class CCrypt {
         rounds = Integer.parseInt(salt.substring(off, off + 2));
 
         real_salt = salt.substring(off + 3, off + 25);
-        passwordb = (password + (minor >= 'a' ? "\000" : "")).getBytes(StandardCharsets.UTF_8);
+        passwordb = (password + (minor == 'a' ? "\000" : "")).getBytes(StandardCharsets.UTF_8);
 
-        saltb = decode_base64(real_salt, CCrypt_SALT_LEN);
+        saltb = decode_base64(real_salt);
 
         C = new CCrypt();
         hashed = C.crypt_raw(passwordb, saltb, rounds,
                 bf_crypt_ciphertext.clone());
 
         rs.append("$2");
-        if (minor >= 'a')
+        if (minor == 'a')
             rs.append(minor);
         rs.append("$");
         if (rounds < 10)
@@ -598,7 +597,7 @@ public class CCrypt {
      * @return an encoded salt value
      */
     public static String gensalt(int log_rounds, SecureRandom random) {
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
         byte[] rnd = new byte[CCrypt_SALT_LEN];
 
         random.nextBytes(rnd);
@@ -644,7 +643,7 @@ public class CCrypt {
      * one
      *
      * @param plaintext the plaintext password to verify
-     * @param hashed    the previously-hashed password
+     * @param hashed    the previously hashed password
      * @return true if the passwords match, false otherwise
      */
     public static boolean checkPassword(String plaintext, String hashed) {
@@ -657,7 +656,7 @@ public class CCrypt {
             return false;
         byte ret = 0;
         for (int i = 0; i < try_bytes.length; i++)
-            ret |= hashed_bytes[i] ^ try_bytes[i];
+            ret |= (byte) (hashed_bytes[i] ^ try_bytes[i]);
         return ret == 0;
     }
 
@@ -665,22 +664,22 @@ public class CCrypt {
      * Blowfish encipher a single 64-bit block encoded as
      * two 32-bit halves
      *
-     * @param lr  an array containing the two 32-bit half blocks
+     * @param lr  an array containing the two 32-bit half-blocks
      * @param off the position in the array of the blocks
      */
-    private final void encipher(int[] lr, int off) {
+    private void encipher(int[] lr, int off) {
         int i, n, l = lr[off], r = lr[off + 1];
 
         l ^= P[0];
         for (i = 0; i <= BLOWFISH_NUM_ROUNDS - 2; ) {
-            // Feistel substitution on left word
+            // Feistel substitution on the left word
             n = S[(l >> 24) & 0xff];
             n += S[0x100 | ((l >> 16) & 0xff)];
             n ^= S[0x200 | ((l >> 8) & 0xff)];
             n += S[0x300 | (l & 0xff)];
             r ^= n ^ P[++i];
 
-            // Feistel substitution on right word
+            // Feistel substitution on the right word
             n = S[(r >> 24) & 0xff];
             n += S[0x100 | ((r >> 16) & 0xff)];
             n ^= S[0x200 | ((r >> 8) & 0xff)];
@@ -692,7 +691,7 @@ public class CCrypt {
     }
 
     /**
-     * Initialise the Blowfish key schedule
+     * Initialize the Blowfish key schedule
      */
     private void init_key() {
         P = P_orig.clone();
@@ -729,7 +728,7 @@ public class CCrypt {
     /**
      * Perform the "enhanced key schedule" step described by
      * Provos and Mazieres in "A Future-Adaptable Password Scheme"
-     * http://www.openbsd.org/papers/CCrypt-paper.ps
+     * <a href="http://www.openbsd.org/papers/CCrypt-paper.ps">...</a>
      *
      * @param data salt information
      * @param key  password information

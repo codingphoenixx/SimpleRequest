@@ -3,125 +3,220 @@ package dev.coph.simplerequest.ratelimit;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayDeque;
+
 /**
- * A class that provides a mechanism for rate-limiting requests based on a maximum number
- * of allowable requests within a specified time window.
- * <p>
- * The RateLimit class is designed to enforce limitations on the frequency of requests
- * made to a service or system. It maintains an internal counter to track the current
- * number of requests in the given time window, as well as the starting time of the
- * current window. Requests are either allowed or denied based on these values and the
- * configured maximum number of requests permissible for the time period.
- * <p>
- * Instances of this class are initialized with immutable values for the maximum number
- * of requests and the duration of the time window. The state of the rate limiter is
- * thread-safe, ensuring correctness in multi-threaded environments.
+ * Vollständige RateLimiter-Implementierung mit Unterstützung für alle Algorithmen aus {@link RateLimitAlgorithm}.
  */
 @Getter
 @Accessors(fluent = true)
 public class RateLimit {
-    /**
-     * Represents the maximum number of requests allowed within a specified time window for rate limiting.
-     * <p>
-     * This variable defines the upper limit of requests that can be made within a defined time period.
-     * It is a crucial component in enforcing rate-limiting policies, preventing excessive or abusive
-     * usage patterns. The value is immutable, ensuring consistency in the rate-limiting configuration
-     * throughout the lifecycle of the object.
-     * <p>
-     * This field is initialized at the time of object construction and is used in conjunction with
-     * the time window duration to evaluate whether incoming requests exceed the allowed threshold.
-     */
+
     private final int maxRequests;
-
-    /**
-     * Represents the duration of the time window for rate limiting in milliseconds.
-     * <p>
-     * This value defines the period within which a specific number of requests
-     * (determined by the associated maximum request count) are allowed. It is used
-     * to enforce rate-limiting logic, where requests are tracked and validated
-     * against the allowed number within the specified time frame.
-     * <p>
-     * The time window is a key component of the rate-limiting mechanism, helping
-     * to regulate the flow of incoming requests and prevent exceeding the configured limits.
-     */
     private final long timeWindowMillis;
+    private final RateLimitAlgorithm algorithm;
 
-    /**
-     * Represents the starting timestamp of the current time window for rate-limiting purposes.
-     * <p>
-     * This field stores the time (in milliseconds since the epoch) at which the current
-     * rate-limiting time window began. It is used to determine whether the time window
-     * has expired, at which point the window resets and the request count is recalculated.
-     * <p>
-     * The value of this field is updated whenever the time window expires, allowing rate-limiting
-     * to consistently enforce restrictions within defined intervals.
-     */
     private long windowStart;
-
-    /**
-     * Tracks the number of requests made during the current time window for rate-limiting purposes.
-     * <p>
-     * This field is incremented each time a new request is successfully allowed within the defined
-     * time window. It is reset to 0 when the time window elapses, allowing the rate-limiting logic
-     * to restart for the new time period. The value is used in conjunction with the maximum allowable
-     * requests (`maxRequests`) to determine whether additional requests are permitted.
-     * <p>
-     * The field ensures accurate tracking of requests to enforce rate-limiting policies consistently.
-     */
     private int requestCount;
+    private long lastRequestTime = -1L;
 
-    /**
-     * Constructs a RateLimit object with specified maximum number of requests and time window.
-     * This object is used to enforce rate-limiting policies by tracking the number of requests
-     * within a given time period and comparing it to the defined maximum.
-     *
-     * @param maxRequests      the maximum number of requests allowed within the specified time window
-     * @param timeWindowMillis the duration of the time window in milliseconds
-     */
+    private final ArrayDeque<Long> requestTimestamps;
+
+    private double tokens;
+    private double refillRatePerMs;
+    private long lastRefillTimestamp;
+
     public RateLimit(int maxRequests, long timeWindowMillis) {
+        this(maxRequests, timeWindowMillis, RateLimitAlgorithm.USER_FIXED_WINDOW);
+    }
+
+    public RateLimit(int maxRequests, long timeWindowMillis, RateLimitAlgorithm algorithm) {
         this.maxRequests = maxRequests;
         this.timeWindowMillis = timeWindowMillis;
-        this.windowStart = System.currentTimeMillis();
-        this.requestCount = 0;
+        this.algorithm = algorithm;
+
+        long now = System.currentTimeMillis();
+
+        switch (algorithm) {
+            case TOKEN_BUCKET -> {
+                this.tokens = maxRequests;
+                this.refillRatePerMs = (double) maxRequests / (double) Math.max(1L, timeWindowMillis);
+                this.lastRefillTimestamp = now;
+                this.requestTimestamps = null;
+                this.windowStart = 0L;
+            }
+            case SLIDING_WINDOW -> {
+                this.requestTimestamps = new ArrayDeque<>();
+                this.windowStart = 0L;
+            }
+            case FIXED_WINDOW, MINIMUM_COOLDOWN_FIXED_WINDOW -> {
+                this.requestTimestamps = null;
+                this.windowStart = alignToWindow(now);
+                this.requestCount = 0;
+            }
+            default -> {
+                this.requestTimestamps = null;
+                this.windowStart = now;
+                this.requestCount = 0;
+            }
+        }
     }
 
-    /**
-     * Determines whether a request is allowed based on the current rate limiting configuration.
-     * <p>
-     * This method checks if the current time window has elapsed, and if so, resets the request count.
-     * If the number of requests within the current time window is less than the maximum allowed,
-     * the request count is incremented, and the method returns true, signifying that the request
-     * is allowed. If the request count exceeds the maximum allowed, the method returns false.
-     *
-     * @return true if the request is allowed under the rate limit; false otherwise.
-     */
+    private long alignToWindow(long t) {
+        if (timeWindowMillis <= 0L) return t;
+        return (t / timeWindowMillis) * timeWindowMillis;
+    }
+
+    private void pruneOldTimestamps(long now) {
+        long threshold = now - timeWindowMillis;
+        while (!requestTimestamps.isEmpty() && requestTimestamps.peekFirst() < threshold) {
+            requestTimestamps.pollFirst();
+        }
+    }
+
+    private void refillTokens(long now) {
+        long delta = Math.max(0, now - lastRefillTimestamp);
+        if (delta > 0) {
+            tokens = Math.min(maxRequests, tokens + delta * refillRatePerMs);
+            lastRefillTimestamp = now;
+        }
+    }
+
     public synchronized boolean allowRequest() {
         long now = System.currentTimeMillis();
-        if (now - windowStart > timeWindowMillis) {
-            windowStart = now;
-            requestCount = 0;
-        }
-        if (requestCount < maxRequests) {
-            requestCount++;
-            return true;
-        }
-        return false;
+
+        return switch (algorithm) {
+            case FIXED_WINDOW -> {
+                long currentWindowStart = alignToWindow(now);
+                if (currentWindowStart != windowStart) {
+                    windowStart = currentWindowStart;
+                    requestCount = 0;
+                }
+                if (requestCount < maxRequests) {
+                    requestCount++;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                yield false;
+            }
+            case USER_FIXED_WINDOW -> {
+                if (now - windowStart >= timeWindowMillis) {
+                    windowStart = now;
+                    requestCount = 0;
+                }
+                if (requestCount < maxRequests) {
+                    requestCount++;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                yield false;
+            }
+            case MINIMUM_COOLDOWN_FIXED_WINDOW -> {
+                long currentWindowStart = alignToWindow(now);
+                if (currentWindowStart != windowStart) {
+                    windowStart = currentWindowStart;
+                    requestCount = 0;
+                }
+                if (requestCount < maxRequests) {
+                    requestCount++;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                if (now >= lastRequestTime + timeWindowMillis) {
+                    windowStart = alignToWindow(now);
+                    requestCount = 1;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                yield false;
+            }
+            case MINIMUM_COOLDOWN_USER_FIXED_WINDOW -> {
+                if (now - windowStart >= timeWindowMillis) {
+                    windowStart = now;
+                    requestCount = 0;
+                }
+                if (requestCount < maxRequests) {
+                    requestCount++;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                if (now >= lastRequestTime + timeWindowMillis) {
+                    windowStart = now;
+                    requestCount = 1;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                yield false;
+            }
+            case SLIDING_WINDOW -> {
+                pruneOldTimestamps(now);
+                if (requestTimestamps.size() < maxRequests) {
+                    requestTimestamps.addLast(now);
+                    lastRequestTime = now;
+                    yield true;
+                }
+                yield false;
+            }
+            case TOKEN_BUCKET -> {
+                refillTokens(now);
+                if (tokens >= 1.0) {
+                    tokens -= 1.0;
+                    lastRequestTime = now;
+                    yield true;
+                }
+                yield false;
+            }
+        };
     }
 
-    /**
-     * Returns the number of milliseconds to wait before a new request is allowed.
-     * If a request is currently allowed, this returns 0.
-     *
-     * @return milliseconds to wait before next allowed request, or 0 if allowed now
-     */
     public synchronized long getRetryAfterMillis() {
         long now = System.currentTimeMillis();
-        if (now - windowStart > timeWindowMillis) {
-            return 0;
-        }
-        if (requestCount < maxRequests) {
-            return 0;
-        }
-        return (windowStart + timeWindowMillis) - now;
+
+        return switch (algorithm) {
+            case FIXED_WINDOW -> {
+                long currentWindowStart = alignToWindow(now);
+                int used = (currentWindowStart == windowStart) ? requestCount : 0;
+                if (used < maxRequests) {
+                    yield 0L;
+                }
+                long windowEnd = currentWindowStart + timeWindowMillis;
+                yield Math.max(0L, windowEnd - now);
+            }
+            case USER_FIXED_WINDOW -> {
+                if (now - windowStart >= timeWindowMillis) {
+                    yield 0L;
+                }
+                if (requestCount < maxRequests) {
+                    yield 0L;
+                }
+                yield Math.max(0L, (windowStart + timeWindowMillis) - now);
+            }
+            case MINIMUM_COOLDOWN_FIXED_WINDOW, MINIMUM_COOLDOWN_USER_FIXED_WINDOW -> {
+                if (requestCount < maxRequests) {
+                    yield 0L;
+                }
+                yield Math.max(0L, (lastRequestTime + timeWindowMillis) - now);
+            }
+            case SLIDING_WINDOW -> {
+                pruneOldTimestamps(now);
+                if (requestTimestamps.size() < maxRequests) {
+                    yield 0L;
+                }
+                Long oldest = requestTimestamps.peekFirst();
+                if (oldest == null) {
+                    yield 0L;
+                }
+                yield Math.max(0L, (oldest + timeWindowMillis) - now);
+            }
+            case TOKEN_BUCKET -> {
+                refillTokens(now);
+                if (tokens >= 1.0) {
+                    yield 0L;
+                }
+                double missing = 1.0 - tokens;
+                long ms = (long) Math.ceil(missing / Math.max(1e-12, refillRatePerMs));
+                yield Math.max(0L, ms);
+            }
+        };
     }
 }

@@ -22,7 +22,7 @@ import java.util.Random;
  *               multiple accounts or services using two-factor authentication when displayed in TOTP clients.
  *               <p>
  *               The issuer is immutable and is initialized during the creation of the {@code TOTPData} instance.
- * @param user   Represents the username or account identifier for which the TOTP data is associated.
+ * @param user   Represents the username or account identifier with which the TOTP data is associated.
  *               This field is immutable once set and identifies the user within the TOTP context.
  *               <p>
  *               Typically used in conjunction with the 'issuer' to generate a TOTP URL or other authentication-related data.
@@ -47,7 +47,7 @@ public record TOTPData(String issuer, String user, byte[] secret) {
      * A shared random number generator instance used for generating cryptographic
      * values such as the secret key within the TOTPData class.
      * <p>
-     * This instance is utilized to produce an array of random bytes through
+     * This instance is used to produce an array of random bytes through
      * methods like `Random.nextBytes(byte[])`. The generated values help ensure
      * unpredictability and uniqueness of the TOTP secret keys.
      * <p>
@@ -89,7 +89,7 @@ public record TOTPData(String issuer, String user, byte[] secret) {
     }
 
     /**
-     * Creates a new instance of TOTPData with the provided issuer and user,
+     * Creates a new instance of TOTPData with the provided issuer and user
      * and generates a new secret key for the instance.
      *
      * @param issuer the identifier for the organization or service to which this TOTP data belongs.
@@ -125,7 +125,7 @@ public record TOTPData(String issuer, String user, byte[] secret) {
     /**
      * Returns the username or account identifier associated with this TOTP data.
      *
-     * @return the user name as a string.
+     * @return the username as a string.
      */
     @Override
     public String user() {

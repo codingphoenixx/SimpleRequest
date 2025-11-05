@@ -1,4 +1,4 @@
-package dev.coph.simplerequest.handler;
+package dev.coph.simplerequest.body;
 
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
@@ -110,6 +110,20 @@ public class Body {
     }
 
     /**
+     * Converts the HTTP request body into an {@link ImageBody}.
+     * This method interprets the body content as an image by first
+     * retrieving it as an {@link InputStream} and then processing it
+     * into an {@link ImageBody}.
+     *
+     * @return an {@link ImageBody} representation of the HTTP request body content
+     * @throws IOException if an I/O error occurs while accessing or processing the body content
+     */
+    public ImageBody asImage() throws IOException {
+        InputStream inputStream = asInputStream();
+        return new ImageBody(inputStream);
+    }
+
+    /**
      * Retrieves the content of the HTTP request body as an {@link InputStream}.
      * This method provides access to the body content in a stream format, allowing
      * for efficient processing of large data or binary content.
@@ -139,11 +153,11 @@ public class Body {
      * @return a {@link JSONObject} representation of the HTTP request body content
      * @throws IOException if an I/O error occurs while accessing the request body content
      */
-    public JSONObject asJSON() throws IOException {
+    public JsonBody asJSON() throws IOException {
         String content = asString();
         if (content == null || content.isEmpty())
-            return new JSONObject();
-        return new JSONObject(content);
+            return new JsonBody(null);
+        return new JsonBody(content);
     }
 
     /**

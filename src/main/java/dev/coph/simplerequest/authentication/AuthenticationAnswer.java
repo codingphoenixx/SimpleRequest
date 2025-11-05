@@ -1,4 +1,4 @@
-package dev.coph.simplerequest.handler;
+package dev.coph.simplerequest.authentication;
 
 /**
  * Represents the result of an authentication process.

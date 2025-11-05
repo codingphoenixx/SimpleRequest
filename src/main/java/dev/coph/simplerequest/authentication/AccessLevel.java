@@ -1,11 +1,11 @@
-package dev.coph.simplerequest.handler;
+package dev.coph.simplerequest.authentication;
 
 /**
  * Enumeration representing the state of a request.
  * <p>
  * This enum is used to define the accessibility or status of a request. It can
- * be utilized in various scenarios, such as determining what level of access
- * an endpoint requires and controlling access to resources or methods based
+ * be used in various scenarios, such as determining what level of access
+ * an endpoint-discovery requires and controlling access to resources or methods based
  * on the current request state.
  * <p>
  * Enum constants:
@@ -17,7 +17,7 @@ public enum AccessLevel {
     /**
      * Enum constant representing a publicly accessible request state.
      * <p>
-     * This state indicates that the resource, endpoint, or request is accessible
+     * This state indicates that the resource, endpoint-discovery, or request is accessible
      * to anyone without requiring authentication. It is typically used to
      * designate open public access where no additional validation or permissions
      * are necessary.
@@ -45,7 +45,7 @@ public enum AccessLevel {
     /**
      * Enum constant representing a disabled or unavailable request state.
      * <p>
-     * This state indicates that the request, resource, or endpoint is not currently
+     * This state indicates that the request, resource, or endpoint-discovery is not currently
      * accessible or functional. It is typically used to denote a condition where
      * the request or operation is intentionally disabled, restricted, or no longer
      * in use. Requests or resources in this state should not be processed.

@@ -1,5 +1,6 @@
-package dev.coph.simplerequest.handler;
+package dev.coph.simplerequest.authentication;
 
+import dev.coph.simplerequest.handler.RequestDispatcher;
 import org.eclipse.jetty.server.Request;
 
 /**
@@ -16,12 +17,12 @@ public interface AuthenticationHandler<T> {
     /**
      * Determines whether the specified request has access based on the provided path and access level.
      * <p>
-     * This method evaluates whether the endpoint or resource represented by the given
+     * This method evaluates whether the endpoint-discovery or resource represented by the given
      * {@code path} can be accessed by the requester, considering the details of the request
      * and the required access level. The result of this evaluation is encapsulated in an
      * {@code AuthenticationAnswer} instance.
      *
-     * @param path        the {@code RequestDispatcher.MethodHandler} object representing the endpoint or resource to evaluate
+     * @param path        the {@code RequestDispatcher.MethodHandler} object representing the endpoint-discovery or resource to evaluate
      * @param request     the {@code Request} object containing details about the request, such as headers and parameters
      * @param accessLevel the {@code AccessLevel} that specifies the required permission level for the requested operation
      * @return an {@code AuthenticationAnswer<T>} instance containing the result of the access evaluation, including whether access was granted and any relevant context
@@ -30,11 +31,16 @@ public interface AuthenticationHandler<T> {
 
 
     /**
-     * Checks whether a specific permission is granted for a given identifier.
+     * Verifies whether a specific permission is granted for a given identifier.
+     * <p>
+     * This method checks if the entity identified by the provided {@code identifier}
+     * has the specified {@code permission}. The result of this check is encapsulated
+     * in an {@code AuthenticationAnswer<T>} instance, which contains details about
+     * whether the permission is granted and associated context or data.
      *
-     * @param permission the permission string to be checked, representing the action or resource to validate.
-     * @param identifier the unique identifier, such as a user ID or role, to which the permission is being applied.
-     * @return true if the specified permission is granted for the given identifier; false otherwise.
+     * @param permission the permission to verify
+     * @param identifier the identifier of the entity for which the permission check is performed
+     * @return an {@code AuthenticationAnswer<T>} containing the result of the permission check, including whether the permission is granted and any additional context
      */
     AuthenticationAnswer<T> hasPermission(String permission, String identifier);
 

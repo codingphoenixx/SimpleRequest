@@ -75,7 +75,6 @@ public final class TOTP {
      * elapsed since the Unix epoch.
      */
     private static long getStep() {
-        // 30 seconds StepSize (ID TOTP)
         return System.currentTimeMillis() / 30000;
     }
 
@@ -94,12 +93,12 @@ public final class TOTP {
         if (step < 0) {
             throw new IllegalArgumentException("Step must be greater than or equal to zero.");
         }
-        String steps = Long.toHexString(step).toUpperCase();
+        StringBuilder steps = new StringBuilder(Long.toHexString(step).toUpperCase());
         while (steps.length() < 16) {
-            steps = "0" + steps;
+            steps.insert(0, "0");
         }
 
-        final byte[] msg = TOTP.hexStr2Bytes(steps);
+        final byte[] msg = TOTP.hexStr2Bytes(steps.toString());
         final byte[] k = TOTP.hexStr2Bytes(key);
 
         final byte[] hash = TOTP.hmac_sha1(k, msg);
@@ -108,11 +107,11 @@ public final class TOTP {
         final int binary = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16) | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
         final int otp = binary % 1000000;
 
-        String result = Integer.toString(otp);
+        StringBuilder result = new StringBuilder(Integer.toString(otp));
         while (result.length() < 6) {
-            result = "0" + result;
+            result.insert(0, "0");
         }
-        return result;
+        return result.toString();
     }
 
     /**
