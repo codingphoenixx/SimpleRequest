@@ -1,15 +1,14 @@
 package dev.coph.simplerequest.server;
 
 import dev.coph.simplelogger.Logger;
+import dev.coph.simplerequest.endpointdiscovery.EndpointDiscoveryRequestHandler;
 import dev.coph.simplerequest.handler.AuthenticationAnswer;
 import dev.coph.simplerequest.handler.AuthenticationHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
-import dev.coph.simplerequest.handler.endpoint.EndpointRequestHandler;
 import dev.coph.simplerequest.ratelimit.RateLimitHandler;
 import dev.coph.simplerequest.util.Time;
 import jakarta.websocket.server.ServerEndpoint;
-import lombok.experimental.Accessors;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.eclipse.jetty.server.*;
@@ -113,7 +112,7 @@ public class WebServer {
      * functionality within the server context. If no WebSocket providers are registered,
      * WebSocket support will not be enabled for the server.
      * <p>
-     * Each entry in this collection represents a valid WebSocket endpoint provider
+     * Each entry in this collection represents a valid WebSocket endpointdiscovery provider
      * that must adhere to the restrictions imposed by the WebSocket API (e.g., non-anonymous class,
      * properly annotated with {@code @ServerEndpoint}).
      */
@@ -230,8 +229,8 @@ public class WebServer {
             server.setHandler(handlerCollection);
         }
 
-        Logger.debug("Adding EndpointRequestHandler");
-        requestDispatcher.register(new EndpointRequestHandler(this));
+        Logger.debug("Adding EndpointDiscoveryRequestHandler");
+        requestDispatcher.register(new EndpointDiscoveryRequestHandler(this));
 
         Logger.debug("Settings error handler");
         server.setErrorHandler(new ServerErrorHandler());

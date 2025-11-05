@@ -3,7 +3,7 @@ package dev.coph.simplerequest.ratelimit;
 import java.lang.annotation.*;
 
 /**
- * Annotation to define additional rate limiting configurations for a specific method or endpoint.
+ * Annotation to define additional rate limiting configurations for a specific method or endpointdiscovery.
  * This annotation allows specifying maximum request limits and the time window for which these limits
  * are applicable. It is typically used for applying fine-grained control over request rates
  * in scenarios where different methods or endpoints have varying rate-limiting requirements.
@@ -26,7 +26,7 @@ public @interface CustomRateLimit {
 
     /**
      * Specifies the maximum number of requests allowed within a defined time window
-     * for the annotated method or endpoint. This value is intended to be used for
+     * for the annotated method or endpointdiscovery. This value is intended to be used for
      * rate-limiting purposes and should be interpreted in conjunction with the time window.
      *
      * @return the maximum number of requests permitted as an integer
@@ -43,7 +43,7 @@ public @interface CustomRateLimit {
     long timeWindowMillis();
 
     /**
-     * Specifies the rate-limiting algorithm to be used for the associated method or endpoint.
+     * Specifies the rate-limiting algorithm to be used for the associated method or endpointdiscovery.
      * The chosen algorithm determines the strategy for evaluating and enforcing the rate limits
      * based on the configuration provided in the annotation.
      *

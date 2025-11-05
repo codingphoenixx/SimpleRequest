@@ -15,7 +15,7 @@ package dev.coph.simplerequest.handler;
  * - OPTIONS: Fetches information about the communication options available.<br>
  * - ANY: Matches any type of HTTP request method.<br>
  */
-public enum RequestMethode {
+public enum RequestMethod {
     /**
      * Enum constant representing the HTTP GET request method.
      * <p>

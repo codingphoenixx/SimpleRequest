@@ -2,6 +2,7 @@ package dev.coph.simplerequest.handler;
 
 
 import dev.coph.simplelogger.Logger;
+import dev.coph.simplerequest.body.Body;
 import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
 import dev.coph.simplerequest.ratelimit.CustomRateLimit;
 import dev.coph.simplerequest.server.WebServer;
@@ -96,7 +97,7 @@ public class RequestDispatcher {
             if (method.isAnnotationPresent(RequestHandler.class)) {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
-                RequestMethode methode = annotation.methode();
+                RequestMethod requestMethod = annotation.method();
                 Pattern pattern = createPattern(path);
 
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
@@ -112,7 +113,7 @@ public class RequestDispatcher {
                 }
 
 
-                MethodHandler methodHandler = new MethodHandler(path, methode, instance, method, annotation.description());
+                MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description());
                 methodHandler.accessLevel = annotation.accesslevel();
                 handlers.put(pattern, methodHandler);
             }
@@ -181,7 +182,7 @@ public class RequestDispatcher {
                 MethodHandler handler = entry.getValue();
 
 
-                if (!handler.requestMethode().equals(RequestMethode.ANY) && !handler.requestMethode().name().equals(request.getMethod().toUpperCase())) {
+                if (!handler.requestMethod().equals(RequestMethod.ANY) && !handler.requestMethod().name().equals(request.getMethod().toUpperCase())) {
                     response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
                     callback.succeeded();
                     return;
@@ -325,7 +326,7 @@ public class RequestDispatcher {
     @Accessors(fluent = true, chain = true)
     public static class MethodHandler {
         private final String path;
-        private final RequestMethode requestMethode;
+        private final RequestMethod requestMethod;
         private final Object instance;
         private final Method method;
         private final String description;
@@ -335,14 +336,14 @@ public class RequestDispatcher {
          * Constructs a new MethodHandler instance with the provided parameters.
          *
          * @param path           the URI path this handler corresponds to
-         * @param requestMethode the HTTP request method associated with this handler
+         * @param requestMethod the HTTP request method associated with this handler
          * @param instance       the object instance containing the method to be invoked
          * @param method         the method to be executed for this handler
          * @param description    a brief description of this handler's purpose or functionality
          */
-        public MethodHandler(String path, RequestMethode requestMethode, Object instance, Method method, String description) {
+        public MethodHandler(String path, RequestMethod requestMethod, Object instance, Method method, String description) {
             this.path = path;
-            this.requestMethode = requestMethode;
+            this.requestMethod = requestMethod;
             this.instance = instance;
             this.method = method;
             this.description = description;
