@@ -93,7 +93,7 @@ public class RateLimitProvider {
         HashMap<String, RateLimit> rateLimits = this.rateLimits.computeIfAbsent(key, s -> new HashMap<>());
 
         if (!rateLimits.containsKey("default")) {
-            rateLimits.put("default", new RateLimit(maxRequests, defaultTimeWindow));
+            rateLimits.put("default", new RateLimit(maxRequests, defaultTimeWindow, RateLimitAlgorithm.USER_FIXED_WINDOW));
         }
 
         for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
@@ -103,7 +103,7 @@ public class RateLimitProvider {
                 AdditionalCustomRateLimit[] additionalCustomRateLimits = entry.getValue();
                 for (AdditionalCustomRateLimit additionalCustomRateLimit : additionalCustomRateLimits) {
                     if (!rateLimits.containsKey(additionalCustomRateLimit.key()))
-                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis()));
+                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis(), additionalCustomRateLimit.algorithm()));
                 }
 
             }
@@ -142,7 +142,7 @@ public class RateLimitProvider {
                 AdditionalCustomRateLimit[] additionalCustomRateLimits = entry.getValue();
                 for (AdditionalCustomRateLimit additionalCustomRateLimit : additionalCustomRateLimits) {
                     if (!rateLimits.containsKey(additionalCustomRateLimit.key()))
-                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis()));
+                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis(), additionalCustomRateLimit.algorithm()));
                 }
             }
         }

@@ -75,7 +75,6 @@ public final class TOTP {
      * elapsed since the Unix epoch.
      */
     private static long getStep() {
-        // 30 seconds StepSize (ID TOTP)
         return System.currentTimeMillis() / 30000;
     }
 
