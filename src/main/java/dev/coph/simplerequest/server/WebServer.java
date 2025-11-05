@@ -2,8 +2,8 @@ package dev.coph.simplerequest.server;
 
 import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.endpointdiscovery.EndpointDiscoveryRequestHandler;
-import dev.coph.simplerequest.handler.AuthenticationAnswer;
-import dev.coph.simplerequest.handler.AuthenticationHandler;
+import dev.coph.simplerequest.authentication.AuthenticationAnswer;
+import dev.coph.simplerequest.authentication.AuthenticationHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import dev.coph.simplerequest.handler.ServerErrorHandler;
 import dev.coph.simplerequest.ratelimit.RateLimitHandler;

@@ -1,5 +1,7 @@
 package dev.coph.simplerequest.handler;
 
+import dev.coph.simplerequest.authentication.AccessLevel;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

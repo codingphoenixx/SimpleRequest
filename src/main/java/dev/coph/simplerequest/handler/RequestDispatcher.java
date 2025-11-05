@@ -2,6 +2,9 @@ package dev.coph.simplerequest.handler;
 
 
 import dev.coph.simplelogger.Logger;
+import dev.coph.simplerequest.authentication.AccessLevel;
+import dev.coph.simplerequest.authentication.AuthenticationAnswer;
+import dev.coph.simplerequest.authentication.AuthenticationHandler;
 import dev.coph.simplerequest.body.Body;
 import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
 import dev.coph.simplerequest.ratelimit.CustomRateLimit;

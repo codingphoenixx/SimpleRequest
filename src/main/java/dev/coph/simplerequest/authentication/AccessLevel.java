@@ -1,4 +1,4 @@
-package dev.coph.simplerequest.handler;
+package dev.coph.simplerequest.authentication;
 
 /**
  * Enumeration representing the state of a request.
