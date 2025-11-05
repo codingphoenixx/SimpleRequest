@@ -139,7 +139,6 @@ public final class JWT {
         return jsonObjectToMap(payload);
     }
 
-
     private static String signHS256ToBase64Url(byte[] secret, String data)
             throws JwtException {
         try {
