@@ -15,23 +15,6 @@ import java.util.UUID;
 
 public record JsonBody(String json) {
 
-    public boolean isEmpty() {
-        return json == null || json.isEmpty();
-    }
-
-    public JSONObject toJSONObject() {
-        return new JSONObject(json);
-    }
-
-    public JSONArray toJSONArray() {
-        return new JSONArray(json);
-    }
-
-    public String toString() {
-        return json;
-    }
-
-
     public static String getString(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
         if (!contains(data, key, response, callback, errorMessage)) return null;
         var dataString = data.getString(key);
@@ -52,7 +35,6 @@ public record JsonBody(String json) {
         }
         return dataString;
     }
-
 
     public static Boolean getBoolean(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
         if (!contains(data, key, response, callback, errorMessage)) return null;
@@ -76,7 +58,6 @@ public record JsonBody(String json) {
             return null;
         }
     }
-
 
     public static UUID getUUID(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
         var dataString = getString(data, key, response, callback, errorMessage);
@@ -105,7 +86,6 @@ public record JsonBody(String json) {
         }
     }
 
-
     public static OffsetDateTime getOffsetDateTime(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
         var dataString = getString(data, key, response, callback, errorMessage);
         if (dataString == null)
@@ -128,7 +108,6 @@ public record JsonBody(String json) {
             return null;
         }
     }
-
 
     public static <T extends Enum<T>> T getEnum(JSONObject data, String key, Class<T> enumClass, Response response, Callback callback, String errorMessage) {
         if (!contains(data, key, response, callback, errorMessage)) return null;
@@ -197,7 +176,6 @@ public record JsonBody(String json) {
         return data.getInt(key);
     }
 
-
     public static Long getLong(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
         if (!data.has(key)) {
             respondBadRequestParameter(key, response, callback, errorMessage);
@@ -212,7 +190,6 @@ public record JsonBody(String json) {
         }
         return data.getLong(key);
     }
-
 
     private static void respondBadRequestParameter(String key, Response response, Callback callback, String errorMessage) {
         if (errorMessage == null)
@@ -240,9 +217,26 @@ public record JsonBody(String json) {
         if (string == null) return defaultValue;
 
         try {
-            return (T) Enum.valueOf(clazz, string.trim().toUpperCase());
+            return Enum.valueOf(clazz, string.trim().toUpperCase());
         } catch (Exception ignored) {
             return defaultValue;
         }
+    }
+
+    public boolean isEmpty() {
+        return json == null || json.isEmpty();
+    }
+
+    public JSONObject toJSONObject() {
+        return new JSONObject(json);
+    }
+
+    public JSONArray toJSONArray() {
+        return new JSONArray(json);
+    }
+
+    @Override
+    public String toString() {
+        return json;
     }
 }

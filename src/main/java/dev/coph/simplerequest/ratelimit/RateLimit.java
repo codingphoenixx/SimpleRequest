@@ -15,13 +15,10 @@ public class RateLimit {
     private final int maxRequests;
     private final long timeWindowMillis;
     private final RateLimitAlgorithm algorithm;
-
+    private final ArrayDeque<Long> requestTimestamps;
     private long windowStart;
     private int requestCount;
     private long lastRequestTime = -1L;
-
-    private final ArrayDeque<Long> requestTimestamps;
-
     private double tokens;
     private double refillRatePerMs;
     private long lastRefillTimestamp;

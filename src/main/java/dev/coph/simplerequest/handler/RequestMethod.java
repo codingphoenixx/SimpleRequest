@@ -76,6 +76,8 @@ public enum RequestMethod {
      * Represents the HTTP QUERY request method in the context of server routing or request handling.
      * This constant is primarily used to specify or match HTTP requests that use the QUERY method.
      * While not a standard HTTP method, it might be defined for custom purposes or specific application logic.
+     * <br>
+     * Query is used to provide the {@link FieldRequestHandler}.
      */
     QUERY,
     /**

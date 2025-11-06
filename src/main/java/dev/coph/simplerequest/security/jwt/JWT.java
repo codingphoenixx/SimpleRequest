@@ -27,7 +27,8 @@ public final class JWT {
     private static final Base64.Decoder B64_URL_DECODER =
             Base64.getUrlDecoder();
 
-    private JWT() {}
+    private JWT() {
+    }
 
     /**
      * Create a signed JWT string using HS256.
@@ -246,7 +247,10 @@ public final class JWT {
          *            identifier of the entity issuing the token.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder issuer(String iss) { claims.put("iss", iss); return this; }
+        public Builder issuer(String iss) {
+            claims.put("iss", iss);
+            return this;
+        }
 
         /**
          * Sets the subject claim ("sub") for the JSON Web Token (JWT). The "sub" claim identifies
@@ -256,7 +260,10 @@ public final class JWT {
          *            identifier for the subject, such as a user ID.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder subject(String sub) { claims.put("sub", sub); return this; }
+        public Builder subject(String sub) {
+            claims.put("sub", sub);
+            return this;
+        }
 
         /**
          * Sets the audience claim ("aud") for the JSON Web Token (JWT). The "aud" claim identifies
@@ -266,7 +273,10 @@ public final class JWT {
          *            recipients or systems that the token is targeting.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder audience(String aud) { claims.put("aud", aud); return this; }
+        public Builder audience(String aud) {
+            claims.put("aud", aud);
+            return this;
+        }
 
         /**
          * Sets the JWT ID claim ("jti") for the JSON Web Token (JWT).
@@ -276,7 +286,10 @@ public final class JWT {
          * @param jti the value to set for the JWT ID claim. Typically, this is a unique string identifier.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder jwtId(String jti) { claims.put("jti", jti); return this; }
+        public Builder jwtId(String jti) {
+            claims.put("jti", jti);
+            return this;
+        }
 
         /**
          * Adds or updates a custom claim in the JWT claims set. Claims are key-value pairs
@@ -286,7 +299,10 @@ public final class JWT {
          * @param v the value of the claim. This can be a primitive, a collection, or a complex object.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder claim(String k, Object v) { claims.put(k, v); return this; }
+        public Builder claim(String k, Object v) {
+            claims.put(k, v);
+            return this;
+        }
 
         /**
          * Sets the "issued at" claim ("iat") for the JSON Web Token (JWT). The "iat" claim represents the time
@@ -295,7 +311,10 @@ public final class JWT {
          * @param seconds the timestamp, in seconds since the epoch, indicating when the token was issued.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder issuedAt(long seconds) { this.iat = seconds; return this; }
+        public Builder issuedAt(long seconds) {
+            this.iat = seconds;
+            return this;
+        }
 
         /**
          * Sets the expiration time ("exp") for the JSON Web Token (JWT).
@@ -305,7 +324,10 @@ public final class JWT {
          * @param seconds the timestamp, in seconds since the epoch, representing when the token expires.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder expiresAt(long seconds) { this.exp = seconds; return this; }
+        public Builder expiresAt(long seconds) {
+            this.exp = seconds;
+            return this;
+        }
 
         /**
          * Sets the "not before" claim ("nbf") for the JSON Web Token (JWT).
@@ -316,7 +338,10 @@ public final class JWT {
          *                the token is not considered valid.
          * @return the current instance of the Builder to allow method chaining.
          */
-        public Builder notBefore(long seconds) { this.nbf = seconds; return this; }
+        public Builder notBefore(long seconds) {
+            this.nbf = seconds;
+            return this;
+        }
 
         /**
          * Signs a JSON Web Token (JWT) using the specified secret and configured claims,

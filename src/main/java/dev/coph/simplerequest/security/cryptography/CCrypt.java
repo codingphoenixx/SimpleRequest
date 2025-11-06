@@ -13,14 +13,6 @@ import java.security.SecureRandom;
 public class CCrypt {
 
     /**
-     * The default value for the logarithm base 2 of the number of
-     * iterations to perform in the hashing process. This determines
-     * the computational cost of the password hashing mechanism. A value
-     * of 10 means 2^10 (1024) iterations will be applied, balancing
-     * security with performance.
-     */
-    public static int GENSALT_DEFAULT_LOG2_ROUNDS = 14;
-    /**
      * The length of the salt used in the CCrypt hashing process.
      * This constant defines the fixed size, in bytes, for the salt value
      * in cryptographic operations, ensuring consistency and security.
@@ -373,6 +365,14 @@ public class CCrypt {
             41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
             51, 52, 53, -1, -1, -1, -1, -1
     };
+    /**
+     * The default value for the logarithm base 2 of the number of
+     * iterations to perform in the hashing process. This determines
+     * the computational cost of the password hashing mechanism. A value
+     * of 10 means 2^10 (1024) iterations will be applied, balancing
+     * security with performance.
+     */
+    public static int GENSALT_DEFAULT_LOG2_ROUNDS = 14;
     /**
      * The P array used as part of the key schedule in the Blowfish cipher
      * algorithm. It contains the P-array, which is a series of 18

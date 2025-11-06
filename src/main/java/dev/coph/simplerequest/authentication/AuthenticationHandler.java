@@ -1,5 +1,6 @@
 package dev.coph.simplerequest.authentication;
 
+import dev.coph.simplerequest.handler.MethodHandler;
 import dev.coph.simplerequest.handler.RequestDispatcher;
 import org.eclipse.jetty.server.Request;
 
@@ -27,7 +28,7 @@ public interface AuthenticationHandler<T> {
      * @param accessLevel the {@code AccessLevel} that specifies the required permission level for the requested operation
      * @return an {@code AuthenticationAnswer<T>} instance containing the result of the access evaluation, including whether access was granted and any relevant context
      */
-    AuthenticationAnswer<T> hasAccess(RequestDispatcher.MethodHandler path, Request request, AccessLevel accessLevel);
+    AuthenticationAnswer<T> hasAccess(MethodHandler path, Request request, AccessLevel accessLevel);
 
 
     /**
