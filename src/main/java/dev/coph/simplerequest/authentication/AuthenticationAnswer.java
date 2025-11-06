@@ -18,6 +18,7 @@ package dev.coph.simplerequest.authentication;
  *                  This variable is used to store additional information or a specific entity
  *                  related to the authentication result. The type of the object is defined
  *                  by the generic type parameter {@code T}.
+ * @param message   A string that provides a descriptive message about the authentication result.
  */
 public record AuthenticationAnswer<T>(boolean hasAccess, T object, String message) {
 
