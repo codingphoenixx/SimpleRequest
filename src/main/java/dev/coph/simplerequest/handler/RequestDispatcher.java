@@ -424,7 +424,7 @@ public class RequestDispatcher {
                 String paramName = m.getParameters()[i].getName();
                 Object val = pathVariables.get(paramName);
                 if (val == null) {
-                    val = pathVariables.get("arg" + (i +1));
+                    val = pathVariables.get("arg" + (i + 1));
                 }
                 args[i] = val;
             } else args[i] = null;

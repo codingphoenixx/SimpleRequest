@@ -23,10 +23,26 @@ public class RateLimit {
     private double refillRatePerMs;
     private long lastRefillTimestamp;
 
+    /**
+     * Constructs a RateLimit instance with the specified maximum number of requests
+     * and time window in milliseconds, using the default rate-limiting algorithm.
+     *
+     * @param maxRequests      The maximum number of requests allowed within the specified time window.
+     * @param timeWindowMillis The duration of the time window in milliseconds during which requests are counted.
+     */
     public RateLimit(int maxRequests, long timeWindowMillis) {
         this(maxRequests, timeWindowMillis, RateLimitAlgorithm.USER_FIXED_WINDOW);
     }
 
+    /**
+     * Constructs a RateLimit instance with the specified maximum number of requests,
+     * time window in milliseconds, and rate-limiting algorithm.
+     *
+     * @param maxRequests      The maximum number of requests allowed within the specified time window.
+     * @param timeWindowMillis The duration of the time window in milliseconds during which requests are counted.
+     * @param algorithm        The rate-limiting algorithm to use, which determines the mechanism for
+     *                         enforcing rate limits such as FIXED_WINDOW, TOKEN_BUCKET, or SLIDING_WINDOW.
+     */
     public RateLimit(int maxRequests, long timeWindowMillis, RateLimitAlgorithm algorithm) {
         this.maxRequests = maxRequests;
         this.timeWindowMillis = timeWindowMillis;
@@ -79,6 +95,14 @@ public class RateLimit {
         }
     }
 
+    /**
+     * Determines whether a request is allowed based on the configured rate-limiting algorithm.
+     * This method evaluates the internal state of the rate limiter and decides if a new request
+     * can be processed according to the rules of the selected algorithm, such as FIXED_WINDOW,
+     * SLIDING_WINDOW, or TOKEN_BUCKET.
+     *
+     * @return true if the request is allowed under the current rate-limiting configuration; false otherwise
+     */
     public synchronized boolean allowRequest() {
         long now = System.currentTimeMillis();
 
@@ -166,6 +190,17 @@ public class RateLimit {
         };
     }
 
+    /**
+     * Calculates the time in milliseconds until the next request is allowed, based on
+     * the configured rate-limiting algorithm and the current state of the rate limiter.
+     * The method evaluates the current request rate, recent activity, and algorithm-specific
+     * parameters such as time windows, token counts, or sliding windows to determine
+     * the appropriate wait time before subsequent requests can be made.
+     *
+     * @return the number of milliseconds to wait before the next request is allowed.
+     * A return value of 0 indicates that no wait is necessary and a request can
+     * be made immediately.
+     */
     public synchronized long getRetryAfterMillis() {
         long now = System.currentTimeMillis();
 

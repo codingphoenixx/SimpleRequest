@@ -20,6 +20,14 @@ import java.util.*;
  */
 public final class JWT {
 
+    /**
+     * A constant representing the algorithm used for signing the JWT.
+     * <p>
+     * This value is specifically set to "HS256", signifying the HMAC
+     * algorithm with SHA-256 as the hash function. It is used in the
+     * construction and validation of JWTs for ensuring message integrity
+     * and authenticity.
+     */
     public static final String ALG = "HS256";
     private static final String TYP = "JWT";
     private static final Base64.Encoder B64_URL_ENCODER =
@@ -40,6 +48,7 @@ public final class JWT {
      * @param expiresAtSecs exp (seconds since epoch), nullable
      * @param notBeforeSecs nbf (seconds since epoch), nullable
      * @return compact JWS string
+     * @throws JwtException if an error occurs during the signing process.
      */
     public static String createToken(
             byte[] secret,
@@ -72,15 +81,20 @@ public final class JWT {
     }
 
     /**
-     * Validate a JWT:
-     * - Structure, header typ & alg
-     * - Signature
-     * - nbf <= now + skew, now <= exp and skew
-     * Returns a claims map (LinkedHashMap) with JSON-native values (JSONObject/JSONArray preserved).
+     * Validates a JSON Web Token (JWT) against a secret key and specified clock skew.
      *
-     * @param secret   HMAC secret
-     * @param token    compact JWS
-     * @param skewSecs allowed clock skew in seconds (e.g., 60)
+     * The method checks the integrity and validity of the JWT by verifying its signature,
+     * decoding its components, and ensuring that relevant claims such as "typ", "alg",
+     * "nbf", and "exp" are correctly satisfied.
+     *
+     * @param secret   the secret key used for verifying the token's signature. Must not be null.
+     * @param token    the compact JWS (JWT) string to be validated. Must not be null.
+     * @param skewSecs the allowed clock skew in seconds for validating the "nbf" (Not Before)
+     *                 and "exp" (Expiration) claims.
+     * @return a map representing the decoded payload of the JWT, containing its claims as key-value pairs.
+     * @throws JwtException if the token fails validation due to an invalid format, signature mismatch,
+     *                      expired or not yet valid token, incorrect "typ" or "alg" headers,
+     *                      or other processing issues (e.g., invalid JSON content).
      */
     public static Map<String, Object> validateToken(
             byte[] secret,
@@ -236,6 +250,13 @@ public final class JWT {
      * issued at, expiration, and not-before.
      */
     public static final class Builder {
+        /**
+         * Constructs a new instance of the Builder class. This class is used to
+         * create and configure a JSON Web Token (JWT) with various claims, timestamps, and
+         * signing options. The Builder provides a fluent API for setting standard and
+         * custom claims and generating a signed JWT.
+         */
+        public Builder() {}
         private final Map<String, Object> claims = new LinkedHashMap<>();
         private Long iat, exp, nbf;
 

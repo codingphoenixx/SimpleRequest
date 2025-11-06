@@ -305,10 +305,25 @@ public class WebServer {
         allowedOrigins.add(origin.toLowerCase());
         return this;
     }
+
+    /**
+     * Adds an allowed HTTP method to the web server's list of permissible methods.
+     * This enables the server to accept requests with the specified HTTP method.
+     *
+     * @param method the HTTP method to be added to the list of allowed methods
+     * @return the current instance of the WebServer, enabling method chaining
+     */
     public WebServer addAllowedMethod(String method) {
         allowedMethods.add(method);
         return this;
     }
+
+    /**
+     * Adds a header to the list of allowed headers for the web server.
+     *
+     * @param header the name of the header to allow
+     * @return the current instance of the web server for method chaining
+     */
     public WebServer addAllowedHeader(String header) {
         allowedHeaders.add(header);
         return this;
@@ -442,55 +457,123 @@ public class WebServer {
         return authenticationHandler.hasPermission(permission, request.getHeaders().get("Authorization"));
     }
 
+    /**
+     * Provides access to the current instance of the RequestDispatcher.
+     *
+     * @return the RequestDispatcher associated with this object
+     */
     public RequestDispatcher requestDispatcher() {
         return this.requestDispatcher;
     }
 
+    /**
+     * Retrieves the port number.
+     *
+     * @return the port number as an integer
+     */
     public int port() {
         return this.port;
     }
 
+    /**
+     * Retrieves the set of allowed origin URLs.
+     *
+     * @return a set containing the allowed origin URLs
+     */
     public Set<String> allowedOrigins() {
         return this.allowedOrigins;
     }
 
+    /**
+     * Retrieves the set of allowed HTTP methods.
+     *
+     * @return a set of strings representing the allowed methods.
+     */
     public Set<String> allowedMethods() {
         return this.allowedMethods;
     }
 
+    /**
+     * Retrieves the set of allowed headers.
+     *
+     * @return a set containing the names of the headers that are allowed.
+     */
     public Set<String> allowedHeaders() {
         return this.allowedHeaders;
     }
 
+    /**
+     * Retrieves a set of WebSocket classes associated with the application.
+     *
+     * @return a HashSet containing classes that represent WebSocket endpoints.
+     */
     public HashSet<Class<?>> websockets() {
         return this.websockets;
     }
 
+    /**
+     * Retrieves the current instance of the AuthenticationHandler.
+     *
+     * @return the AuthenticationHandler instance associated with the object
+     */
     public AuthenticationHandler authenticationHandler() {
         return this.authenticationHandler;
     }
 
+    /**
+     * Indicates whether the current object or feature is enabled.
+     *
+     * @return true if the object or feature is enabled, false otherwise
+     */
     public boolean enabled() {
         return this.enabled;
     }
 
+    /**
+     * Checks whether the discovery endpoint is enabled.
+     *
+     * @return true if the discovery endpoint is enabled, false otherwise
+     */
     public boolean enableDiscoveryEndpoint() {
         return this.enableDiscoveryEndpoint;
     }
 
+    /**
+     * Retrieves the server instance.
+     *
+     * @return the server instance of type Server
+     */
     public Server server() {
         return this.server;
     }
 
+    /**
+     * Provides access to the RateLimitHandler instance.
+     *
+     * @return the RateLimitHandler instance associated with this class
+     */
     public RateLimitHandler rateLimitHandler() {
         return this.rateLimitHandler;
     }
 
+    /**
+     * Sets the authentication handler for the web server.
+     *
+     * @param authenticationHandler the {@code AuthenticationHandler} implementation to handle authentication requests
+     * @return the updated {@code WebServer} instance
+     */
     public WebServer authenticationHandler(AuthenticationHandler authenticationHandler) {
         this.authenticationHandler = authenticationHandler;
         return this;
     }
 
+    /**
+     * Enables or disables the discovery endpoint for the web server.
+     *
+     * @param enableDiscoveryEndpoint a boolean value indicating whether the discovery endpoint should be enabled (true)
+     *                                or disabled (false)
+     * @return the current instance of {@code WebServer} for method chaining
+     */
     public WebServer enableDiscoveryEndpoint(boolean enableDiscoveryEndpoint) {
         this.enableDiscoveryEndpoint = enableDiscoveryEndpoint;
         return this;

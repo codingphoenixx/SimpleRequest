@@ -1,7 +1,6 @@
 package dev.coph.simplerequest.authentication;
 
 import dev.coph.simplerequest.handler.MethodHandler;
-import dev.coph.simplerequest.handler.RequestDispatcher;
 import org.eclipse.jetty.server.Request;
 
 /**
