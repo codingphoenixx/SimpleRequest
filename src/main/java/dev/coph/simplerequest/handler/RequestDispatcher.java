@@ -100,21 +100,18 @@ public class RequestDispatcher {
         for (Method method : instance.getClass().getMethods()) {
             if (method.isAnnotationPresent(FieldRequestHandler.class)) {
                 FieldRequestHandler fieldRequestHandler = method.getAnnotation(FieldRequestHandler.class);
-                if (fieldRequestHandler != null) {
-                    method.setAccessible(true);
-                    fieldRoutes.add(new FieldRoute(
-                            instance,
-                            method,
-                            fieldRequestHandler.path(),
-                            fieldRequestHandler.method(),
-                            fieldRequestHandler.headerName(),
-                            FieldSelection.normalize(fieldRequestHandler.required()),
-                            FieldSelection.normalize(fieldRequestHandler.optional()),
-                            FieldSelection.normalize(fieldRequestHandler.defaults())
-                    ));
-                    Logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + fieldRequestHandler.path() + " and registered as a FieldRequestHandler.");
-                    continue;
-                }
+                method.setAccessible(true);
+                fieldRoutes.add(new FieldRoute(
+                        instance,
+                        method,
+                        fieldRequestHandler.path(),
+                        fieldRequestHandler.method(),
+                        fieldRequestHandler.headerName(),
+                        FieldSelection.normalize(fieldRequestHandler.required()),
+                        FieldSelection.normalize(fieldRequestHandler.optional()),
+                        FieldSelection.normalize(fieldRequestHandler.defaults())
+                ));
+                Logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + fieldRequestHandler.path() + " and registered as a FieldRequestHandler.");
                 continue;
             }
             if (method.isAnnotationPresent(RequestHandler.class)) {
@@ -140,7 +137,6 @@ public class RequestDispatcher {
                 methodHandler.accessLevel = annotation.accesslevel();
                 handlers.put(pattern, methodHandler);
                 resortHandlers();
-                continue;
             }
 
         }
@@ -406,11 +402,10 @@ public class RequestDispatcher {
 
     private void handleFieldRoute(FieldRoute route, Request request, Response response, Callback callback,
                                   Map<String, String> pathVariables) throws Exception {
-        Body body = new Body(request);
         Set<String> requested = FieldSelection.read(request, route.headerName());
         if (requested.isEmpty()) requested = route.defaults();
 
-        LinkedHashSet<String> safe = new LinkedHashSet<>();
+        LinkedHashSet<String> safe = new LinkedHashSet<>(route.required());
         for (String f : requested) {
             if (route.optional().contains(f)) safe.add(f);
         }
@@ -429,7 +424,7 @@ public class RequestDispatcher {
                 String paramName = m.getParameters()[i].getName();
                 Object val = pathVariables.get(paramName);
                 if (val == null) {
-                    val = pathVariables.get("arg" + (i + 1));
+                    val = pathVariables.get("arg" + (i +1));
                 }
                 args[i] = val;
             } else args[i] = null;

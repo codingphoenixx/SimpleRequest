@@ -53,15 +53,16 @@ public class JsonUtil {
 
     private static Object wrap(Object v) {
         if (v == null) return JSONObject.NULL;
+        if (v instanceof Number || v instanceof Boolean) return v;
         if (v instanceof JSONObject || v instanceof JSONArray) return v;
         if (v instanceof Map<?, ?> m) return toJsonObject(m);
-        if (v instanceof Collection<?> c) return toJsonArray(c);
+        if (v instanceof Collection<?> c) return toJsonArrayFromCollection(c);
         if (v.getClass().isArray()) return toJsonArray(v);
         if (v instanceof Enum<?> e) return e.name();
         return String.valueOf(v);
     }
 
-    public static JSONArray toJsonArray(Collection<?> col) {
+    public static JSONArray toJsonArrayFromCollection(Collection<?> col) {
         JSONArray arr = new JSONArray();
         if (col == null) return arr;
         for (Object o : col) arr.put(wrap(o));

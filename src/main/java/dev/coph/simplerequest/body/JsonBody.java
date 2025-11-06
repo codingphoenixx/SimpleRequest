@@ -235,6 +235,7 @@ public record JsonBody(String json) {
         return new JSONArray(json);
     }
 
+    @Override
     public String toString() {
         return json;
     }
