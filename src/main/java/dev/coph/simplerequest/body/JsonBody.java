@@ -18,9 +18,249 @@ import java.util.UUID;
  * Provides methods for retrieving various types of data from JSON objects,
  * including strings, booleans, UUIDs, dates, and enums, with error handling
  * capabilities for invalid or missing data.
- * @param json the JSON object from which to retrieve data
  */
-public record JsonBody(String json) {
+public final class JsonBody {
+    /**
+     * A JSON-formatted string that typically holds structured data.
+     * This variable is immutable and final, ensuring its value
+     * cannot be changed once initialized.
+     */
+    private final String json;
+
+    /**
+     * Constructs a JsonBody object with the provided JSON string.
+     *
+     * @param json the JSON string to initialize the JsonBody object
+     */
+    public JsonBody(String json) {
+        this.json = json;
+    }
+
+    //region public methods
+
+    /**
+     * Retrieves a string value based on the provided key and handles the response using the provided callback.
+     *
+     * @param key          the key to look up the string value.
+     * @param response     the response object to process or utilize.
+     * @param callback     the callback to handle asynchronous operations or results.
+     * @param errorMessage the error message to use in case of a failure or exception.
+     * @return the retrieved string value associated with the given key.
+     */
+    public String getString(String key, Response response, Callback callback, String errorMessage) {
+        return getString(toJSONObject(), key, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves a string value associated with the specified key from a JSON object.
+     *
+     * @param key the key whose associated string value is to be retrieved
+     * @return the string value corresponding to the specified key
+     */
+    public String getString(String key) {
+        return getString(toJSONObject(), key);
+    }
+
+    /**
+     * Retrieves a boolean value based on the provided key and additional parameters.
+     *
+     * @param key the key to retrieve the boolean value from.
+     * @param response the response object used for handling the operation.
+     * @param callback an instance of Callback to handle callback operations.
+     * @param errorMessage the custom error message for cases where retrieval fails.
+     * @return the boolean value associated with the provided key, or null if not found or an error occurs.
+     */
+    public Boolean getBoolean(String key, Response response, Callback callback, String errorMessage) {
+        return getBoolean(toJSONObject(), key, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves a Boolean value associated with the specified key from a JSON object.
+     *
+     * @param key the key whose associated Boolean value is to be returned
+     * @return the Boolean value associated with the specified key, or null if the key is not found or not a Boolean
+     */
+    public Boolean getBoolean(String key) {
+        return getBoolean(toJSONObject(), key);
+    }
+
+    /**
+     * Retrieves a UUID associated with the provided key and related parameters.
+     *
+     * @param key          the key used to identify the UUID
+     * @param response     the response object containing data for processing
+     * @param callback     the callback to handle asynchronous actions or events
+     * @param errorMessage a message describing any potential error that might occur
+     * @return the UUID generated or retrieved based on the provided parameters
+     */
+    public UUID getUUID(String key, Response response, Callback callback, String errorMessage) {
+        return getUUID(toJSONObject(), key, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves a UUID associated with the given key from a JSON object representation.
+     *
+     * @param key the key whose associated UUID is to be retrieved
+     * @return the UUID corresponding to the specified key
+     */
+    public UUID getUUID(String key) {
+        return getUUID(toJSONObject(), key);
+    }
+
+    /**
+     * Retrieves an OffsetDateTime value based on the specified key from a response object, with additional error handling and a callback for processing.
+     *
+     * @param key          the key used to locate the desired OffsetDateTime value
+     * @param response     the response object from which the data is retrieved
+     * @param callback     a callback that can handle additional processing upon data retrieval
+     * @param errorMessage the error message to be used if the retrieval fails
+     * @return the retrieved OffsetDateTime value associated with the given key
+     */
+    public OffsetDateTime getOffsetDateTime(String key, Response response, Callback callback, String errorMessage) {
+        return getOffsetDateTime(toJSONObject(), key, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves an OffsetDateTime value associated with the specified key
+     * from a JSONObject representation.
+     *
+     * @param key the key whose associated OffsetDateTime value is to be returned
+     * @return the OffsetDateTime corresponding to the specified key, or null if not found
+     */
+    public OffsetDateTime getOffsetDateTime(String key) {
+        return getOffsetDateTime(toJSONObject(), key);
+    }
+
+    /**
+     * Retrieves an enum constant of the specified type from the given key.
+     *
+     * @param <T> the type of the enum to be retrieved
+     * @param key the key associated with the enum value to retrieve
+     * @param enumClass the class of the enum from which the value should be retrieved
+     * @param response the response object to handle or parse
+     * @param callback the callback function for handling any processing
+     * @param errorMessage the error message to be used in case of failure
+     * @return the enum constant of the specified type associated with the given key
+     */
+    public <T extends Enum<T>> T getEnum(String key, Class<T> enumClass, Response response, Callback callback, String errorMessage) {
+        return getEnum(toJSONObject(), key, enumClass, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves an enum constant of the specified type based on the provided key.
+     *
+     * @param <T> the type of the enum
+     * @param key the key used to identify the enum constant
+     * @param enumClass the class of the enum from which the constant is to be retrieved
+     * @param defaultValue the default value to return if the key does not map to any enum constant
+     * @param response the response object that may be modified or checked during the operation
+     * @param callback the optional callback to handle responses or errors
+     * @param errorMessage the custom error message to provide in case of an error during the lookup
+     * @return the enum constant corresponding to the key, or the default value if the key is invalid or not found
+     */
+    public <T extends Enum<T>> T getEnum(String key, Class<T> enumClass, T defaultValue, Response response, Callback callback, String errorMessage) {
+        return getEnum(toJSONObject(), key, enumClass, defaultValue, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves an enumerated value of the specified type based on the provided key.
+     *
+     * @param <T>        the type of the enum
+     * @param key        the key used to look up the enum value
+     * @param enumClass  the class object of the enum type
+     * @return           the corresponding enum value of type T based on the provided key
+     */
+    public <T extends Enum<T>> T getEnum(String key, Class<T> enumClass) {
+        return getEnum(toJSONObject(), key, enumClass);
+    }
+
+    /**
+     * Retrieves the enum value associated with the specified key from the underlying JSON object.
+     *
+     * @param <T> the type of the enum
+     * @param key the key used to locate the enum value in the JSON object
+     * @param enumClass the class of the enum type
+     * @param defaultValue the default enum value to return if the key is not found or cannot be converted to the specified enum type
+     * @return the enum value associated with the specified key, or the default value if the key is absent or invalid
+     */
+    public <T extends Enum<T>> T getEnum(String key, Class<T> enumClass, T defaultValue) {
+        return getEnum(toJSONObject(), key, enumClass, defaultValue);
+    }
+
+    /**
+     * Retrieves an Integer value associated with the specified key from a JSON object.
+     *
+     * @param key the key used to retrieve the value from the JSON object
+     * @param response an instance of the Response object to handle outcomes or metadata
+     * @param callback a callback instance to manage asynchronous operations or events
+     * @param errorMessage an error message to be used if the value cannot be retrieved
+     * @return the Integer value associated with the specified key, or null if not found or an error occurs
+     */
+    public Integer getInt(String key, Response response, Callback callback, String errorMessage) {
+        return getInt(toJSONObject(), key, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves an integer value associated with the specified key.
+     *
+     * @param key the key whose associated integer value is to be returned
+     * @return the integer value associated with the specified key, or null if the key does not exist or value is not an integer
+     */
+    public Integer getInt(String key) {
+        return getInt(toJSONObject(), key);
+    }
+
+    /**
+     * Retrieves a Long value associated with the specified key by processing the provided data.
+     *
+     * @param key the key used to retrieve the Long value
+     * @param response the response object containing the necessary data
+     * @param callback the callback instance for processing the result or handling errors
+     * @param errorMessage the error message to display or log in case of a failure
+     * @return the Long value associated with the provided key
+     */
+    public Long getLong(String key, Response response, Callback callback, String errorMessage) {
+        return getLong(toJSONObject(), key, response, callback, errorMessage);
+    }
+
+    /**
+     * Retrieves the Long value associated with the specified key from a JSONObject.
+     *
+     * @param key the key to look for in the JSONObject
+     * @return the Long value associated with the specified key, or null if not found
+     */
+    public Long getLong(String key) {
+        return getLong(toJSONObject(), key);
+    }
+
+    /**
+     * Checks if the provided key exists within the current object's JSON representation.
+     * If the key is not present, it optionally logs a warning and writes an error response
+     * using the provided callback and response object.
+     *
+     * @param key the key to check for existence in the JSON object
+     * @param response the response object to set the status and write the error if the key is missing
+     * @param callback the callback used to provide additional processing in case of an error
+     * @param errorMessage custom error message to log if the key is missing, can be null
+     * @return true if the key exists in the JSON object; false otherwise
+     */
+    private boolean contains(String key, Response response, Callback callback, String errorMessage) {
+        if (toJSONObject().has(key))
+            return true;
+
+        if (errorMessage == null)
+            return false;
+
+        Logger.warn(errorMessage + "Missing parameter: " + key);
+        response.setStatus(HttpStatus.BAD_REQUEST_400);
+        ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
+        return false;
+    }
+
+
+    //endregion
+
+    //region static methods
 
     /**
      * Retrieves a non-blank string value associated with the specified key from the given JSON object.
@@ -224,7 +464,7 @@ public record JsonBody(String json) {
             respondBadRequestParameter(key, response, callback, errorMessage);
             return null;
         }
-        var enumValue = getEnumValue(dataString.toUpperCase(), enumClass, null);
+        var enumValue = enumValue(dataString.toUpperCase(), enumClass, null);
         if (enumValue == null) {
             respondBadRequestParameter(key, response, callback, errorMessage);
             return null;
@@ -257,7 +497,7 @@ public record JsonBody(String json) {
             respondBadRequestParameter(key, response, callback, errorMessage);
             return null;
         }
-        var enumValue = getEnumValue(dataString, enumClass, defaultValue);
+        var enumValue = enumValue(dataString, enumClass, defaultValue);
         if (enumValue == null) {
             respondBadRequestParameter(key, response, callback, errorMessage);
             return null;
@@ -282,7 +522,7 @@ public record JsonBody(String json) {
         if (dataString.isBlank()) {
             return null;
         }
-        return getEnumValue(dataString.toUpperCase(), enumClass, null);
+        return enumValue(dataString.toUpperCase(), enumClass, null);
     }
 
     /**
@@ -303,7 +543,7 @@ public record JsonBody(String json) {
         if (dataString.isBlank()) {
             return null;
         }
-        return getEnumValue(dataString, enumClass, defaultValue);
+        return enumValue(dataString, enumClass, defaultValue);
     }
 
     /**
@@ -425,7 +665,7 @@ public record JsonBody(String json) {
      * @param defaultValue the default enum value to return if no match is found or if the string is null
      * @return the enum value corresponding to the input string, or the default value if no match is found
      */
-    private static <T extends Enum<T>> T getEnumValue(String string, Class<T> clazz, T defaultValue) {
+    private static <T extends Enum<T>> T enumValue(String string, Class<T> clazz, T defaultValue) {
         if (string == null) return defaultValue;
 
         try {
@@ -434,6 +674,8 @@ public record JsonBody(String json) {
             return defaultValue;
         }
     }
+
+    //endregion
 
     /**
      * Checks if the JSON object is empty or null.
@@ -450,8 +692,23 @@ public record JsonBody(String json) {
      * @return a JSONObject representing the current data
      */
     public JSONObject toJSONObject() {
-        return new JSONObject(json);
+        if (generatedObject == null)
+            generatedObject = new JSONObject(json);
+        return generatedObject;
     }
+
+    /**
+     * A JSONObject that is generated and stores key-value mappings representing
+     * structured data. This object may be utilized for managing, manipulating,
+     * or retrieving JSON-formatted content in the application.
+     */
+    private JSONObject generatedObject;
+    /**
+     * A private variable that holds a JSONArray object.
+     * This variable is used to store a collection of JSON objects
+     * or values in JSON array format.
+     */
+    private JSONArray generatedArray;
 
     /**
      * Converts the internal JSON representation into a JSONArray object.
@@ -459,7 +716,9 @@ public record JsonBody(String json) {
      * @return a JSONArray containing the elements of the internal JSON data
      */
     public JSONArray toJSONArray() {
-        return new JSONArray(json);
+        if (generatedArray == null)
+            generatedArray = new JSONArray(json);
+        return generatedArray;
     }
 
     /**
@@ -470,6 +729,15 @@ public record JsonBody(String json) {
      */
     @Override
     public String toString() {
+        return json;
+    }
+
+    /**
+     * Retrieves the JSON string.
+     *
+     * @return the JSON string stored in the method.
+     */
+    public String json() {
         return json;
     }
 }
