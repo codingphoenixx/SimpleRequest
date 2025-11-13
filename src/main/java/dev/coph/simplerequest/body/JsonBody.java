@@ -245,7 +245,11 @@ public final class JsonBody {
      * @return true if the key exists in the JSON object; false otherwise
      */
     private boolean contains(String key, Response response, Callback callback, String errorMessage) {
-        if (toJSONObject().has(key))
+        JSONObject jsonObject = toJSONObject();
+        if(jsonObject == null)
+            return false;
+
+        if (jsonObject.has(key))
             return true;
 
         if (errorMessage == null)
@@ -275,6 +279,7 @@ public final class JsonBody {
      * @return the non-blank string value associated with the key, or null if the data is invalid or missing
      */
     public static String getString(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get String from JsonObject (null).");
         if (!contains(data, key, response, callback, errorMessage)) return null;
         var dataString = data.getString(key);
         if (dataString.isBlank()) {
@@ -293,6 +298,8 @@ public final class JsonBody {
      * @return the non-blank string value associated with the key, or null if the key does not exist or the value is blank
      */
     public static String getString(JSONObject data, String key) {
+        if(data == null) throw new NullPointerException("Cannot get String from JsonObject (null).");
+
         if (!data.has(key)) {
             return null;
         }
@@ -316,6 +323,8 @@ public final class JsonBody {
      * @return the boolean value associated with the key, or null if the key is missing or its value is invalid
      */
     public static Boolean getBoolean(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get boolean from JsonObject (null).");
+
         if (!contains(data, key, response, callback, errorMessage)) return null;
         boolean returnData;
         try {
@@ -336,6 +345,8 @@ public final class JsonBody {
      * @return the boolean value associated with the key, or null if the key is missing or its value is invalid
      */
     public static Boolean getBoolean(JSONObject data, String key) {
+        if(data == null) throw new NullPointerException("Cannot get boolean from JsonObject (null).");
+
         if (!data.has(key)) {
             return null;
         }
@@ -360,6 +371,8 @@ public final class JsonBody {
      * the value is not a valid UUID, or an error occurs
      */
     public static UUID getUUID(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get UUID from JsonObject (null).");
+
         var dataString = getString(data, key, response, callback, errorMessage);
 
         if (dataString == null)
@@ -382,6 +395,8 @@ public final class JsonBody {
      * @return the UUID value associated with the key, or null if the key does not exist, the value is not a valid UUID, or an error occurs
      */
     public static UUID getUUID(JSONObject data, String key) {
+        if(data == null) throw new NullPointerException("Cannot get UUID from JsonObject (null).");
+
         var dataString = getString(data, key);
 
         if (dataString == null)
@@ -409,6 +424,8 @@ public final class JsonBody {
      * the value is not a valid {@link OffsetDateTime}, or an error occurs
      */
     public static OffsetDateTime getOffsetDateTime(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get offset date time from JsonObject (null).");
+
         var dataString = getString(data, key, response, callback, errorMessage);
         if (dataString == null)
             return null;
@@ -431,6 +448,8 @@ public final class JsonBody {
      * the value is null, or the value is not a valid {@link OffsetDateTime}
      */
     public static OffsetDateTime getOffsetDateTime(JSONObject data, String key) {
+        if(data == null) throw new NullPointerException("Cannot get offset date time from JsonObject (null).");
+
         var dataString = getString(data, key);
         if (dataString == null)
             return null;
@@ -457,6 +476,8 @@ public final class JsonBody {
      * @return the corresponding enum value if found and valid, otherwise null
      */
     public static <T extends Enum<T>> T getEnum(JSONObject data, String key, Class<T> enumClass, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get enum from JsonObject (null).");
+
         if (!contains(data, key, response, callback, errorMessage)) return null;
 
         String dataString = data.getString(key);
@@ -490,6 +511,8 @@ public final class JsonBody {
      * cannot be parsed as a valid enum constant.
      */
     public static <T extends Enum<T>> T getEnum(JSONObject data, String key, Class<T> enumClass, T defaultValue, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get enum from JsonObject (null).");
+
         if (!contains(data, key, response, callback, errorMessage)) return null;
 
         var dataString = data.getString(key);
@@ -516,6 +539,8 @@ public final class JsonBody {
      * or does not match any enum constant.
      */
     public static <T extends Enum<T>> T getEnum(JSONObject data, String key, Class<T> enumClass) {
+        if(data == null) throw new NullPointerException("Cannot get enum from JsonObject (null).");
+
         if (!data.has(key)) return null;
 
         String dataString = data.getString(key);
@@ -537,6 +562,8 @@ public final class JsonBody {
      * the default value if no match is found, or null if the key is not present or its value is blank
      */
     public static <T extends Enum<T>> T getEnum(JSONObject data, String key, Class<T> enumClass, T defaultValue) {
+        if(data == null) throw new NullPointerException("Cannot get enum from JsonObject (null).");
+
         if (!data.has(key)) return null;
 
         var dataString = data.getString(key);
@@ -558,6 +585,8 @@ public final class JsonBody {
      * @return the integer value associated with the specified key, or null if the key is not present in the JSON object
      */
     public static Integer getInt(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get int from JsonObject (null).");
+
         if (!data.has(key)) {
             respondBadRequestParameter(key, response, callback, errorMessage);
             return null;
@@ -573,6 +602,8 @@ public final class JsonBody {
      * @return the integer value associated with the specified key, or null if the key does not exist
      */
     public static Integer getInt(JSONObject data, String key) {
+        if(data == null) throw new NullPointerException("Cannot get int from JsonObject (null).");
+
         if (!data.has(key)) {
             return null;
         }
@@ -591,6 +622,8 @@ public final class JsonBody {
      * @return the Long value associated with the specified key, or null if the key is not present
      */
     public static Long getLong(JSONObject data, String key, Response response, Callback callback, String errorMessage) {
+        if(data == null) throw new NullPointerException("Cannot get long from JsonObject (null).");
+
         if (!data.has(key)) {
             respondBadRequestParameter(key, response, callback, errorMessage);
             return null;
@@ -607,6 +640,8 @@ public final class JsonBody {
      * @return the Long value associated with the specified key, or null if the key does not exist
      */
     public static Long getLong(JSONObject data, String key) {
+        if(data == null) throw new NullPointerException("Cannot get long from JsonObject (null).");
+
         if (!data.has(key)) {
             return null;
         }
@@ -692,6 +727,8 @@ public final class JsonBody {
      * @return a JSONObject representing the current data
      */
     public JSONObject toJSONObject() {
+        if(json == null)
+            return null;
         if (generatedObject == null)
             generatedObject = new JSONObject(json);
         return generatedObject;
