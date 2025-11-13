@@ -156,7 +156,7 @@ public class Body {
     public JsonBody asJSON() throws IOException {
         String content = asString();
         if (content == null || content.isEmpty())
-            return new JsonBody(null);
+            throw new IOException("Cannot convert body to JSONObject. Body is empty or null.");
         return new JsonBody(content);
     }
 
