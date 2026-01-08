@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'dev.coph'
-version = '4.7.2'
+version = '4.8.0'
 
 repositories {
     mavenCentral()
@@ -24,7 +24,7 @@ dependencies {
     implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server:12.1.2'
 
     implementation 'org.json:json:20250517'
-    implementation 'dev.coph:simplelogger:3.0.0'
+    compileOnly 'dev.coph:simplelogger:3.1.0'
 }
 
 jar {
@@ -62,7 +62,7 @@ java {
 }
 
 javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
+    if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
 }
