@@ -16,7 +16,7 @@ import java.io.InputStream;
  * This class provides functionality to retrieve an image from an HTTP request.
  */
 public class ImageUtil {
-    private static final Logger logger = Logger.of("WebServer");
+    private static final Logger logger = Logger.of("Image Util");
 
     /**
      * Private constructor to prevent instantiation of the utility class.
