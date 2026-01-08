@@ -24,6 +24,8 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true, chain = true)
 public class MethodHandler {
+    private static final Logger logger = Logger.of("WebServer");
+
     private final String path;
     private final RequestMethod requestMethod;
     private final Object instance;
@@ -108,13 +110,11 @@ public class MethodHandler {
         try {
             method.invoke(instance, parameters);
         } catch (InvocationTargetException e) {
-            Logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-            Logger.error(e.getCause());
+            logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + "." ,e.getCause());
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + ".");
-            Logger.error(e);
+            logger.error("An error occurred while invoking the method " + method.getName() + " of the class " + instance.getClass().getName() + "." ,e);
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
             callback.succeeded();
         }

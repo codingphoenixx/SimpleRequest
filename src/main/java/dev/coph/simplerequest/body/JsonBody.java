@@ -20,6 +20,9 @@ import java.util.UUID;
  * capabilities for invalid or missing data.
  */
 public final class JsonBody {
+    private static final Logger logger = Logger.of("WebServer");
+
+
     /**
      * A JSON-formatted string that typically holds structured data.
      * This variable is immutable and final, ensuring its value
@@ -255,7 +258,7 @@ public final class JsonBody {
         if (errorMessage == null)
             return false;
 
-        Logger.warn(errorMessage + "Missing parameter: " + key);
+        logger.warn(errorMessage + "Missing parameter: " + key);
         response.setStatus(HttpStatus.BAD_REQUEST_400);
         ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
         return false;
@@ -660,7 +663,7 @@ public final class JsonBody {
         if (errorMessage == null)
             return;
         ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
-        Logger.warn(errorMessage + "Missing/Invalid parameter: " + key);
+        logger.warn(errorMessage + "Missing/Invalid parameter: " + key);
         response.setStatus(HttpStatus.BAD_REQUEST_400);
         callback.succeeded();
     }
@@ -684,7 +687,7 @@ public final class JsonBody {
         if (errorMessage == null)
             return false;
 
-        Logger.warn(errorMessage + "Missing parameter: " + key);
+        logger.warn(errorMessage + "Missing parameter: " + key);
         response.setStatus(HttpStatus.BAD_REQUEST_400);
         ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
         return false;

@@ -17,6 +17,7 @@ import java.nio.ByteBuffer;
  * This class provides methods to manage and process HTTP responses.
  */
 public class ResponseUtil {
+    private static final Logger logger = Logger.of("WebServer");
 
     /**
      * Private constructor to prevent instantiation of the utility class.
@@ -42,8 +43,8 @@ public class ResponseUtil {
             if (answer != null && !answer.isEmpty())
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
         } catch (Exception e) {
-            Logger.error("Error writing answer.");
-            Logger.error(e);
+            logger.error("Error writing answer.");
+            logger.error(e);
             return false;
         }
         return true;
@@ -106,8 +107,8 @@ public class ResponseUtil {
             response.write(true, ByteBuffer.wrap(byteArrayOutputStream.toByteArray()), callback);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.error("Error writing answer.");
-            Logger.error(e);
+            logger.error("Error writing answer.");
+            logger.error(e);
             return false;
         }
         return true;
@@ -130,8 +131,8 @@ public class ResponseUtil {
                 response.write(true, ByteBuffer.wrap(answer.getBytes()), callback);
             callback.succeeded();
         } catch (Exception e) {
-            Logger.error("Error writing answer.");
-            Logger.error(e);
+            logger.error("Error writing answer.");
+            logger.error(e);
             return false;
         }
         return true;
