@@ -48,7 +48,7 @@ public class ImageUtil {
             return null;
         }
         if (image == null) {
-            System.out.println("Failed to read image.");
+            logger.error("Failed to read image.");
             return null;
         }
         return image;
