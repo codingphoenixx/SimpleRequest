@@ -41,6 +41,7 @@ import java.util.Set;
  * - {@code websockets}: A collection of WebSocket provider classes registered with the server.
  */
 public class WebServer {
+    private final Logger logger = Logger.of("WebServer");
 
     /**
      * Manages the dispatching of incoming HTTP requests to the appropriate
@@ -204,47 +205,47 @@ public class WebServer {
      * the state of the server during startup.
      */
     public void start() {
-        Logger.info("Configure Server");
-        Logger.debug("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
+        logger.info("Configure Server");
+        logger.debug("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
         System.setProperty("https.protocols", "SSLv3,TLSv1.2,TLSv1.3");
         if (!isPortAvailable(port)) {
-            Logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort(49152, 65535));
+            logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort(49152, 65535));
             return;
         }
 
-        Logger.debug("Creating new server instance with port %s.%n".formatted(port));
+        logger.debug("Creating new server instance with port %s.%n".formatted(port));
         server = new Server(port);
 
 
-        Logger.debug("Creating ContextHandler");
+        logger.debug("Creating ContextHandler");
         if (rateLimitHandler != null) {
             rateLimitHandler.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(rateLimitHandler);
-            Logger.debug("Successfully created ContextHandler. Adding RateLimitHandler.");
+            logger.debug("Successfully created ContextHandler. Adding RateLimitHandler.");
             server.setHandler(rateLimitHandler);
         } else {
             ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
             handlerCollection.addHandler(requestDispatcher.createContextHandler());
             enableWebSockets(handlerCollection);
-            Logger.debug("Successfully created ContextHandler. Adding it directly.");
+            logger.debug("Successfully created ContextHandler. Adding it directly.");
             server.setHandler(handlerCollection);
         }
 
-        Logger.debug("Adding EndpointDiscoveryRequestHandler");
+        logger.debug("Adding EndpointDiscoveryRequestHandler");
         requestDispatcher.register(new EndpointDiscoveryRequestHandler(this));
 
-        Logger.debug("Settings error handler");
+        logger.debug("Settings error handler");
         server.setErrorHandler(new ServerErrorHandler());
 
-        Logger.info("Starting server");
+        logger.info("Starting server");
         try {
             server.start();
-            Logger.success("Successfully started webserver.");
+            logger.success("Successfully started webserver.");
         } catch (Exception e) {
-            Logger.error("Error starting webserver.", e);
+            logger.error("Error starting webserver.", e);
         }
 
-        Logger.debug("Disable webserver version send.");
+        logger.debug("Disable webserver version send.");
         for (Connector connector : server.getConnectors()) {
             for (ConnectionFactory connectionFactory : connector.getConnectionFactories()) {
                 if (connectionFactory instanceof HttpConnectionFactory factory) {
@@ -253,9 +254,9 @@ public class WebServer {
             }
         }
 
-        Logger.success("+----------------------------------------------+");
-        Logger.success("|       Successfully started WebServer         |");
-        Logger.success("+----------------------------------------------+");
+        logger.success("+----------------------------------------------+");
+        logger.success("|       Successfully started WebServer         |");
+        logger.success("+----------------------------------------------+");
         enabled = true;
     }
 
@@ -338,9 +339,9 @@ public class WebServer {
      * @return the current instance of the WebServer, enabling method chaining
      */
     public WebServer useRateLimit(Time time, int maxRequestsPerSpan) {
-        Logger.debug("Creating RateLimit Handler");
+        logger.debug("Creating RateLimit Handler");
         this.rateLimitHandler = new RateLimitHandler(this, time, maxRequestsPerSpan);
-        Logger.success("Successfully created RateLimit Handler");
+        logger.success("Successfully created RateLimit Handler");
         return this;
     }
 
@@ -355,10 +356,10 @@ public class WebServer {
     private void enableWebSockets(ContextHandlerCollection collection) {
 
         if (websockets.isEmpty()) {
-            Logger.info("No WebSockets registered.");
+            logger.info("No WebSockets registered.");
             return;
         }
-        Logger.info("Enabling WebSockets.");
+        logger.info("Enabling WebSockets.");
 
         ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
         websocketHandlers.setContextPath("/ws");
@@ -369,20 +370,20 @@ public class WebServer {
                 try {
                     try {
                         if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
-                            Logger.error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
+                            logger.error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
                             return;
                         }
                         wsContainer.addEndpoint(provider);
                         var pathName = provider.getAnnotation(ServerEndpoint.class).value();
-                        Logger.success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
+                        logger.success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
                     } catch (Exception e) {
-                        Logger.error("Error enabling WebSocket for path: ", e);
+                        logger.error("Error enabling WebSocket for path: ", e);
                     }
                 } catch (Exception e) {
-                    Logger.error("Error enabling WebSocket support", e);
+                    logger.error("Error enabling WebSocket support", e);
                 }
             });
-            Logger.success("Successfully enabled all WebSockets.");
+            logger.success("Successfully enabled all WebSockets.");
         });
 
         collection.addHandler(websocketHandlers);
@@ -399,11 +400,11 @@ public class WebServer {
      */
     public WebServer registerWebsocket(Class<?> websocketProvider) {
         if (websocketProvider.isAnonymousClass()) {
-            Logger.error("Could not register Websocket. It is an anonymous class.");
+            logger.error("Could not register Websocket. It is an anonymous class.");
             return this;
         }
         if (!websocketProvider.isAnnotationPresent(ServerEndpoint.class)) {
-            Logger.error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
+            logger.error("Could not register Websocket. It does not have the annotation @ServerEndpoint");
             return this;
         }
         websockets.add(websocketProvider);
@@ -435,7 +436,7 @@ public class WebServer {
      * is granted and including additional information about the result
      */
     public AuthenticationAnswer hasAccess(MethodHandler methodHandler, Request request) {
-        Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
         if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasAccess(methodHandler, request, methodHandler.accessLevel());
     }
@@ -451,7 +452,7 @@ public class WebServer {
      * and providing additional information regarding the result
      */
     public AuthenticationAnswer hasPermission(String permission, Request request) {
-        Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+        logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
         if (authenticationHandler == null) return new AuthenticationAnswer(false, null);
         if (!request.getHeaders().contains("Authorization")) return new AuthenticationAnswer(false, null);
         return authenticationHandler.hasPermission(permission, request.getHeaders().get("Authorization"));

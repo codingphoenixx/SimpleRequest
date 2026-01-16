@@ -16,6 +16,8 @@ import java.io.InputStream;
  * This class provides functionality to retrieve an image from an HTTP request.
  */
 public class ImageUtil {
+    private static final Logger logger = Logger.of("Image Util");
+
     /**
      * Private constructor to prevent instantiation of the utility class.
      * <p>
@@ -41,12 +43,12 @@ public class ImageUtil {
         try {
             image = ImageIO.read(inputStream);
         } catch (IOException e) {
-            Logger.error("Failed to read image.");
-            Logger.error(e);
+            logger.error("Failed to read image.");
+            logger.error(e);
             return null;
         }
         if (image == null) {
-            System.out.println("Failed to read image.");
+            logger.error("Failed to read image.");
             return null;
         }
         return image;

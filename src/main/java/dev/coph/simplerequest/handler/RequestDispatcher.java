@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 @Getter
 @Accessors(fluent = true)
 public class RequestDispatcher {
+    private static final Logger logger = Logger.of("WebServer");
     /**
      * A mapping between regular expression patterns and custom rate limit configurations
      * specific to each pattern.
@@ -111,7 +112,7 @@ public class RequestDispatcher {
                         FieldSelection.normalize(fieldRequestHandler.optional()),
                         FieldSelection.normalize(fieldRequestHandler.defaults())
                 ));
-                Logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + fieldRequestHandler.path() + " and registered as a FieldRequestHandler.");
+                logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + fieldRequestHandler.path() + " and registered as a FieldRequestHandler.");
                 continue;
             }
             if (method.isAnnotationPresent(RequestHandler.class)) {
@@ -123,7 +124,7 @@ public class RequestDispatcher {
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
 
                 if (customRateLimits.length > 0) {
-                    Logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
+                    logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
 
                     AdditionalCustomRateLimit[] currentAdditionalCustomRateLimits = new AdditionalCustomRateLimit[customRateLimits.length];
                     for (int i = 0; i < customRateLimits.length; i++) {
@@ -248,7 +249,7 @@ public class RequestDispatcher {
                 try {
                     handleFieldRoute(r, request, response, callback, pathVariables);
                 } catch (Exception e) {
-                    Logger.error("An error occurred while invoking the method " + r.method().getName() + " of the class " + r.method().getClass().getName() + ".", e);
+                    logger.error("An error occurred while invoking the method " + r.method().getName() + " of the class " + r.method().getClass().getName() + ".", e);
                     response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                     callback.succeeded();
                     return;
@@ -282,7 +283,7 @@ public class RequestDispatcher {
                         AuthenticationHandler authenticationHandler = webServer.authenticationHandler();
 
                         if (authenticationHandler == null) {
-                            Logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
+                            logger.error("There is an request need to be authenticated, but there is no AuthenticationHandler. Declined request.");
                             response.setStatus(HttpStatus.UNAUTHORIZED_401);
                             callback.succeeded();
                             return;
@@ -290,7 +291,7 @@ public class RequestDispatcher {
                         authenticationAnswer = authenticationHandler.hasGeneralAccess(request, handler.accessLevel());
 
                         if (authenticationAnswer == null) {
-                            Logger.error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
+                            logger.error("There is an request need to be authenticated, but the AuthenticationAnswer is null. Declined request.");
                             response.setStatus(HttpStatus.UNAUTHORIZED_401);
                             callback.succeeded();
                             return;
@@ -313,7 +314,7 @@ public class RequestDispatcher {
                 try {
                     handler.invoke(request, response, callback, authenticationAnswer, pathVariables);
                 } catch (Exception e) {
-                    Logger.error("An error occurred while invoking the method " + handler.method().getName() + " of the class " + handler.instance().getClass().getName() + ".", e);
+                    logger.error("An error occurred while invoking the method " + handler.method().getName() + " of the class " + handler.instance().getClass().getName() + ".", e);
                     response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
                     callback.succeeded();
                     return;
@@ -372,7 +373,7 @@ public class RequestDispatcher {
         if (!webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         } else {
-            Logger.debug("The request is a star request and credentials are not allowed.");
+            logger.debug("The request is a star request and credentials are not allowed.");
         }
 
         response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_METHODS, String.join(",", webServer.allowedMethods()));
@@ -386,7 +387,7 @@ public class RequestDispatcher {
                 if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
                     response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
                 } else {
-                    Logger.debug("The origin " + origin + " is not allowed.");
+                    logger.debug("The origin " + origin + " is not allowed.");
                 }
             }
         }
