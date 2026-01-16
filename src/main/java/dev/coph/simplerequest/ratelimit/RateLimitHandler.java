@@ -83,7 +83,7 @@ public class RateLimitHandler extends ContextHandlerCollection {
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
         }
-        String key = IPUtil.getClientIPAddress(request);
+        String key = IPUtil.clientIPAddress(request);
         if (!rateLimitProvider.allowRequest(key, path)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS_429);
             response.write(true, ByteBuffer.wrap("Rate limit exceeded".getBytes()), callback);

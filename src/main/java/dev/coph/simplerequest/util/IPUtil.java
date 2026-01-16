@@ -27,7 +27,7 @@ public class IPUtil {
      * can be determined, the method may return {@code null} or a blank string
      * depending on the state of the request object.
      */
-    public static String getClientIPAddress(Request request) {
+    public static String clientIPAddress(Request request) {
         String forwardedFor = request.getHeaders().get("X-Forwarded-For");
         String remoteAddr;
         if (forwardedFor != null && !forwardedFor.isEmpty()) {

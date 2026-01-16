@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'dev.coph'
-version = '4.7.2'
+version = '4.8.0'
 
 repositories {
     mavenCentral()
@@ -25,6 +25,9 @@ dependencies {
 
     implementation 'org.json:json:20250517'
     implementation 'dev.coph:simplelogger:3.0.0'
+    implementation 'dev.coph:simpleutilities:3.11.5'
+    implementation "dev.coph:simpleauthentication:0.1.0"
+
 }
 
 jar {
