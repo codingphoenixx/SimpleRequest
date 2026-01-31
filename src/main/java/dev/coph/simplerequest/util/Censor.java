@@ -1,4 +1,4 @@
-package dev.coph.simplerequest.security.censor;
+package dev.coph.simplerequest.util;
 
 
 /**

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'dev.coph'
-version = '4.9.3'
+version = '5.1.1'
 
 repositories {
     mavenCentral()
@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.eclipse.jetty:jetty-security:12.1.5'
     implementation 'org.eclipse.jetty:jetty-util:12.1.5'
     implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server:12.1.5'
+
 
     implementation 'org.json:json:20251224'
     compileOnly 'dev.coph:simplelogger:3.2.2'

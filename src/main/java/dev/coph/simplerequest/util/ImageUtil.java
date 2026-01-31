@@ -37,7 +37,7 @@ public class ImageUtil {
      * @param request the HTTP request containing the image data
      * @return a BufferedImage object representing the image if successfully read, or null if an error occurs or no image is found
      */
-    public static BufferedImage getImageFromRequest(Request request) {
+    public static BufferedImage imageFromRequest(Request request) {
         InputStream inputStream = Content.Source.asInputStream(request);
         BufferedImage image;
         try {
