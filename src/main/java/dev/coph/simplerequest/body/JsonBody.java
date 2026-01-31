@@ -259,7 +259,7 @@ public final class JsonBody {
             return false;
 
         logger.warn(errorMessage + "Missing parameter: " + key);
-        response.setStatus(HttpStatus.BAD_REQUEST_400);
+        response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY_422);
         ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
         return false;
     }
@@ -664,7 +664,7 @@ public final class JsonBody {
             return;
         ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
         logger.warn(errorMessage + "Missing/Invalid parameter: " + key);
-        response.setStatus(HttpStatus.BAD_REQUEST_400);
+        response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY_422);
         callback.succeeded();
     }
 
@@ -688,7 +688,7 @@ public final class JsonBody {
             return false;
 
         logger.warn(errorMessage + "Missing parameter: " + key);
-        response.setStatus(HttpStatus.BAD_REQUEST_400);
+        response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY_422);
         ResponseUtil.writeAnswer(response, callback, JsonUtil.prepare(JsonUtil.Type.ERROR, "Missing/Invalid data."));
         return false;
     }
