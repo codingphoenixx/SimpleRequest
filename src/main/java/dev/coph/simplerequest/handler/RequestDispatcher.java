@@ -11,6 +11,7 @@ import dev.coph.simplerequest.handler.field.FieldSelection;
 import dev.coph.simplerequest.ratelimit.AdditionalCustomRateLimit;
 import dev.coph.simplerequest.ratelimit.CustomRateLimit;
 import dev.coph.simplerequest.server.WebServer;
+import dev.coph.simplerequest.util.IPUtil;
 import dev.coph.simplerequest.util.JsonUtil;
 import dev.coph.simplerequest.util.ResponseUtil;
 import lombok.Getter;
@@ -384,7 +385,9 @@ public class RequestDispatcher {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         } else {
             if (origin != null) {
-                if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
+                if (webServer.corsAllowLocalhost() && IPUtil.isLocal(request)) {
+                    response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                } else if (webServer.allowedOrigins().contains(origin.toLowerCase())) {
                     response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
                 } else {
                     logger.debug("The origin " + origin + " is not allowed.");

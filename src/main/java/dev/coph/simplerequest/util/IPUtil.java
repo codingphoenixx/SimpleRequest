@@ -2,6 +2,9 @@ package dev.coph.simplerequest.util;
 
 import org.eclipse.jetty.server.Request;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 /**
  * A utility class for processing IP addresses from incoming HTTP requests.
  * This class provides functionality to determine the IP address of the client making the request,
@@ -37,5 +40,24 @@ public class IPUtil {
         }
         return remoteAddr;
     }
+
+    /**
+     * Determines if the incoming request originates from the local machine.
+     * This method checks if the client's IP address corresponds to any local address,
+     * the loopback address, or matches the local host address.
+     *
+     * @param req the {@code Request} object containing client request information
+     * @return {@code true} if the request originates from the local machine; {@code false} otherwise
+     */
+    public static boolean isLocal(Request req) {
+        try {
+            String remoteAddr = Request.getRemoteAddr(req);
+            InetAddress address = InetAddress.getByName(remoteAddr);
+            return address.isAnyLocalAddress() || address.isLoopbackAddress() || InetAddress.getLocalHost().equals(address);
+        }catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
 
 }

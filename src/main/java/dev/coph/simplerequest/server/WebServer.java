@@ -147,6 +147,21 @@ public class WebServer {
      * while {@code false} signifies that the server is stopped or inactive.
      */
     private boolean enabled = false;
+    /**
+     * Indicates whether Cross-Origin Resource Sharing (CORS) is allowed for requests originating
+     * from localhost. This variable is typically used to configure the server to permit or deny
+     * such requests during development or testing scenarios.
+     * <p>
+     * The default value is set to false, meaning CORS requests from localhost are not permitted
+     * unless explicitly enabled.
+     */
+    private boolean corsAllowLocalhost = false;
+    /**
+     * A flag indicating whether the discovery endpoint is enabled.
+     * When set to {@code true}, the system allows access to the discovery endpoint,
+     * which can be used for service metadata retrieval or other discovery-related operations.
+     * When set to {@code false}, the discovery endpoint remains disabled.
+     */
     private boolean enableDiscoveryEndpoint = false;
     /**
      * Represents the Jetty Server instance used by the WebServer for handling HTTP and HTTPS requests.
@@ -504,6 +519,15 @@ public class WebServer {
     }
 
     /**
+     * Indicates whether CORS requests from localhost are allowed.
+     *
+     * @return true if CORS requests from localhost are allowed, false otherwise.
+     */
+    public boolean corsAllowLocalhost() {
+        return corsAllowLocalhost;
+    }
+
+    /**
      * Retrieves a set of WebSocket classes associated with the application.
      *
      * @return a HashSet containing classes that represent WebSocket endpoints.
@@ -577,6 +601,17 @@ public class WebServer {
      */
     public WebServer enableDiscoveryEndpoint(boolean enableDiscoveryEndpoint) {
         this.enableDiscoveryEndpoint = enableDiscoveryEndpoint;
+        return this;
+    }
+
+    /**
+     * Enables or disables Cross-Origin Resource Sharing (CORS) for requests originating from localhost.
+     *
+     * @param enableCorsAllowLocalhost a boolean value where true enables CORS for localhost and false disables it
+     * @return the current instance of the WebServer to allow method chaining
+     */
+    public WebServer enableCorsAllowLocalhost(boolean enableCorsAllowLocalhost) {
+        this.corsAllowLocalhost = enableCorsAllowLocalhost;
         return this;
     }
 }
