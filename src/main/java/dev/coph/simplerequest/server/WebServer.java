@@ -1,6 +1,9 @@
 package dev.coph.simplerequest.server;
 
+import dev.coph.simplelogger.BorderStyle;
+import dev.coph.simplelogger.BoxPrinter;
 import dev.coph.simplelogger.Logger;
+import dev.coph.simplelogger.LoggerConsoleColors;
 import dev.coph.simplerequest.authentication.AuthenticationAnswer;
 import dev.coph.simplerequest.authentication.AuthenticationHandler;
 import dev.coph.simplerequest.endpointdiscovery.EndpointDiscoveryRequestHandler;
@@ -228,7 +231,7 @@ public class WebServer {
             return;
         }
 
-        logger.debug("Creating new server instance with port %s.%n".formatted(port));
+        logger.debug("Creating new server instance with port %s.".formatted(port));
         server = new Server(port);
 
 
@@ -269,9 +272,11 @@ public class WebServer {
             }
         }
 
-        logger.success("+----------------------------------------------+");
-        logger.success("|       Successfully started WebServer         |");
-        logger.success("+----------------------------------------------+");
+        new BoxPrinter
+                .Builder("Successfully started WebServer", 150)
+                .borderColor(LoggerConsoleColors.BLUE)
+                .style(BorderStyle.FULL)
+                .print();
         enabled = true;
     }
 
