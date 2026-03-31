@@ -23,6 +23,12 @@ import java.util.regex.Pattern;
  * {@link LinkedHashMap}, allowing the creation of a route entry with only a pattern.
  */
 public record RouteEntry(Pattern pattern, LinkedHashMap<RequestMethod, MethodHandler> methods) {
+    /**
+     * Constructs a {@code RouteEntry} with the specified URL pattern and initializes
+     * the methods map as an empty {@code LinkedHashMap}.
+     *
+     * @param pattern the URL pattern used to match incoming requests. Must not be null.
+     */
     public RouteEntry(Pattern pattern) {
         this(pattern, new LinkedHashMap<>());
     }
