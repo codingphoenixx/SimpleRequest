@@ -93,7 +93,23 @@ public enum RequestMethod {
      * method (e.g., GET, POST, PUT, etc.) is not predefined or when handling
      * requests in a generic manner.
      */
-    ANY
+    ANY;
 
-
+    /**
+     * Converts a string representation of an HTTP method into a corresponding {@code RequestMethod} enum constant.
+     * The input string is case-insensitive and will be converted to uppercase before matching against
+     * the enum constants.
+     *
+     * @param method the string representation of an HTTP method (e.g., "GET", "POST").
+     *               It can be any case format as it will be converted to uppercase.
+     * @return the corresponding {@code RequestMethod} enum constant if the string matches an existing constant;
+     *         otherwise, {@code null} if no matching constant is found or the input is invalid.
+     */
+    public static RequestMethod fromString(String method) {
+        try {
+            return RequestMethod.valueOf(method.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 }

@@ -33,20 +33,20 @@ public class MethodHandler {
     private final String description;
     /**
      * Represents the access level associated with a method handler.
-     *
+     * <p>
      * This variable defines the visibility or accessibility requirements for
      * a specific method handler. It determines whether the handler can be used
      * by the public, authenticated users, system processes, or if it is
      * disabled.
-     *
+     * <p>
      * Possible values are defined by the {@link AccessLevel} enum:
      * - PUBLIC: The handler is available to all users without authentication.
      * - AUTHENTICATED: The handler requires authentication for access.
      * - SYSTEM: The handler is restricted to internal system usage.
      * - DISABLED: The handler is inactive and cannot be accessed.
-     *
+     * <p>
      * Default value: {@code AccessLevel.PUBLIC}.
-     *
+     * <p>
      * Accessibility: Protected - can be accessed within its class,
      * subclasses, and within the package.
      */

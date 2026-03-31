@@ -30,74 +30,23 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * The {@code RequestDispatcher} class is responsible for routing and handling HTTP requests
- * in a web server environment. It provides methods for registering request handlers based
- * on specific patterns and managing incoming requests by delegating them to the appropriate
- * registered handler.
- * <p>
- * The class supports features such as <br>
- * - Dynamic routing with path variable resolution.<br>
- * - Filtering of preflight (CORS) requests.<br>
- * - Authentication checks for secured endpoints.<br>
- * - Integration with {@link WebServer} for handling HTTP processing.<br>
- */
+
 @Getter
 @Accessors(fluent = true)
 public class RequestDispatcher {
     private static final Logger logger = Logger.of("WebServer");
-    /**
-     * A mapping between regular expression patterns and custom rate limit configurations
-     * specific to each pattern.
-     * <p>
-     * This map is used to define and apply additional custom rate limiting rules for HTTP
-     * requests
-     */
     private final HashMap<Pattern, AdditionalCustomRateLimit[]> additionalCustomRateLimits = new HashMap<>();
-    /**
-     * Represents the web server instance used by the RequestDispatcher.
-     * It is used to dispatch and manage incoming HTTP requests and responses.
-     * This variable is initialized through the constructor and is immutable.
-     */
     private final WebServer webServer;
-    /**
-     * A mapping of regular expression patterns to their corresponding method handlers.
-     * The patterns are compiled from HTTP request paths registered through the dispatcher.
-     * Each mapped {@link MethodHandler} is responsible for handling a specific HTTP request
-     * based on the pattern it matches. This map serves as the core routing mechanism used
-     * by the {@link RequestDispatcher} to delegate requests to the appropriate handlers.
-     */
-    private final LinkedHashMap<Pattern, MethodHandler> handlers = new LinkedHashMap<>();
+    private final LinkedHashMap<String, RouteEntry> handlers = new LinkedHashMap<>();
     private final List<FieldRoute> fieldRoutes = new ArrayList<>();
 
-    /**
-     * Represents a flag to determine whether preflight requests (e.g., CORS preflight OPTIONS requests)
-     * should be filtered and handled automatically.
-     * <p>
-     * When set to {@code true}, the system processes and responds to preflight requests, enabling
-     * functionalities such as setting appropriate CORS headers or bypassing certain processing pipelines.
-     * When set to {@code false}, such requests are passed down to the later request handling logic without filtering.
-     */
     @Setter
     private boolean filterPrefireRequests = true;
 
-    /**
-     * Constructs a new RequestDispatcher with the specified WebServer instance.
-     * The RequestDispatcher manages the routing of HTTP requests and delegates them
-     * to registered handlers based on their paths.
-     *
-     * @param webServer the WebServer instance used to process and dispatch HTTP requests
-     */
     public RequestDispatcher(WebServer webServer) {
         this.webServer = webServer;
     }
 
-    /**
-     * Registers all methods annotated with {@code @RequestHandler} from the provided instance.
-     * These methods are stored as handlers that can be invoked based on incoming HTTP request paths.
-     *
-     * @param instance the object containing methods annotated with {@code @RequestHandler}
-     */
     public void register(Object instance) {
         for (Method method : instance.getClass().getMethods()) {
             if (method.isAnnotationPresent(FieldRequestHandler.class)) {
@@ -120,37 +69,39 @@ public class RequestDispatcher {
                 RequestHandler annotation = method.getAnnotation(RequestHandler.class);
                 String path = annotation.path();
                 RequestMethod requestMethod = annotation.method();
-                Pattern pattern = createPattern(path);
+
+                RouteEntry routeEntry = handlers.computeIfAbsent(path, p -> new RouteEntry(createPattern(p)));
 
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
-
                 if (customRateLimits.length > 0) {
                     logger.debug("The method " + method.getName() + " from " + instance.getClass().getSimpleName() + " is annotated with " + customRateLimits.length + " @CustomRateLimit(s).");
-
                     AdditionalCustomRateLimit[] currentAdditionalCustomRateLimits = new AdditionalCustomRateLimit[customRateLimits.length];
                     for (int i = 0; i < customRateLimits.length; i++) {
                         currentAdditionalCustomRateLimits[i] = new AdditionalCustomRateLimit(customRateLimits[i]);
                     }
-                    additionalCustomRateLimits.put(pattern, currentAdditionalCustomRateLimits);
+                    additionalCustomRateLimits.put(routeEntry.pattern(), currentAdditionalCustomRateLimits);
                 }
-
 
                 MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description());
                 methodHandler.accessLevel = annotation.accesslevel();
-                handlers.put(pattern, methodHandler);
+
+                if (routeEntry.methods().containsKey(requestMethod)) {
+                    logger.warn("Duplicate handler for " + requestMethod + " " + path + " – overwriting.");
+                }
+                routeEntry.methods().put(requestMethod, methodHandler);
+
                 resortHandlers();
             }
-
         }
     }
 
     private void resortHandlers() {
-        LinkedHashMap<Pattern, MethodHandler> temp = new LinkedHashMap<>(handlers);
+        LinkedHashMap<String, RouteEntry> temp = new LinkedHashMap<>(handlers);
         handlers.clear();
         temp.entrySet().stream().sorted(
                 (a, b) -> {
-                    String pa = a.getValue().path();
-                    String pb = b.getValue().path();
+                    String pa = a.getKey();
+                    String pb = b.getKey();
                     int dynA = countDynamicSegments(pa);
                     int dynB = countDynamicSegments(pb);
                     if (dynA != dynB) return Integer.compare(dynA, dynB);
@@ -179,15 +130,6 @@ public class RequestDispatcher {
         return count;
     }
 
-    /**
-     * Creates a regular expression pattern from the provided path string.
-     * The path is processed to generate a regex that matches dynamic segments
-     * enclosed in curly braces (e.g., {id}) and static segments as-is.
-     * It ensures the resulting regex is properly escaped and suitable for path matching.
-     *
-     * @param path the input path string, typically containing static and/or dynamic segments
-     * @return a compiled Pattern object representing the regex derived from the input path
-     */
     private Pattern createPattern(String path) {
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
@@ -197,7 +139,6 @@ public class RequestDispatcher {
         for (String part : path.split("/")) {
             if (!part.isEmpty()) {
                 regex.append("\\/");
-
                 if (part.startsWith("{") && part.endsWith("}")) {
                     regex.append("([\\w-]+)");
                 } else {
@@ -213,16 +154,6 @@ public class RequestDispatcher {
         return Pattern.compile(regex.toString());
     }
 
-    /**
-     * Handles HTTP requests by matching the given path against registered handlers
-     * and invoking the corresponding handler logic. Supports authentication checks,
-     * default header additions, and dynamic path variable resolution.
-     *
-     * @param path     the HTTP request path to be processed
-     * @param request  the HTTP request object containing the request data
-     * @param response the HTTP response object to be populated and sent back
-     * @param callback the callback to notify the completion of request processing
-     */
     public void handle(String path, Request request, Response response, Callback callback) {
         if (path.charAt(path.length() - 1) != '/')
             path += "/";
@@ -246,7 +177,6 @@ public class RequestDispatcher {
                 for (int i = 1; i <= matcher.groupCount(); i++)
                     pathVariables.put("arg" + i, matcher.group(i));
 
-
                 try {
                     handleFieldRoute(r, request, response, callback, pathVariables);
                 } catch (Exception e) {
@@ -259,16 +189,23 @@ public class RequestDispatcher {
             }
         }
 
-        var entries = handlers.entrySet();
-        for (Map.Entry<Pattern, MethodHandler> entry : entries) {
-            Pattern pattern = entry.getKey();
-            Matcher matcher = pattern.matcher(path.trim());
+        for (Map.Entry<String, RouteEntry> entry : handlers.entrySet()) {
+            RouteEntry routeEntry = entry.getValue();
+            Matcher matcher = routeEntry.pattern().matcher(path.trim());
             if (matcher.matches()) {
-                MethodHandler handler = entry.getValue();
+                String incomingMethod = request.getMethod().toUpperCase();
+                RequestMethod incomingRequestMethod = RequestMethod.fromString(incomingMethod);
 
+                MethodHandler handler = routeEntry.methods().get(incomingRequestMethod);
+                if (handler == null) {
+                    handler = routeEntry.methods().get(RequestMethod.ANY);
+                }
 
-                if (!handler.requestMethod().equals(RequestMethod.ANY) && !handler.requestMethod().name().equals(request.getMethod().toUpperCase())) {
+                if (handler == null) {
                     response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
+                    StringJoiner allowed = new StringJoiner(", ");
+                    routeEntry.methods().keySet().forEach(m -> allowed.add(m.name()));
+                    response.getHeaders().add(HttpHeader.ALLOW, allowed.toString());
                     callback.succeeded();
                     return;
                 }
@@ -276,6 +213,7 @@ public class RequestDispatcher {
                 AuthenticationAnswer authenticationAnswer = null;
                 switch (handler.accessLevel()) {
                     case DISABLED -> {
+                        logger.debug("A incoming request tried to call a disabled request handler.");
                         response.setStatus(HttpStatus.UNAUTHORIZED_401);
                         callback.succeeded();
                         return;
@@ -308,7 +246,6 @@ public class RequestDispatcher {
                 }
 
                 Map<String, String> pathVariables = new HashMap<>();
-
                 for (int i = 1; i <= matcher.groupCount(); i++)
                     pathVariables.put("arg" + i, matcher.group(i));
 
@@ -332,18 +269,6 @@ public class RequestDispatcher {
         callback.succeeded();
     }
 
-    /**
-     * Creates and returns a ContextHandler instance. The ContextHandler is responsible
-     * for handling requests with a specified path prefix and delegating them to the
-     * appropriate request handler logic within the RequestDispatcher class.
-     * <p>
-     * The newly created ContextHandler:
-     * - Handles incoming HTTP requests using a Handler.
-     * - Evaluates requests based on their path and invokes the corresponding handler logic.
-     * - Returns a 404 NOT FOUND response if the path information is null or does not match any handler.
-     *
-     * @return a ContextHandler instance
-     */
     public ContextHandler createContextHandler() {
         return new ContextHandler(new Handler.Abstract() {
             @Override
@@ -360,16 +285,6 @@ public class RequestDispatcher {
         }, "/");
     }
 
-    /**
-     * Adds default headers to the response based on the provided request and response objects.
-     * This method also handles preflight requests and sets appropriate HTTP headers for CORS (Cross-Origin Resource Sharing).
-     * If the request method is "OPTIONS", it adjusts the response to indicate acceptance.
-     *
-     * @param request  the HTTP request being processed; used to retrieve headers and other request metadata.
-     * @param response the HTTP response being constructed; modified to include default and necessary headers.
-     * @param callback the callback to be notified when the operation is completed successfully.
-     * @return true if the request was a preflight request and has been handled; false otherwise.
-     */
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
         if (!webServer.allowedOrigins().contains("*")) {
             response.getHeaders().add(HttpHeader.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
@@ -403,7 +318,6 @@ public class RequestDispatcher {
         return false;
     }
 
-
     private void handleFieldRoute(FieldRoute route, Request request, Response response, Callback callback,
                                   Map<String, String> pathVariables) throws Exception {
         Set<String> requested = FieldSelection.read(request, route.headerName());
@@ -432,12 +346,10 @@ public class RequestDispatcher {
                 }
                 args[i] = val;
             } else args[i] = null;
-
         }
         result = m.invoke(route.instance(), args);
 
         if (!(result instanceof FieldResponse fr)) {
-
             if (result instanceof Map<?, ?> map) {
                 writeJson(response, callback, map);
                 return;
@@ -448,7 +360,6 @@ public class RequestDispatcher {
                 callback.succeeded();
                 return;
             }
-
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
             ResponseUtil.writeAnswer(response, callback, "FieldRequestHandler must return FieldResponse or JSON-compatible type");
             callback.succeeded();
