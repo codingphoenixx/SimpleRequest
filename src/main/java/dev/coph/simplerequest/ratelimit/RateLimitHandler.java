@@ -16,85 +16,83 @@ import org.eclipse.jetty.util.Callback;
 import java.nio.ByteBuffer;
 
 /**
- * A handler for managing and enforcing rate limits on incoming requests in a server application.
- * This class leverages a {@link RateLimitProvider} to determine whether a request exceeds the
- * defined rate limits and responds accordingly.
+ * RateLimitHandler is responsible for enforcing rate limiting on incoming HTTP requests.
+ * It intercepts requests and determines whether they are allowed based on predefined
+ * rate limiting rules. If a request exceeds the configured rate limit, the handler
+ * responds with an HTTP status of 429 (Too Many Requests).
  * <p>
- * Requests are tracked based on their originating address, and the handler enforces a specified
- * maximum number of requests within a given time span. If a request exceeds the allowed rate,
- * an HTTP 429 (Too Many Requests) status is sent in the response.
+ * This class acts as a middleware in the web server and extends
+ * {@code ContextHandlerCollection} to integrate with the server's request handling
+ * system.
  * <p>
- * This class extends {@code ContextHandlerCollection}, allowing it to integrate with a
- * collection of context handlers.
+ * The rate limiting logic is delegated to an instance of {@code RateLimitProvider},
+ * which manages the actual rate limit calculations and validations.
+ * <p>
+ * Features:
+ * - Supports rate limiting based on client IP and request path.
+ * - Responds with an optional "Retry-After" header to indicate how long the client
+ *   should wait before retrying.
+ * - Allows configuration for request handling behavior, such as enabling or disabling
+ *   retry announcements.
+ * <p>
+ * Constructor:
+ * - The constructor initializes the rate limit provider using the provided web server
+ *   instance, a time span for rate limiting, and the maximum requests allowed within
+ *   the time span.
+ * <p>
+ * Overrides:
+ * - Overrides the {@code handle} method to inspect and process incoming HTTP requests.
+ *   Delegates to the super implementation for allowed requests and handles rate-limited
+ *   requests by responding with appropriate status and message.
+ * <p>
+ * Thread-Safety:
+ * - Thread-safe operation is ensured by leveraging the thread-safe architecture of
+ *   {@code RateLimitProvider} and concurrent collections.
  */
 @Getter
 @Accessors(fluent = true)
 public class RateLimitHandler extends ContextHandlerCollection {
 
-    /**
-     * A {@code RateLimitProvider} instance used to manage rate-limiting functionality
-     * for incoming requests. This provider evaluates requests against defined rate limits
-     * and determines whether they comply with the allowed request thresholds.
-     * <p>
-     * The {@code RateLimitProvider} associates a {@link RateLimit} with a unique identifier,
-     * typically a requester's address, and tracks requests over a configured time window.
-     * It provides methods to check if a request is permitted based on the number of requests
-     * already processed within the specified time span.
-     * <p>
-     * This field is initialized in the constructor of the containing class, ensuring that
-     * the rate limits are applied consistently across all incoming requests handled by the
-     * application.
-     */
+    private static final byte[] RATE_LIMIT_MSG = "Rate limit exceeded".getBytes();
+
     private final RateLimitProvider rateLimitProvider;
     @Setter
     private boolean announceRetryAfter;
 
     /**
-     * Constructs a RateLimitHandler that enforces rate limiting on incoming HTTP requests.
-     * Initializes a RateLimitProvider to manage the rate-limiting logic based on the provided parameters.
+     * Constructor for the RateLimitHandler class, which initializes rate limiting
+     * for web server requests based on a specified time span and maximum allowable
+     * requests.
      *
-     * @param webServer          the web server instance associated with this handler
-     * @param timeSpan           the time span during which requests are monitored and limited
+     * @param webServer the instance of the WebServer to apply rate limiting to
+     * @param timeSpan the time span over which the maximum requests are allowed
      * @param maxRequestsPerSpan the maximum number of requests allowed during the specified time span
      */
     public RateLimitHandler(WebServer webServer, Time timeSpan, int maxRequestsPerSpan) {
         rateLimitProvider = new RateLimitProvider(webServer, timeSpan, maxRequestsPerSpan);
     }
 
-    /**
-     * Handles incoming requests and enforces rate limiting for them. If the request exceeds
-     * the defined rate limit, a response with an HTTP 429 (Too Many Requests) status is sent
-     * to the client, and the method returns false. Otherwise, the request proceeds to
-     * the parent handler.
-     *
-     * @param request  the incoming HTTP request to be processed
-     * @param response the response object used to send data back to the client
-     * @param callback the callback invoked upon completion of request processing
-     * @return false if the request exceeded the rate limit; otherwise, the return value
-     * of the parent handler's handle method
-     * @throws Exception if an error occurs during processing
-     */
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         if (request.getMethod().equals(HttpMethod.OPTIONS.asString()))
             return super.handle(request, response, callback);
 
         String path = request.getHttpURI().getPath();
-        if (path.charAt(path.length() - 1) != '/') {
+        if (path.charAt(path.length() - 1) != '/')
             path += "/";
-        }
+
         String key = IPUtil.clientIPAddress(request);
         if (!rateLimitProvider.allowRequest(key, path)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS_429);
-            response.write(true, ByteBuffer.wrap("Rate limit exceeded".getBytes()), callback);
-            if (announceRetryAfter)
-                response.getHeaders().put("Retry-After", Math.max(0, rateLimitProvider.getEarliestAllowedTimestamp(key, path) - System.currentTimeMillis()) / 1000);
+            if (announceRetryAfter) {
+                long retryAfter = Math.max(0, rateLimitProvider.getEarliestAllowedTimestamp(key, path) - System.currentTimeMillis()) / 1000;
+                response.getHeaders().put("Retry-After", retryAfter);
+            }
+            response.write(true, ByteBuffer.wrap(RATE_LIMIT_MSG), callback);
             callback.succeeded();
             return false;
         }
 
-
         return super.handle(request, response, callback);
     }
-
 }
