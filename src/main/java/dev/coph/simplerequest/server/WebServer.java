@@ -227,7 +227,7 @@ public class WebServer {
         logger.debug("Set https protocols to: SSLv3,TLSv1.2,TLSv1.3");
         System.setProperty("https.protocols", "SSLv3,TLSv1.2,TLSv1.3");
         if (!isPortAvailable(port)) {
-            logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort(49152, 65535));
+            logger.error("Port is not available and WebServer cannot get started. Available: " + findFreePort());
             return;
         }
 
@@ -297,16 +297,27 @@ public class WebServer {
     }
 
     /**
-     * Finds an available port within the specified range. This method iterates
-     * through the range of ports provided, starting from the lower bound,
-     * and returns the first port that is available. If no port is found,
-     * it returns -1.
+     * Attempts to find a free network port within the default private port range.
      *
-     * @param startPort the starting port number of the range to check
-     * @param endPort   the ending port number of the range to check
-     * @return the first available port within the specified range, or -1 if no port is available
+     * This method scans for an available port between 49152 and 65535, which is the
+     * range allocated for dynamic or private ports (commonly used for ephemeral
+     * purposes).
+     *
+     * @return an available port number within the range 49152 to 65535, or throws
+     *         an exception if no ports are available.
      */
-    private int findFreePort(int startPort, int endPort) {
+    private int findFreePort() {
+        return findFreePort(49152, 65535);
+    }
+
+    /**
+     * Scans and finds an available network port within the specified port range.
+     *
+     * @param startPort the starting port of the range to scan (inclusive).
+     * @param endPort the ending port of the range to scan (inclusive).
+     * @return the number of the first available port within the range, or -1 if no port is available.
+     */
+    public int findFreePort(int startPort, int endPort) {
         for (int port = Math.min(startPort, endPort); port <= Math.max(startPort, endPort); port++) {
             if (isPortAvailable(port)) {
                 return port;
