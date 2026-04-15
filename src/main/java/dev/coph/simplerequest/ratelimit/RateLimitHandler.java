@@ -1,5 +1,6 @@
 package dev.coph.simplerequest.ratelimit;
 
+import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.IPUtil;
 import dev.coph.simplerequest.util.Time;
@@ -30,7 +31,6 @@ import java.nio.ByteBuffer;
 @Getter
 @Accessors(fluent = true)
 public class RateLimitHandler extends ContextHandlerCollection {
-
     /**
      * A {@code RateLimitProvider} instance used to manage rate-limiting functionality
      * for incoming requests. This provider evaluates requests against defined rate limits
@@ -96,5 +96,7 @@ public class RateLimitHandler extends ContextHandlerCollection {
 
         return super.handle(request, response, callback);
     }
+
+    //TODO Check ratelimit with correct http type
 
 }

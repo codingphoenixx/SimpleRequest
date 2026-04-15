@@ -1,5 +1,6 @@
 package dev.coph.simplerequest.ratelimit;
 
+import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.Time;
 import lombok.NonNull;
@@ -23,6 +24,8 @@ import java.util.regex.Pattern;
  * and simplicity in managing a wide range of rate-limiting scenarios.
  */
 public class RateLimitProvider {
+    private static final Logger LOGGER = Logger.of(RateLimitProvider.class);
+
     private final WebServer webServer;
     /**
      * Stores rate limit configurations associated with specific keys for managing request throttling.
@@ -110,8 +113,10 @@ public class RateLimitProvider {
         }
 
         boolean allowed = true;
-        for (RateLimit rateLimit : rateLimits.values()) {
+        for (String rateLimitKey : rateLimits.keySet()) {
+            RateLimit rateLimit = rateLimits.get(rateLimitKey);
             if (!rateLimit.allowRequest()) {
+                LOGGER.debug("Rate limit '" + rateLimitKey + "' exceeded by '" + key + "'");
                 allowed = false;
             }
         }
