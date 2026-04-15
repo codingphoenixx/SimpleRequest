@@ -4,6 +4,7 @@ import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.Time;
 import lombok.NonNull;
 
+import java.net.SocketTimeoutException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
  * Each key (representing a unique context) is associated with a {@link RateLimit} object that governs
  * request rate management within a specified time window, ensuring controlled access to resources or services.
  * <p>
- * This class supports thread-safe request evaluation via the {@link #allowRequest(String, String)} method,
+ * This class supports thread-safe request evaluation via the {@link #allowRequest(String, String, String)} method,
  * which evaluates whether a request adheres to the configured rate-limiting constraints.
  * A default configuration is applied to new contexts dynamically, ensuring flexibility
  * and simplicity in managing a wide range of rate-limiting scenarios.
@@ -53,33 +54,19 @@ public class RateLimitProvider {
         this.defaultTimeWindow = time.toMilliseconds();
     }
 
-
     /**
-     * Determines whether a request is allowed based on rate-limiting policies associated with a specific key
-     * and request path. The method assesses both default and custom rate limits for the provided input.
-     * <p>
-     * The method first ensures that a default rate limit is established. Then it evaluates any additional
-     * custom rate limits associated with the input path. Finally, it checks if the request complies with all
-     * enforced rate limits. If any of the rate limits deny the request, the method returns false.
+     * Evaluates whether a request is permitted based on the rate limits resolved for 
+     * the specified key, request path, and HTTP method. This method checks all relevant 
+     * rate limits to determine if the request adheres to the defined limits.
      *
-     * @param key  the unique identifier used to group requests and apply specific rate-limiting policies
-     * @param path the request path to evaluate for any matching custom rate-limiting rules
-     * @return true if the request complies with all rate-limiting policies; false otherwise
+     * @param key    The unique identifier associated with the user or client making the request.
+     * @param path   The request path that may have specific rate-limiting rules applied to it.
+     * @param method The HTTP method (e.g., GET, POST) of the request.
+     * @return {@code true} if the request is allowed based on the applicable rate limits; 
+     *         {@code false} otherwise.
      */
-    private ConcurrentHashMap<String, RateLimit> resolveRateLimits(String key, String path) {
-        ConcurrentHashMap<String, RateLimit> limits = rateLimits.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
-
-        limits.computeIfAbsent("default", k -> new RateLimit(maxRequests, defaultTimeWindow, RateLimitAlgorithm.USER_FIXED_WINDOW));
-
-        for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
-            Matcher matcher = entry.getKey().matcher(path);
-            if (matcher.matches()) {
-                for (AdditionalCustomRateLimit acrl : entry.getValue()) {
-                    limits.computeIfAbsent(acrl.key(), k -> new RateLimit(acrl.maxRequests(), acrl.timeWindowMillis(), acrl.algorithm()));
-                }
-
-            }
-        }
+    public boolean allowRequest(String key, String path, String method) {
+        ConcurrentHashMap<String, RateLimit> limits = resolveRateLimits(key, path, method);
 
         boolean allowed = true;
         for (RateLimit rateLimit : limits.values()) {
@@ -87,28 +74,82 @@ public class RateLimitProvider {
                 allowed = false;
             }
         }
-
         return allowed;
     }
 
     /**
-     * Returns the earliest timestamp (in milliseconds since epoch) at which a new request
-     * would be allowed for the given key and path, considering all active rate limits.
-     * If a request is currently allowed by all rate limits, this returns the current time.
+     * Resolves and applies rate limits for the given user or client based on the specified key, 
+     * request path, and HTTP method. It evaluates default rate limits and any additional custom 
+     * rate limits applicable to the path and method.
      *
-     * @param key  the unique identifier used to group requests and apply specific rate-limiting policies
-     * @param path the request path to evaluate for any matching custom rate-limiting rules
-     * @return earliest allowed timestamp in milliseconds since epoch
+     * @param key    The unique identifier associated with the user or client making the request.
+     * @param path   The request path that may have specific rate-limiting rules applied to it.
+     * @param method The HTTP method (e.g., GET, POST) of the request.
+     * @return A map containing the resolved rate limits for the key, where the keys in the map 
+     *         represent different rate limit categories (e.g., default and custom rules), and 
+     *         the values are the corresponding RateLimit objects.
      */
-    public long getEarliestAllowedTimestamp(String key, String path) {
-        ConcurrentHashMap<String, RateLimit> limits = resolveRateLimits(key, path);
+    public ConcurrentHashMap<String, RateLimit> resolveRateLimits(String key, String path, String method) {
+        String rateLimitKey = path + ":" + method;
+        
+        ConcurrentHashMap<String, RateLimit> userLimits = rateLimits.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
+        ConcurrentHashMap<String, RateLimit> resolvedLimits = new ConcurrentHashMap<>();
+        
+        resolvedLimits.put("default", userLimits.computeIfAbsent("default", k -> new RateLimit(maxRequests, defaultTimeWindow, RateLimitAlgorithm.USER_FIXED_WINDOW)));
+     
+        for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
+            Matcher matcher = entry.getKey().matcher(rateLimitKey);
+            if (matcher.matches()) {
+                for (AdditionalCustomRateLimit acrl : entry.getValue()) {
+                    resolvedLimits.put(acrl.key(), userLimits.computeIfAbsent(acrl.key(), k -> new RateLimit(acrl.maxRequests(), acrl.timeWindowMillis(), acrl.algorithm())));
+                }
+            }
+        }
+        
+        return resolvedLimits;
+    }
 
+    /**
+     * Calculates the earliest possible timestamp at which requests can be allowed 
+     * based on the given rate limits. The method iterates through the provided rate 
+     * limits and determines the maximum timestamp that is currently blocking requests.
+     *
+     * @param limits a {@link ConcurrentHashMap} where the keys represent rate 
+     *               limit identifiers and the values are {@link RateLimit} objects 
+     *               containing rate-limiting information.
+     * @return the earliest timestamp (in milliseconds) at which requests can be allowed 
+     *         based on the provided rate limits.
+     */
+    public long earliestAllowedTimestamp(ConcurrentHashMap<String, RateLimit> limits) {
         long now = System.currentTimeMillis();
         long maxTimestamp = now;
+        
         for (RateLimit rateLimit : limits.values()) {
             long allowedAt = now + rateLimit.getRetryAfterMillis();
             if (allowedAt > maxTimestamp) maxTimestamp = allowedAt;
         }
+        
         return maxTimestamp;
+    }
+
+    /**
+     * Filters and returns a map of rate limits that have been triggered based on their retry-after values.
+     * A rate limit is considered triggered if its retry-after value is not equal to zero.
+     *
+     * @param limits a {@code ConcurrentHashMap} containing the rate limits to evaluate, where the keys
+     *               represent rate limit identifiers and the values are {@code RateLimit} objects
+     *               containing the associated rate-limiting information.
+     * @return a {@code ConcurrentHashMap} containing only the triggered rate limits, where the keys
+     *         represent the rate limit identifiers and the values are the corresponding triggered
+     *         {@code RateLimit} objects.
+     */
+    public ConcurrentHashMap<String, RateLimit> allTriggeredLimits(ConcurrentHashMap<String, RateLimit> limits) {
+        ConcurrentHashMap<String, RateLimit> triggered = new ConcurrentHashMap<>(limits);
+        for (Map.Entry<String, RateLimit> rateLimit : limits.entrySet()) {
+            if (rateLimit.getValue().getRetryAfterMillis() == 0) {
+                triggered.remove(rateLimit.getKey());
+            }
+        }
+        return triggered;
     }
 }

@@ -43,23 +43,11 @@ import java.util.Set;
  * - {@code rateLimitHandler}: A handler for managing rate-limiting policies on incoming requests.
  * - {@code websockets}: A collection of WebSocket provider classes registered with the server.
  */
+@SuppressWarnings("unused")
 public class WebServer {
     private final Logger logger = Logger.of("WebServer");
 
-    /**
-     * Manages the dispatching of incoming HTTP requests to the appropriate
-     * handler or resource within the web server.
-     * <p>
-     * The `requestDispatcher` is responsible for processing requests and delegating them
-     * to the appropriate method or resource. It acts as the central point for routing
-     * and execution of request-response interactions within the server. This variable
-     * is initialized during the construction of the `WebServer` and is used
-     * throughout its lifecycle to handle incoming HTTP traffic.
-     * <p>
-     * This field plays a key role in enabling the server to process incoming
-     * client requests efficiently, ensuring the correct handlers are invoked
-     * for specific routes or API endpoints.
-     */
+
     private final RequestDispatcher requestDispatcher;
     /**
      * Represents the port number on which the web server will listen for incoming connections.
@@ -298,7 +286,7 @@ public class WebServer {
 
     /**
      * Attempts to find a free network port within the default private port range.
-     *
+     * <p>
      * This method scans for an available port between 49152 and 65535, which is the
      * range allocated for dynamic or private ports (commonly used for ephemeral
      * purposes).

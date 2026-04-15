@@ -86,7 +86,7 @@ public class Time {
      *
      * @return the time value in seconds as an integer
      */
-    public int toSeconds() {
+    public long toSeconds() {
         return Math.toIntExact(milliseconds / 1000);
     }
 

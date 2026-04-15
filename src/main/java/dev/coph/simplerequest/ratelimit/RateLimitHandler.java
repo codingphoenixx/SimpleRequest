@@ -1,5 +1,6 @@
 package dev.coph.simplerequest.ratelimit;
 
+import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.IPUtil;
 import dev.coph.simplerequest.util.Time;
@@ -14,6 +15,7 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.Callback;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A handler for managing and enforcing rate limits on incoming requests in a server application.
@@ -30,7 +32,7 @@ import java.nio.ByteBuffer;
 @Getter
 @Accessors(fluent = true)
 public class RateLimitHandler extends ContextHandlerCollection {
-
+    private static final Logger LOGGER = Logger.of(RateLimitHandler.class); 
     private static final byte[] RATE_LIMIT_MSG = "Rate limit exceeded".getBytes();
 
     /**
@@ -86,12 +88,16 @@ public class RateLimitHandler extends ContextHandlerCollection {
             path += "/";
         }
         String key = IPUtil.clientIPAddress(request);
-        if (!rateLimitProvider.allowRequest(key, path)) {
+        if (!rateLimitProvider.allowRequest(key, path, request.getMethod().toUpperCase())) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS_429);
+            ConcurrentHashMap<String, RateLimit> limits = rateLimitProvider.resolveRateLimits(key, path, request.getMethod().toUpperCase());
             if (announceRetryAfter) {
-                long retryAfter = Math.max(0, rateLimitProvider.getEarliestAllowedTimestamp(key, path) - System.currentTimeMillis()) / 1000;
+                long retryAfter = Math.max(0, rateLimitProvider.earliestAllowedTimestamp(limits) - System.currentTimeMillis()) / 1000;
                 response.getHeaders().put("Retry-After", retryAfter);
             }
+            rateLimitProvider.allTriggeredLimits(limits).forEach((s, rateLimit) -> {
+                LOGGER.debug("Ratelimit '%s' triggered by '%s'. Retry in '%s'".formatted(s, key, rateLimit.getRetryAfterMillis()));
+            });
             response.write(true, ByteBuffer.wrap(RATE_LIMIT_MSG), callback);
             callback.succeeded();
             return false;

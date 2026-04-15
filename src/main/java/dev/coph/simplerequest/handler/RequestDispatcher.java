@@ -95,14 +95,18 @@ public class RequestDispatcher {
                     for (int i = 0; i < customRateLimits.length; i++) {
                         currentAdditionalCustomRateLimits[i] = new AdditionalCustomRateLimit(customRateLimits[i]);
                     }
-                    additionalCustomRateLimits.put(routeEntry.pattern(), currentAdditionalCustomRateLimits);
+                    Pattern pattern = routeEntry.pattern();
+                    String name = requestMethod.name();
+                    Pattern rateLimitPattern = Pattern.compile(pattern.pattern().replaceAll("\\$$", "") + ":" + name.toUpperCase() + "$");
+                    logger.debug("Compiling and adding RateLimit with pattern: " + rateLimitPattern);
+                    additionalCustomRateLimits.put(rateLimitPattern, currentAdditionalCustomRateLimits);
                 }
 
                 MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description());
                 methodHandler.accessLevel = annotation.accesslevel();
 
                 if (routeEntry.methods().containsKey(requestMethod)) {
-                    logger.warn("Duplicate handler for " + requestMethod + " " + path + " – overwriting.");
+                    logger.warn("Duplicate handler for " + requestMethod + " " + path + " - overwriting.");
                 }
                 routeEntry.methods().put(requestMethod, methodHandler);
 
