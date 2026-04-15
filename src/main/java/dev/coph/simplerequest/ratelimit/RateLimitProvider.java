@@ -1,12 +1,11 @@
 package dev.coph.simplerequest.ratelimit;
 
-import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.Time;
 import lombok.NonNull;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,33 +23,8 @@ import java.util.regex.Pattern;
  * and simplicity in managing a wide range of rate-limiting scenarios.
  */
 public class RateLimitProvider {
-    private static final Logger LOGGER = Logger.of(RateLimitProvider.class);
-
     private final WebServer webServer;
-    /**
-     * Stores rate limit configurations associated with specific keys for managing request throttling.
-     * <p>
-     * This map maintains a collection of {@link RateLimit} objects, where each key represents a unique
-     * context for rate limiting (e.g., a user ID or an IP address). Entries in this map are dynamically
-     * created or updated as needed when handling rate-limited requests.
-     * <p>
-     * This field is immutable and initialized during the instantiation of the {@code RateLimitProvider}.
-     * It is used primarily by the {@link RateLimitProvider#allowRequest(String, String)} method to enforce
-     * rate-limiting policies based on the configurations defined for each context.
-     */
-    private final HashMap<String, HashMap<String, RateLimit>> rateLimits = new HashMap<>();
-
-    /**
-     * Represents the default time window duration used for rate limiting, in milliseconds.
-     * <p>
-     * This value serves as a default configuration for the duration within which a certain
-     * number of requests are allowed. It is used when creating new {@link RateLimit} objects
-     * in the absence of a specific time window configuration for a particular entity.
-     * <p>
-     * The field is immutable and is set during the instantiation of the {@code RateLimitProvider}
-     * class, ensuring consistent and predictable behavior for rate-limiting operations
-     * managed by the provider.
-     */
+    private final ConcurrentHashMap<String, ConcurrentHashMap<String, RateLimit>> rateLimits = new ConcurrentHashMap<>();
     private final long defaultTimeWindow;
     /**
      * Represents the maximum number of requests allowed within a specified time window
@@ -92,31 +66,24 @@ public class RateLimitProvider {
      * @param path the request path to evaluate for any matching custom rate-limiting rules
      * @return true if the request complies with all rate-limiting policies; false otherwise
      */
-    public boolean allowRequest(String key, String path) {
-        HashMap<String, RateLimit> rateLimits = this.rateLimits.computeIfAbsent(key, s -> new HashMap<>());
+    private ConcurrentHashMap<String, RateLimit> resolveRateLimits(String key, String path) {
+        ConcurrentHashMap<String, RateLimit> limits = rateLimits.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
 
-        if (!rateLimits.containsKey("default")) {
-            rateLimits.put("default", new RateLimit(maxRequests, defaultTimeWindow, RateLimitAlgorithm.USER_FIXED_WINDOW));
-        }
+        limits.computeIfAbsent("default", k -> new RateLimit(maxRequests, defaultTimeWindow, RateLimitAlgorithm.USER_FIXED_WINDOW));
 
         for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
-            Pattern pattern = entry.getKey();
-            Matcher matcher = pattern.matcher(path.trim());
+            Matcher matcher = entry.getKey().matcher(path);
             if (matcher.matches()) {
-                AdditionalCustomRateLimit[] additionalCustomRateLimits = entry.getValue();
-                for (AdditionalCustomRateLimit additionalCustomRateLimit : additionalCustomRateLimits) {
-                    if (!rateLimits.containsKey(additionalCustomRateLimit.key()))
-                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis(), additionalCustomRateLimit.algorithm()));
+                for (AdditionalCustomRateLimit acrl : entry.getValue()) {
+                    limits.computeIfAbsent(acrl.key(), k -> new RateLimit(acrl.maxRequests(), acrl.timeWindowMillis(), acrl.algorithm()));
                 }
 
             }
         }
 
         boolean allowed = true;
-        for (String rateLimitKey : rateLimits.keySet()) {
-            RateLimit rateLimit = rateLimits.get(rateLimitKey);
+        for (RateLimit rateLimit : limits.values()) {
             if (!rateLimit.allowRequest()) {
-                LOGGER.debug("Rate limit '" + rateLimitKey + "' exceeded by '" + key + "'");
                 allowed = false;
             }
         }
@@ -134,32 +101,13 @@ public class RateLimitProvider {
      * @return earliest allowed timestamp in milliseconds since epoch
      */
     public long getEarliestAllowedTimestamp(String key, String path) {
-        HashMap<String, RateLimit> rateLimits = this.rateLimits.computeIfAbsent(key, s -> new HashMap<>());
-
-        if (!rateLimits.containsKey("default")) {
-            rateLimits.put("default", new RateLimit(maxRequests, defaultTimeWindow));
-        }
-
-        for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
-            Pattern pattern = entry.getKey();
-            Matcher matcher = pattern.matcher(path.trim());
-            if (matcher.matches()) {
-                AdditionalCustomRateLimit[] additionalCustomRateLimits = entry.getValue();
-                for (AdditionalCustomRateLimit additionalCustomRateLimit : additionalCustomRateLimits) {
-                    if (!rateLimits.containsKey(additionalCustomRateLimit.key()))
-                        rateLimits.put(additionalCustomRateLimit.key(), new RateLimit(additionalCustomRateLimit.maxRequests(), additionalCustomRateLimit.timeWindowMillis(), additionalCustomRateLimit.algorithm()));
-                }
-            }
-        }
+        ConcurrentHashMap<String, RateLimit> limits = resolveRateLimits(key, path);
 
         long now = System.currentTimeMillis();
         long maxTimestamp = now;
-        for (RateLimit rateLimit : rateLimits.values()) {
-            long retryAfter = rateLimit.getRetryAfterMillis();
-            long allowedAt = now + retryAfter;
-            if (allowedAt > maxTimestamp) {
-                maxTimestamp = allowedAt;
-            }
+        for (RateLimit rateLimit : limits.values()) {
+            long allowedAt = now + rateLimit.getRetryAfterMillis();
+            if (allowedAt > maxTimestamp) maxTimestamp = allowedAt;
         }
         return maxTimestamp;
     }

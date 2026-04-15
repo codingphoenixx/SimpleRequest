@@ -73,12 +73,14 @@ public record EndpointDiscoveryRequestHandler(WebServer webServer) {
             return;
         }
         JSONObject handlers = new JSONObject();
-        webServer.requestDispatcher().handlers().forEach((pattern, methodHandler) -> {
-            JSONObject handler = new JSONObject();
-            handler.put("method", methodHandler.requestMethod());
-            handler.put("accessLevel", methodHandler.accessLevel());
-            handler.put("description", methodHandler.description() != null && !methodHandler.description().isBlank() ? methodHandler.description() : null);
-            handlers.put(methodHandler.path(), handler);
+        webServer.requestDispatcher().handlers().forEach((pattern, route) -> {
+            route.methods().forEach((method, mHandler) -> {
+                JSONObject handler = new JSONObject();
+                handler.put("method", method);
+                handler.put("accessLevel", mHandler.accessLevel());
+                handler.put("description", mHandler.description() != null && !mHandler.description().isBlank() ? mHandler.description() : null);
+                handlers.put(mHandler.path(), handler);
+            });
         });
         ResponseUtil.writeSuccessfulAnswer(response, callback, handlers);
     }

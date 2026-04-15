@@ -1,99 +1,120 @@
 package dev.coph.simplerequest.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * Enum representing HTTP request methods.
- * <p>
- * This enum is used to define the various types of HTTP request methods
- * that are commonly used in web communication and API interactions.
- * <br><br>
- * Each constant represents a specific HTTP request method:<br>
- * - GET: Retrieves data from a server.<br>
- * - POST: Sends data to be processed to a server.<br>
- * - PUT: Updates or replaces data on a server.<br>
- * - DELETE: Removes data from a server.<br>
- * - PATCH: Partially updates data on a server.<br>
- * - OPTIONS: Fetches information about the communication options available.<br>
- * - ANY: Matches any type of HTTP request method.<br>
+ * Enum representing HTTP request methods supported by the application.
+ * Each constant corresponds to a common HTTP method.
  */
 public enum RequestMethod {
     /**
-     * Enum constant representing the HTTP GET request method.
+     * Represents the HTTP GET request method.
      * <p>
-     * Used to retrieve data from the server without causing any side effects.
-     * The GET method is commonly used to request data, such as fetching resources
-     * or retrieving information.
+     * This method is used to retrieve data from the server without altering the state
+     * of the resource. Commonly employed for fetching resources, GET requests are
+     * idempotent and safe, meaning they have no side effects on the server when
+     * executed multiple times.
      */
     GET,
     /**
-     * Enum constant representing the HTTP POST request method.
+     * Represents the HTTP POST request method.
      * <p>
-     * The POST method is used to send data to the server to create or update a resource.
-     * It is commonly used for operations that require data to be processed by the server,
-     * such as submitting forms or uploading files. The data sent via a POST request
-     * is typically included in the body of the request.
+     * This method is used to submit data to the server, typically to create or update a resource.
+     * Unlike the GET method, POST requests may modify the state of the server and are not idempotent,
+     * meaning multiple identical requests could result in different outcomes.
      */
     POST,
     /**
-     * Enum constant representing the HTTP PUT request method.
+     * Represents the HTTP PUT request method.
      * <p>
-     * The PUT method is used to update or replace an existing resource on the server.
-     * Typically, a PUT request includes the full details of the resource to be created
-     * or updated in the body of the request. If the resource does not exist, the server
-     * may create a new resource, depending on its implementation.
+     * This method is used to update or create a resource on the server with the
+     * supplied data. In cases where the resource exists, PUT updates the resource
+     * with the provided data. If the resource does not exist, it is created at the
+     * specified URI.
+     * <p>
+     * PUT methods are idempotent, meaning multiple identical requests result in the
+     * same server state as a single request.
      */
     PUT,
     /**
-     * Enum constant representing the HTTP DELETE request method.
+     * Represents the HTTP DELETE request method.
      * <p>
-     * The DELETE method is used to request the removal of a specific resource
-     * from the server. It is commonly used to delete resources identified
-     * by a given URI. The operation is expected to be idempotent, meaning multiple
-     * identical DELETE requests should have the same effect as a single request.
+     * This method is used to delete a resource identified by a URI on the server.
+     * DELETE requests are generally idempotent, meaning multiple identical requests
+     * should produce the same outcome. It is commonly used to remove resources
+     * or trigger deletion operations on the server.
      */
     DELETE,
     /**
-     * Enum constant representing the HTTP PATCH request method.
+     * Represents the HTTP PATCH request method.
      * <p>
-     * The PATCH method is used to partially update an existing resource on the server.
-     * Unlike the PUT method, which replaces an entire resource, the PATCH method applies
-     * partial modifications to an existing resource using the data provided in the request.
-     * It is commonly used for updates where only specific fields or properties of a resource
-     * need to be changed without altering the entire resource.
+     * This method is used to apply partial modifications to a resource on the server.
+     * Unlike the PUT method, which replaces the entire resource, PATCH allows for
+     * updating specific fields or portions of a resource. PATCH requests are not
+     * necessarily idempotent, as the result of multiple identical requests could vary
+     * based on the partial updates being performed.
      */
     PATCH,
     /**
-     * Enum constant representing the HTTP OPTIONS request method.
-     * <p>
-     * The OPTIONS method is used to describe the communication options available
-     * for a specific resource or server. It allows the client to determine
-     * the supported HTTP methods and other capabilities of a server or resource.
-     * This method does not typically involve any modification or retrieval of
-     * resource data. It is primarily used for discovering server capabilities
-     * and constraints.
+     * Represents the HTTP OPTIONS method as a constant within the {@code RequestMethod} class.
+     * OPTIONS is an HTTP method used to describe the communication options available
+     * for a target resource. This method is commonly used to determine the supported
+     * HTTP methods, headers, or other details at the server endpoint without taking
+     * additional actions on the resource.
      */
     OPTIONS,
     /**
-     * Represents the HTTP QUERY request method in the context of server routing or request handling.
-     * This constant is primarily used to specify or match HTTP requests that use the QUERY method.
-     * While not a standard HTTP method, it might be defined for custom purposes or specific application logic.
-     * <br>
-     * Query is used to provide the {@link FieldRequestHandler}.
+     * Represents the HTTP method QUERY in the {@link RequestMethod} enumeration.
+     * <p>
+     * QUERY is commonly used to represent operations that retrieve or filter
+     * resources by specific criteria, often involving query-like behavior.
+     * This enumeration constant can be utilized for defining or handling routes
+     * where the QUERY method is explicitly required.
      */
     QUERY,
     /**
-     * Represents the HTTP HEAD method.
-     * The HEAD method is used to request the headers of a resource, similar
-     * to a GET request, but without the response body. This is typically
-     * used to check for the existence or status of a resource.
+     * Represents the HTTP HEAD method in the {@link RequestMethod} enumeration.
+     * <p>
+     * The HEAD method is used to request the headers of a resource without
+     * fetching its body, making it useful for checking metadata such as
+     * content type or size. It is typically employed to determine resource
+     * characteristics prior to fetching, optimizing network usage.
      */
     HEAD,
     /**
-     * Represents a catch-all HTTP request method.
-     * Used to match requests of any HTTP method, typically when the specific
-     * method (e.g., GET, POST, PUT, etc.) is not predefined or when handling
-     * requests in a generic manner.
+     * Represents a catch-all HTTP request method in the {@link RequestMethod} enumeration.
+     * This is used to indicate that a route or handler is applicable to any HTTP method,
+     * without being restricted to a specific one such as GET, POST, PUT, etc.
+     * <p>
+     * The {@code ANY} constant is particularly useful in scenarios where a generic handler
+     * is needed to process requests for multiple, or all, HTTP methods.
      */
-    ANY
+    ANY;
+    /**
+     * A mapping of HTTP request method names (as Strings) to their corresponding {@link RequestMethod} enum constants.
+     * This map allows for efficient lookup and conversion of HTTP method names to their respective enum representation.
+     */
+    private static final Map<String, RequestMethod> LOOKUP;
 
+    static {
+        LOOKUP = new HashMap<>();
+        for (RequestMethod m : values()) {
+            LOOKUP.put(m.name(), m);
+        }
+    }
 
+    /**
+     * Converts a provided string representation of an HTTP method to its corresponding
+     * {@link RequestMethod} enum constant. The lookup is case-insensitive.
+     *
+     * @param method the string representation of the HTTP method to convert.
+     *               Must not be null. If the method is not a valid HTTP method,
+     *               the result will be null.
+     * @return the corresponding {@link RequestMethod} enum constant, or null if
+     *         no matching constant is found.
+     */
+    public static RequestMethod fromString(String method) {
+        return LOOKUP.get(method.toUpperCase());
+    }
 }

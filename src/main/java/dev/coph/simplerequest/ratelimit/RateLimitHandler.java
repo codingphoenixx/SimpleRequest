@@ -1,6 +1,5 @@
 package dev.coph.simplerequest.ratelimit;
 
-import dev.coph.simplelogger.Logger;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.IPUtil;
 import dev.coph.simplerequest.util.Time;
@@ -31,6 +30,9 @@ import java.nio.ByteBuffer;
 @Getter
 @Accessors(fluent = true)
 public class RateLimitHandler extends ContextHandlerCollection {
+
+    private static final byte[] RATE_LIMIT_MSG = "Rate limit exceeded".getBytes();
+
     /**
      * A {@code RateLimitProvider} instance used to manage rate-limiting functionality
      * for incoming requests. This provider evaluates requests against defined rate limits
@@ -86,9 +88,11 @@ public class RateLimitHandler extends ContextHandlerCollection {
         String key = IPUtil.clientIPAddress(request);
         if (!rateLimitProvider.allowRequest(key, path)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS_429);
-            response.write(true, ByteBuffer.wrap("Rate limit exceeded".getBytes()), callback);
-            if (announceRetryAfter)
-                response.getHeaders().put("Retry-After", Math.max(0, rateLimitProvider.getEarliestAllowedTimestamp(key, path) - System.currentTimeMillis()) / 1000);
+            if (announceRetryAfter) {
+                long retryAfter = Math.max(0, rateLimitProvider.getEarliestAllowedTimestamp(key, path) - System.currentTimeMillis()) / 1000;
+                response.getHeaders().put("Retry-After", retryAfter);
+            }
+            response.write(true, ByteBuffer.wrap(RATE_LIMIT_MSG), callback);
             callback.succeeded();
             return false;
         }
@@ -96,7 +100,5 @@ public class RateLimitHandler extends ContextHandlerCollection {
 
         return super.handle(request, response, callback);
     }
-
-    //TODO Check ratelimit with correct http type
 
 }
