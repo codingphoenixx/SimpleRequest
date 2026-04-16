@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 @Accessors(fluent = true)
 public class RateLimitHandler extends ContextHandlerCollection {
-    private static final Logger LOGGER = Logger.of(RateLimitHandler.class); 
+    private static final Logger LOGGER = Logger.of(RateLimitHandler.class);
     private static final byte[] RATE_LIMIT_MSG = "Rate limit exceeded".getBytes();
 
     /**

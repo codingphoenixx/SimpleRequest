@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * Components:
  * - A URL {@link Pattern} that defines the matching criteria for the route.
  * - A {@link LinkedHashMap} mapping {@link RequestMethod} to their associated
- *   {@link MethodHandler}, representing the handlers bound to specific HTTP methods.
+ * {@link MethodHandler}, representing the handlers bound to specific HTTP methods.
  * <p>
  * The secondary constructor initializes the {@code methods} map as an empty
  * {@link LinkedHashMap}, allowing the creation of a route entry with only a pattern.

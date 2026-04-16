@@ -80,21 +80,6 @@ public class RateLimit {
         return (t / timeWindowMillis) * timeWindowMillis;
     }
 
-    private void pruneOldTimestamps(long now) {
-        long threshold = now - timeWindowMillis;
-        while (!requestTimestamps.isEmpty() && requestTimestamps.peekFirst() < threshold) {
-            requestTimestamps.pollFirst();
-        }
-    }
-
-    private void refillTokens(long now) {
-        long delta = Math.max(0, now - lastRefillTimestamp);
-        if (delta > 0) {
-            tokens = Math.min(maxRequests, tokens + delta * refillRatePerMs);
-            lastRefillTimestamp = now;
-        }
-    }
-
     /**
      * Determines whether a request is allowed based on the configured rate-limiting algorithm.
      * This method evaluates the internal state of the rate limiter and decides if a new request
@@ -188,6 +173,21 @@ public class RateLimit {
                 yield false;
             }
         };
+    }
+
+    private void pruneOldTimestamps(long now) {
+        long threshold = now - timeWindowMillis;
+        while (!requestTimestamps.isEmpty() && requestTimestamps.peekFirst() < threshold) {
+            requestTimestamps.pollFirst();
+        }
+    }
+
+    private void refillTokens(long now) {
+        long delta = Math.max(0, now - lastRefillTimestamp);
+        if (delta > 0) {
+            tokens = Math.min(maxRequests, tokens + delta * refillRatePerMs);
+            lastRefillTimestamp = now;
+        }
     }
 
     /**

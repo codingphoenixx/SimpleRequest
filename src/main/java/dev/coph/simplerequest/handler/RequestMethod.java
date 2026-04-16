@@ -112,7 +112,7 @@ public enum RequestMethod {
      *               Must not be null. If the method is not a valid HTTP method,
      *               the result will be null.
      * @return the corresponding {@link RequestMethod} enum constant, or null if
-     *         no matching constant is found.
+     * no matching constant is found.
      */
     public static RequestMethod fromString(String method) {
         return LOOKUP.get(method.toUpperCase());

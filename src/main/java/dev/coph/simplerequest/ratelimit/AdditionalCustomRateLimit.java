@@ -27,6 +27,17 @@ public record AdditionalCustomRateLimit(String key, int maxRequests, long timeWi
     }
 
     /**
+     * Canonical constructor.
+     *
+     * @param key              the unique identifier for the custom rate-limiting rule
+     * @param maxRequests      the maximum number of requests allowed within the time window
+     * @param timeWindowMillis the duration of the time window in milliseconds
+     * @param algorithm        the algorithm to use
+     */
+    public AdditionalCustomRateLimit {
+    }
+
+    /**
      * Constructs an AdditionalCustomRateLimit instance using the properties of a CustomRateLimit annotation.
      * <p>
      * This constructor extracts the key, maximum requests, time window and algorithm values from the provided CustomRateLimit
@@ -36,16 +47,5 @@ public record AdditionalCustomRateLimit(String key, int maxRequests, long timeWi
      */
     public AdditionalCustomRateLimit(CustomRateLimit customRateLimit) {
         this(customRateLimit.key(), customRateLimit.maxRequests(), customRateLimit.timeWindowMillis(), customRateLimit.algorithm());
-    }
-
-    /**
-     * Canonical constructor.
-     *
-     * @param key              the unique identifier for the custom rate-limiting rule
-     * @param maxRequests      the maximum number of requests allowed within the time window
-     * @param timeWindowMillis the duration of the time window in milliseconds
-     * @param algorithm        the algorithm to use
-     */
-    public AdditionalCustomRateLimit {
     }
 }

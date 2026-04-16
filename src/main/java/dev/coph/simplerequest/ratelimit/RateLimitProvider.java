@@ -4,7 +4,6 @@ import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.Time;
 import lombok.NonNull;
 
-import java.net.SocketTimeoutException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -55,15 +54,15 @@ public class RateLimitProvider {
     }
 
     /**
-     * Evaluates whether a request is permitted based on the rate limits resolved for 
-     * the specified key, request path, and HTTP method. This method checks all relevant 
+     * Evaluates whether a request is permitted based on the rate limits resolved for
+     * the specified key, request path, and HTTP method. This method checks all relevant
      * rate limits to determine if the request adheres to the defined limits.
      *
      * @param key    The unique identifier associated with the user or client making the request.
      * @param path   The request path that may have specific rate-limiting rules applied to it.
      * @param method The HTTP method (e.g., GET, POST) of the request.
-     * @return {@code true} if the request is allowed based on the applicable rate limits; 
-     *         {@code false} otherwise.
+     * @return {@code true} if the request is allowed based on the applicable rate limits;
+     * {@code false} otherwise.
      */
     public boolean allowRequest(String key, String path, String method) {
         ConcurrentHashMap<String, RateLimit> limits = resolveRateLimits(key, path, method);
@@ -78,25 +77,25 @@ public class RateLimitProvider {
     }
 
     /**
-     * Resolves and applies rate limits for the given user or client based on the specified key, 
-     * request path, and HTTP method. It evaluates default rate limits and any additional custom 
+     * Resolves and applies rate limits for the given user or client based on the specified key,
+     * request path, and HTTP method. It evaluates default rate limits and any additional custom
      * rate limits applicable to the path and method.
      *
      * @param key    The unique identifier associated with the user or client making the request.
      * @param path   The request path that may have specific rate-limiting rules applied to it.
      * @param method The HTTP method (e.g., GET, POST) of the request.
-     * @return A map containing the resolved rate limits for the key, where the keys in the map 
-     *         represent different rate limit categories (e.g., default and custom rules), and 
-     *         the values are the corresponding RateLimit objects.
+     * @return A map containing the resolved rate limits for the key, where the keys in the map
+     * represent different rate limit categories (e.g., default and custom rules), and
+     * the values are the corresponding RateLimit objects.
      */
     public ConcurrentHashMap<String, RateLimit> resolveRateLimits(String key, String path, String method) {
         String rateLimitKey = path + ":" + method;
-        
+
         ConcurrentHashMap<String, RateLimit> userLimits = rateLimits.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
         ConcurrentHashMap<String, RateLimit> resolvedLimits = new ConcurrentHashMap<>();
-        
+
         resolvedLimits.put("default", userLimits.computeIfAbsent("default", k -> new RateLimit(maxRequests, defaultTimeWindow, RateLimitAlgorithm.USER_FIXED_WINDOW)));
-     
+
         for (Map.Entry<Pattern, AdditionalCustomRateLimit[]> entry : webServer.requestDispatcher().additionalCustomRateLimits().entrySet()) {
             Matcher matcher = entry.getKey().matcher(rateLimitKey);
             if (matcher.matches()) {
@@ -105,30 +104,30 @@ public class RateLimitProvider {
                 }
             }
         }
-        
+
         return resolvedLimits;
     }
 
     /**
-     * Calculates the earliest possible timestamp at which requests can be allowed 
-     * based on the given rate limits. The method iterates through the provided rate 
+     * Calculates the earliest possible timestamp at which requests can be allowed
+     * based on the given rate limits. The method iterates through the provided rate
      * limits and determines the maximum timestamp that is currently blocking requests.
      *
-     * @param limits a {@link ConcurrentHashMap} where the keys represent rate 
-     *               limit identifiers and the values are {@link RateLimit} objects 
+     * @param limits a {@link ConcurrentHashMap} where the keys represent rate
+     *               limit identifiers and the values are {@link RateLimit} objects
      *               containing rate-limiting information.
-     * @return the earliest timestamp (in milliseconds) at which requests can be allowed 
-     *         based on the provided rate limits.
+     * @return the earliest timestamp (in milliseconds) at which requests can be allowed
+     * based on the provided rate limits.
      */
     public long earliestAllowedTimestamp(ConcurrentHashMap<String, RateLimit> limits) {
         long now = System.currentTimeMillis();
         long maxTimestamp = now;
-        
+
         for (RateLimit rateLimit : limits.values()) {
             long allowedAt = now + rateLimit.getRetryAfterMillis();
             if (allowedAt > maxTimestamp) maxTimestamp = allowedAt;
         }
-        
+
         return maxTimestamp;
     }
 
@@ -140,8 +139,8 @@ public class RateLimitProvider {
      *               represent rate limit identifiers and the values are {@code RateLimit} objects
      *               containing the associated rate-limiting information.
      * @return a {@code ConcurrentHashMap} containing only the triggered rate limits, where the keys
-     *         represent the rate limit identifiers and the values are the corresponding triggered
-     *         {@code RateLimit} objects.
+     * represent the rate limit identifiers and the values are the corresponding triggered
+     * {@code RateLimit} objects.
      */
     public ConcurrentHashMap<String, RateLimit> allTriggeredLimits(ConcurrentHashMap<String, RateLimit> limits) {
         ConcurrentHashMap<String, RateLimit> triggered = new ConcurrentHashMap<>(limits);

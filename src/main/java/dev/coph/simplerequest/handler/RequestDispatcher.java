@@ -25,7 +25,6 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.Callback;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,6 +115,39 @@ public class RequestDispatcher {
     }
 
     /**
+     * Creates a {@code Pattern} instance to match a given path string. The generated pattern
+     * translates dynamic segments enclosed in curly braces (e.g., {paramName}) into regular
+     * expressions, allowing for parameterized matching of URLs. Each segment of the path
+     * separated by slashes is processed to generate an appropriate regex component.
+     *
+     * @param path the input path string for which to create a matching {@code Pattern}.
+     *             Dynamic segments should be enclosed within curly braces (e.g., {paramName}).
+     * @return a {@code Pattern} object that can be used to match the input path against
+     * incoming requests.
+     */
+    private Pattern createPattern(String path) {
+        if (path.endsWith("/"))
+            path = path.substring(0, path.length() - 1);
+
+        StringBuilder regex = new StringBuilder("^");
+        for (String part : path.split("/")) {
+            if (!part.isEmpty()) {
+                regex.append("\\/");
+                if (part.startsWith("{") && part.endsWith("}")) {
+                    regex.append("([\\w-]+)");
+                } else {
+                    regex.append(Pattern.quote(part));
+                }
+            }
+        }
+
+        if (regex.charAt(regex.length() - 1) != '/')
+            regex.append("\\/");
+        regex.append("$");
+        return Pattern.compile(regex.toString());
+    }
+
+    /**
      * Extracts parameter names enclosed within curly brackets from the given path string.
      * The method identifies dynamic placeholders in the path, which are enclosed in
      * curly brackets (e.g., {paramName}), and returns an array of these parameter names.
@@ -139,11 +171,11 @@ public class RequestDispatcher {
      * method and maps each type to a corresponding {@code ParamResolver}, such as handling
      * {@code Request}, {@code Response}, or custom path variables.
      *
-     * @param m the method whose parameters need to be resolved
+     * @param m              the method whose parameters need to be resolved
      * @param pathParamNames an array of parameter names extracted from the path string
-     *                        for mapping to specific path variable resolvers
+     *                       for mapping to specific path variable resolvers
      * @return an array of {@code ParamResolver} instances, each responsible for resolving
-     *         its associated method parameter during request handling
+     * its associated method parameter during request handling
      */
     private ParamResolver[] buildResolvers(Method m, String[] pathParamNames) {
         Class<?>[] pts = m.getParameterTypes();
@@ -178,9 +210,9 @@ public class RequestDispatcher {
      * The sorting criteria are as follows:
      * 1. Routes with fewer dynamic segments (e.g., {param}) are prioritized.
      * 2. Among routes with an equal number of dynamic segments, those with a
-     *    greater number of total segments are prioritized.
+     * greater number of total segments are prioritized.
      * 3. For routes with the same number of dynamic and total segments, the
-     *    natural lexicographical order of their keys is used.
+     * natural lexicographical order of their keys is used.
      * <p>
      * This method clears the `handlers` map and repopulates it with the sorted entries
      * while preserving the insertion order.
@@ -238,36 +270,32 @@ public class RequestDispatcher {
     }
 
     /**
-     * Creates a {@code Pattern} instance to match a given path string. The generated pattern
-     * translates dynamic segments enclosed in curly braces (e.g., {paramName}) into regular
-     * expressions, allowing for parameterized matching of URLs. Each segment of the path
-     * separated by slashes is processed to generate an appropriate regex component.
+     * Creates and configures a new instance of {@code ContextHandler} with a root path ("/").
+     * The returned context handler is responsible for delegating the processing of incoming HTTP requests
+     * to a specific handler method of the {@code RequestDispatcher} class.
+     * <p>
+     * The handler performs the following tasks:
+     * 1. Extracts the path information from the request's URI.
+     * 2. If a valid path is available, it invokes the {@code RequestDispatcher#handle} method, passing
+     * the path and key request/response objects for further processing.
+     * 3. If the path is null, it sets the response with a 404 status and signals success in the callback.
      *
-     * @param path the input path string for which to create a matching {@code Pattern}.
-     *             Dynamic segments should be enclosed within curly braces (e.g., {paramName}).
-     * @return a {@code Pattern} object that can be used to match the input path against
-     *         incoming requests.
+     * @return a {@code ContextHandler} instance configured to manage requests for the root path ("/").
      */
-    private Pattern createPattern(String path) {
-        if (path.endsWith("/"))
-            path = path.substring(0, path.length() - 1);
-
-        StringBuilder regex = new StringBuilder("^");
-        for (String part : path.split("/")) {
-            if (!part.isEmpty()) {
-                regex.append("\\/");
-                if (part.startsWith("{") && part.endsWith("}")) {
-                    regex.append("([\\w-]+)");
+    public ContextHandler createContextHandler() {
+        return new ContextHandler(new Handler.Abstract() {
+            @Override
+            public boolean handle(Request request, Response response, Callback callback) {
+                String pathInfo = request.getHttpURI().getPath();
+                if (pathInfo != null) {
+                    RequestDispatcher.this.handle(pathInfo, request, response, callback);
                 } else {
-                    regex.append(Pattern.quote(part));
+                    response.setStatus(HttpStatus.NOT_FOUND_404);
+                    callback.succeeded();
                 }
+                return false;
             }
-        }
-
-        if (regex.charAt(regex.length() - 1) != '/')
-            regex.append("\\/");
-        regex.append("$");
-        return Pattern.compile(regex.toString());
+        }, "/");
     }
 
     /**
@@ -275,8 +303,8 @@ public class RequestDispatcher {
      * and request handlers, performs pre-processing, executes the appropriate handler, and generates
      * the corresponding HTTP response.
      *
-     * @param path The path of the incoming request, which may include variables or placeholders.
-     * @param request The HTTP request object containing details such as headers, body, and method.
+     * @param path     The path of the incoming request, which may include variables or placeholders.
+     * @param request  The HTTP request object containing details such as headers, body, and method.
      * @param response The HTTP response object used to send back data and status to the client.
      * @param callback A callback to signal the completion of processing and allow for asynchronous handling.
      */
@@ -395,45 +423,16 @@ public class RequestDispatcher {
     }
 
     /**
-     * Creates and configures a new instance of {@code ContextHandler} with a root path ("/").
-     * The returned context handler is responsible for delegating the processing of incoming HTTP requests
-     * to a specific handler method of the {@code RequestDispatcher} class.
-     * <p>
-     * The handler performs the following tasks:
-     * 1. Extracts the path information from the request's URI.
-     * 2. If a valid path is available, it invokes the {@code RequestDispatcher#handle} method, passing
-     *    the path and key request/response objects for further processing.
-     * 3. If the path is null, it sets the response with a 404 status and signals success in the callback.
-     *
-     * @return a {@code ContextHandler} instance configured to manage requests for the root path ("/").
-     */
-    public ContextHandler createContextHandler() {
-        return new ContextHandler(new Handler.Abstract() {
-            @Override
-            public boolean handle(Request request, Response response, Callback callback) {
-                String pathInfo = request.getHttpURI().getPath();
-                if (pathInfo != null) {
-                    RequestDispatcher.this.handle(pathInfo, request, response, callback);
-                } else {
-                    response.setStatus(HttpStatus.NOT_FOUND_404);
-                    callback.succeeded();
-                }
-                return false;
-            }
-        }, "/");
-    }
-
-    /**
      * Adds default CORS headers to the provided response object based on the request and server configuration.
      * This method ensures compliance with the configured CORS rules, such as allowed origins, methods, and headers.
      * If the incoming request is an HTTP OPTIONS preflight request, the response is updated accordingly,
      * and the callback is invoked to signal success.
      *
-     * @param request the HTTP request object that contains the client’s request details, including headers and method
+     * @param request  the HTTP request object that contains the client’s request details, including headers and method
      * @param response the HTTP response object to which the CORS headers will be added
      * @param callback a callback used to signal the completion of the operation, typically for asynchronous handling
      * @return {@code true} if the method processes a preflight OPTIONS request and completes handling;
-     *         {@code false} otherwise
+     * {@code false} otherwise
      */
     private boolean addDefaultHeaders(Request request, Response response, Callback callback) {
         if (!webServer.allowedOrigins().contains("*")) {
@@ -466,11 +465,11 @@ public class RequestDispatcher {
      * This method processes the incoming request, resolves parameters, invokes the appropriate
      * method, and writes the response, which can either be a JSON-compatible type or a `FieldResponse`.
      *
-     * @param cfr The compiled field route containing routing metadata and method information.
-     * @param request The incoming HTTP request that contains the field selection and other context.
+     * @param cfr      The compiled field route containing routing metadata and method information.
+     * @param request  The incoming HTTP request that contains the field selection and other context.
      * @param response The HTTP response to be populated based on the processed result.
      * @param callback The callback to indicate the success or failure of the request processing.
-     * @param groups The security or context groups used during resolution of parameters.
+     * @param groups   The security or context groups used during resolution of parameters.
      * @throws Exception If an error occurs during the method invocation or response building.
      */
     private void handleFieldRoute(CompiledFieldRoute cfr, Request request, Response response, Callback callback, String[] groups) throws Exception {
@@ -529,16 +528,6 @@ public class RequestDispatcher {
     }
 
     /**
-     * Represents a compiled version of a field route, encapsulating the associated route information,
-     * compiled pattern, parameter names, and parameter resolvers.
-     * <p>
-     * This record is designed to facilitate the processing of field routes by associating
-     * required metadata, including a regex pattern for matching, and resolvers for handling
-     * the route parameters.
-     */
-    record CompiledFieldRoute(FieldRoute route, Pattern pattern, String[] paramNames, ParamResolver[] resolvers) { }
-
-    /**
      * Interface representing a parameter resolver that extracts and provides specific parameters
      * based on the request, response, callback, and route groups in a web context.
      * <p>
@@ -566,12 +555,12 @@ public class RequestDispatcher {
          * <p>
          * Operational Details:
          * - The {@code resolve} method implementation for this resolver takes the request, response,
-         *   callback, and route group parameters but only utilizes the request parameter for resolution.
+         * callback, and route group parameters but only utilizes the request parameter for resolution.
          * - The resulting value is the unchanged input {@code Request} instance.
          * <p>
          * Example Use Case:
          * - Often used when the handler implementation requires direct access to the incoming request
-         *   object for purposes such as query parameter extraction, header processing, or payload handling.
+         * object for purposes such as query parameter extraction, header processing, or payload handling.
          */
         ParamResolver REQUEST = (req, res, cb, g) -> req;
         /**
@@ -583,12 +572,12 @@ public class RequestDispatcher {
          * <p>
          * Operational Details:
          * - The {@code resolve} method implementation for this resolver takes the request, response,
-         *   callback, and route group parameters but only utilizes the response parameter for resolution.
+         * callback, and route group parameters but only utilizes the response parameter for resolution.
          * - The resulting value is the unchanged input {@code Response} instance.
          * <p>
          * Use Case:
          * - Typically used when the handler implementation requires direct access to the outgoing response
-         *   object for purposes such as setting headers, writing content, or managing the HTTP status code.
+         * object for purposes such as setting headers, writing content, or managing the HTTP status code.
          */
         ParamResolver RESPONSE = (req, res, cb, g) -> res;
         /**
@@ -655,25 +644,25 @@ public class RequestDispatcher {
          * Features:
          * - Resolves a single path variable identified by its index in the groups array.
          * - Provides flexibility in routing by allowing extraction of URL components for
-         *   use in request handlers or controllers.
+         * use in request handlers or controllers.
          * <p>
          * Usage Flow:
          * 1. Specify the index of the path variable to resolve using the constructor.
          * 2. During resolution, if the index is valid for the given groups array, the matching
-         *    path variable string will be returned.
+         * path variable string will be returned.
          * 3. If the index is out of bounds, null is returned.
          * <p>
          * Constructor:
          * - {@code PathVar(int index)}: Constructs a new PathVar resolver with the specified
-         *   index identifying the desired path variable.
+         * index identifying the desired path variable.
          * <p>
          * Record Components:
          * - {@code index}: The zero-based index of the path variable to resolve within the groups array.
          * <p>
          * Method Details:
          * - {@code resolve(Request request, Response response, Callback callback, String[] groups)}:
-         *   Resolves the path variable at the specified index in the groups array. If the index is
-         *   out of bounds, the method returns null.
+         * Resolves the path variable at the specified index in the groups array. If the index is
+         * out of bounds, the method returns null.
          * <p>
          * Parameters:
          * - {@code request}: The HTTP request object (not directly used by this resolver).
@@ -690,5 +679,16 @@ public class RequestDispatcher {
                 return index < groups.length ? groups[index] : null;
             }
         }
+    }
+
+    /**
+     * Represents a compiled version of a field route, encapsulating the associated route information,
+     * compiled pattern, parameter names, and parameter resolvers.
+     * <p>
+     * This record is designed to facilitate the processing of field routes by associating
+     * required metadata, including a regex pattern for matching, and resolvers for handling
+     * the route parameters.
+     */
+    record CompiledFieldRoute(FieldRoute route, Pattern pattern, String[] paramNames, ParamResolver[] resolvers) {
     }
 }

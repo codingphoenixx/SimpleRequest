@@ -69,11 +69,11 @@ public class MethodHandler {
      * Constructs an instance of the MethodHandler class, which handles method details
      * such as accessible path, HTTP request type, associated instance, and related logic.
      *
-     * @param path the URL path associated with the method
+     * @param path          the URL path associated with the method
      * @param requestMethod the HTTP request method (e.g., GET, POST) tied to the handler
-     * @param instance the object instance that owns the specified method
-     * @param method the method to be invoked by this handler
-     * @param description a description of the method's purpose or behavior
+     * @param instance      the object instance that owns the specified method
+     * @param method        the method to be invoked by this handler
+     * @param description   a description of the method's purpose or behavior
      */
     public MethodHandler(String path, RequestMethod requestMethod, Object instance, Method method, String description) {
         this.path = path;
@@ -125,11 +125,11 @@ public class MethodHandler {
      * If an error occurs during the invocation, it logs the error and sets the response
      * status to indicate an internal server error.
      *
-     * @param request the HTTP request object containing information about the client's request
-     * @param response the HTTP response object used to send a response back to the client
-     * @param callback an object implementing the callback interface to handle asynchronous operations
+     * @param request              the HTTP request object containing information about the client's request
+     * @param response             the HTTP response object used to send a response back to the client
+     * @param callback             an object implementing the callback interface to handle asynchronous operations
      * @param authenticationAnswer the result of an authentication process, indicating access control status
-     * @param pathVariables a map of path variables extracted from the URL, used for dynamic parameter resolution
+     * @param pathVariables        a map of path variables extracted from the URL, used for dynamic parameter resolution
      */
     public void invoke(Request request, Response response, Callback callback, AuthenticationAnswer authenticationAnswer, Map<String, String> pathVariables) {
         Object[] parameters = new Object[paramSlots.length];

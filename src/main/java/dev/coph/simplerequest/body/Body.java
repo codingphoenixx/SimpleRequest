@@ -46,26 +46,6 @@ public class Body {
     }
 
     /**
-     * Retrieves the content of the HTTP request body as a string using UTF-8 encoding.
-     *
-     * @return the content of the HTTP request body as a string
-     * @throws IOException if an I/O error occurs while accessing the request body content
-     */
-    public String asString() throws IOException {
-        if (byteBufferContent != null) {
-            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as ByteBuffer.");
-        }
-        if (inputStreamContent != null) {
-            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as InputStream.");
-        }
-        if (stringContent != null) {
-            return stringContent;
-        }
-        stringContent = Content.Source.asString(request, StandardCharsets.UTF_8);
-        return stringContent;
-    }
-
-    /**
      * Retrieves the content of the HTTP request body as a string using the specified charset.
      * This method allows for decoding the body content with a custom character encoding.
      *
@@ -145,7 +125,6 @@ public class Body {
         return inputStreamContent;
     }
 
-
     /**
      * Converts the content of the HTTP request body into a {@link JSONObject}.
      * If the body content is empty or null, an empty {@link JSONObject} is returned.
@@ -158,6 +137,26 @@ public class Body {
         if (content == null || content.isEmpty())
             throw new IOException("Cannot convert body to JSONObject. Body is empty or null.");
         return new JsonBody(content);
+    }
+
+    /**
+     * Retrieves the content of the HTTP request body as a string using UTF-8 encoding.
+     *
+     * @return the content of the HTTP request body as a string
+     * @throws IOException if an I/O error occurs while accessing the request body content
+     */
+    public String asString() throws IOException {
+        if (byteBufferContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as ByteBuffer.");
+        }
+        if (inputStreamContent != null) {
+            throw new IOException("Cannot convert body to ByteBuffer. Body is already read as InputStream.");
+        }
+        if (stringContent != null) {
+            return stringContent;
+        }
+        stringContent = Content.Source.asString(request, StandardCharsets.UTF_8);
+        return stringContent;
     }
 
     /**

@@ -54,7 +54,7 @@ public class IPUtil {
             String remoteAddr = Request.getRemoteAddr(req);
             InetAddress address = InetAddress.getByName(remoteAddr);
             return address.isAnyLocalAddress() || address.isLoopbackAddress() || InetAddress.getLocalHost().equals(address);
-        }catch (UnknownHostException e) {
+        } catch (UnknownHostException e) {
             return false;
         }
     }

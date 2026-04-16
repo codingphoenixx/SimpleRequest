@@ -40,6 +40,19 @@ public class JsonUtil {
     }
 
     /**
+     * Creates a JSON response indicating that the user does not have permission to access the resource.
+     * The returned JSON object contains a status set to "error" and an explanatory message.
+     *
+     * @return a {@code JSONObject} with a "status" key set to "error" and a "message" key
+     * explaining the lack of permission.
+     */
+    public static JSONObject noPermission() {
+        var jsonObject = prepare(Type.ERROR);
+        jsonObject.put("message", "You don't have permission to access this resource.");
+        return jsonObject;
+    }
+
+    /**
      * Prepares a JSON object with a specific status based on the provided type.
      *
      * @param type the type of status to set in the resulting JSON object.
@@ -54,19 +67,6 @@ public class JsonUtil {
             case OK -> jsonObject.put("status", "ok");
             case ERROR -> jsonObject.put("status", "error");
         }
-        return jsonObject;
-    }
-
-    /**
-     * Creates a JSON response indicating that the user does not have permission to access the resource.
-     * The returned JSON object contains a status set to "error" and an explanatory message.
-     *
-     * @return a {@code JSONObject} with a "status" key set to "error" and a "message" key
-     * explaining the lack of permission.
-     */
-    public static JSONObject noPermission() {
-        var jsonObject = prepare(Type.ERROR);
-        jsonObject.put("message", "You don't have permission to access this resource.");
         return jsonObject;
     }
 

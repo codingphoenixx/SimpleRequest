@@ -292,17 +292,61 @@ public class WebServer {
      * purposes).
      *
      * @return an available port number within the range 49152 to 65535, or throws
-     *         an exception if no ports are available.
+     * an exception if no ports are available.
      */
     private int findFreePort() {
         return findFreePort(49152, 65535);
     }
 
     /**
+     * Enables WebSocket support for the given context handlers in the web server.
+     * All registered WebSocket providers must be annotated with {@code @ServerEndpoint}.
+     * If no WebSocket providers are registered, the method logs a message and returns.
+     * Otherwise, it configures a new WebSocket context and registers each provider.
+     *
+     * @param collection the {@code ContextHandlerCollection} instance to which the WebSocket-enabled handler will be added.
+     */
+    private void enableWebSockets(ContextHandlerCollection collection) {
+
+        if (websockets.isEmpty()) {
+            logger.info("No WebSockets registered.");
+            return;
+        }
+        logger.info("Enabling WebSockets.");
+
+        ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        websocketHandlers.setContextPath("/ws");
+
+
+        JakartaWebSocketServletContainerInitializer.configure(websocketHandlers, (servletContext, wsContainer) -> {
+            websockets.forEach((provider) -> {
+                try {
+                    try {
+                        if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
+                            logger.error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
+                            return;
+                        }
+                        wsContainer.addEndpoint(provider);
+                        var pathName = provider.getAnnotation(ServerEndpoint.class).value();
+                        logger.success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
+                    } catch (Exception e) {
+                        logger.error("Error enabling WebSocket for path: ", e);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error enabling WebSocket support", e);
+                }
+            });
+            logger.success("Successfully enabled all WebSockets.");
+        });
+
+        collection.addHandler(websocketHandlers);
+    }
+
+    /**
      * Scans and finds an available network port within the specified port range.
      *
      * @param startPort the starting port of the range to scan (inclusive).
-     * @param endPort the ending port of the range to scan (inclusive).
+     * @param endPort   the ending port of the range to scan (inclusive).
      * @return the number of the first available port within the range, or -1 if no port is available.
      */
     public int findFreePort(int startPort, int endPort) {
@@ -362,50 +406,6 @@ public class WebServer {
         this.rateLimitHandler = new RateLimitHandler(this, time, maxRequestsPerSpan);
         logger.success("Successfully created RateLimit Handler");
         return this;
-    }
-
-    /**
-     * Enables WebSocket support for the given context handlers in the web server.
-     * All registered WebSocket providers must be annotated with {@code @ServerEndpoint}.
-     * If no WebSocket providers are registered, the method logs a message and returns.
-     * Otherwise, it configures a new WebSocket context and registers each provider.
-     *
-     * @param collection the {@code ContextHandlerCollection} instance to which the WebSocket-enabled handler will be added.
-     */
-    private void enableWebSockets(ContextHandlerCollection collection) {
-
-        if (websockets.isEmpty()) {
-            logger.info("No WebSockets registered.");
-            return;
-        }
-        logger.info("Enabling WebSockets.");
-
-        ServletContextHandler websocketHandlers = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        websocketHandlers.setContextPath("/ws");
-
-
-        JakartaWebSocketServletContainerInitializer.configure(websocketHandlers, (servletContext, wsContainer) -> {
-            websockets.forEach((provider) -> {
-                try {
-                    try {
-                        if (!provider.isAnnotationPresent(ServerEndpoint.class)) {
-                            logger.error("Error enabling WebSocket for path: %s. It does not have the annotation @ServerEndpoint".formatted(provider.getSimpleName()));
-                            return;
-                        }
-                        wsContainer.addEndpoint(provider);
-                        var pathName = provider.getAnnotation(ServerEndpoint.class).value();
-                        logger.success("WebSocket for provider '%s' on path '/ws%s' successfully enabled. ".formatted(provider.getSimpleName(), pathName));
-                    } catch (Exception e) {
-                        logger.error("Error enabling WebSocket for path: ", e);
-                    }
-                } catch (Exception e) {
-                    logger.error("Error enabling WebSocket support", e);
-                }
-            });
-            logger.success("Successfully enabled all WebSockets.");
-        });
-
-        collection.addHandler(websocketHandlers);
     }
 
     /**

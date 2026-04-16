@@ -39,6 +39,22 @@ public final class FieldSelection {
     }
 
     /**
+     * Parses a comma-separated values (CSV) string into a set of trimmed, unique strings,
+     * preserving the insertion order.
+     * If the input string is null, blank, or contains no valid entries, an empty set is returned.
+     *
+     * @param csv the CSV string to be parsed; values are separated by commas
+     * @return a set of trimmed, unique strings parsed from the CSV input, or an empty set if the input is null, blank, or contains no valid values
+     */
+    public static Set<String> parseCsv(String csv) {
+        if (csv == null || csv.isBlank()) return Set.of();
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
      * Normalizes an array of input strings by trimming whitespace, filtering out null or empty values,
      * and removing duplicates while maintaining the insertion order.
      *
@@ -50,22 +66,6 @@ public final class FieldSelection {
         if (names == null || names.length == 0) return Set.of();
         return Arrays.stream(names)
                 .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Parses a comma-separated values (CSV) string into a set of trimmed, unique strings,
-     * preserving the insertion order.
-     * If the input string is null, blank, or contains no valid entries, an empty set is returned.
-     *
-     * @param csv the CSV string to be parsed; values are separated by commas
-     * @return a set of trimmed, unique strings parsed from the CSV input, or an empty set if the input is null, blank, or contains no valid values
-     */
-    public static Set<String> parseCsv(String csv) {
-        if (csv == null || csv.isBlank()) return Set.of();
-        return Arrays.stream(csv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
