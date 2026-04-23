@@ -324,9 +324,10 @@ public class RequestDispatcher {
             if (matcher.matches()) {
                 FieldRoute r = cfr.route;
                 if (!r.requestMethod().equals(RequestMethod.ANY) && !r.requestMethod().name().equals(request.getMethod().toUpperCase())) {
+                    logger.debug("A request was triggered but wrong request-method");
                     response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
                     callback.succeeded();
-                    return;
+                    continue;
                 }
 
                 String[] groups = new String[matcher.groupCount()];
