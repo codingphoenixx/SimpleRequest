@@ -85,7 +85,7 @@ public class RequestDispatcher {
                 String path = annotation.path();
                 RequestMethod requestMethod = annotation.method();
 
-                RouteEntry routeEntry = handlers.computeIfAbsent(path, p -> new RouteEntry(createPattern(p)));
+                RouteEntry routeEntry = handlers.computeIfAbsent(normalizePathKey(path), p -> new RouteEntry(createPattern(path)));
 
                 CustomRateLimit[] customRateLimits = method.getAnnotationsByType(CustomRateLimit.class);
                 if (customRateLimits.length > 0) {
@@ -145,6 +145,27 @@ public class RequestDispatcher {
             regex.append("\\/");
         regex.append("$");
         return Pattern.compile(regex.toString());
+    }
+
+    /**
+     * Normalizes a path string for use as a map key by replacing all path parameter names
+     * (e.g., {cartypeId}, {carTypeId}) with a generic placeholder {}, so that two paths
+     * that differ only in parameter naming are treated as the same route.
+     *
+     * @param path the input path string to normalize
+     * @return the normalized path string with all parameter placeholders replaced by {}
+     */
+    private String normalizePathKey(String path) {
+        StringBuilder normalized = new StringBuilder();
+        for (String part : path.split("/", -1)) {
+            if (!normalized.isEmpty()) normalized.append("/");
+            if (part.startsWith("{") && part.endsWith("}")) {
+                normalized.append("{}");
+            } else {
+                normalized.append(part);
+            }
+        }
+        return normalized.toString();
     }
 
     /**
