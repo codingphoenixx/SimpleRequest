@@ -358,6 +358,7 @@ public class RequestDispatcher {
 
                 if (handler == null) {
                     response.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
+                    logger.debug("A request was triggered but wrong request-method. Suggesting correct.");
                     StringJoiner allowed = new StringJoiner(", ");
                     routeEntry.methods().keySet().forEach(m -> allowed.add(m.name()));
                     response.getHeaders().add(HttpHeader.ALLOW, allowed.toString());
