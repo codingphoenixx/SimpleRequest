@@ -101,7 +101,7 @@ public class RequestDispatcher {
                     additionalCustomRateLimits.put(rateLimitPattern, currentAdditionalCustomRateLimits);
                 }
 
-                MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description());
+                MethodHandler methodHandler = new MethodHandler(path, requestMethod, instance, method, annotation.description(), annotation.deprecated(), annotation.parameters());
                 methodHandler.accessLevel = annotation.accesslevel();
 
                 if (routeEntry.methods().containsKey(requestMethod)) {

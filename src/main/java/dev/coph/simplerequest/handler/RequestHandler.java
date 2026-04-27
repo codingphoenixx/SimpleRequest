@@ -47,4 +47,27 @@ public @interface RequestHandler {
      * @return a descriptive text about the request handler as a string, defaulting to an empty string
      */
     String description() default "";
+
+    /**
+     * Specifies an array of parameters for the request handler. Each parameter 
+     * is described using a {@link RequestParameter} annotation, which defines 
+     * details such as name, location (e.g., path, query, header, or cookie), 
+     * whether the parameter is required, and other optional metadata.
+     *
+     * @return an array of {@link RequestParameter} annotations representing 
+     *         the parameters that the annotated request handler expects to handle.
+     *         Defaults to an empty array if no parameters are specified.
+     */
+    RequestParameter[] parameters() default {};
+
+    /**
+     * Indicates whether the annotated request handler is deprecated.
+     * When set to {@code true}, the handler is considered deprecated
+     * and its use is discouraged.
+     *
+     * @return {@code true} if the request handler is deprecated, {@code false} otherwise
+     */
+    boolean deprecated() default false;
+
+
 }

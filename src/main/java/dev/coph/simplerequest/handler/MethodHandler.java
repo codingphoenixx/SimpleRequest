@@ -48,6 +48,9 @@ public class MethodHandler {
     private final byte[] paramSlots;
     private final int[] pathVarIndices;
     private final MethodHandle methodHandle;
+    private final boolean deprecated;
+    private final RequestParameter[] parameters;
+    
 
     /**
      * Represents the access level required to invoke methods within the MethodHandler.
@@ -66,21 +69,25 @@ public class MethodHandler {
     protected AccessLevel accessLevel = AccessLevel.PUBLIC;
 
     /**
-     * Constructs an instance of the MethodHandler class, which handles method details
-     * such as accessible path, HTTP request type, associated instance, and related logic.
+     * Constructs a MethodHandler instance to handle a specific method invocation
+     * in a given object with the provided details about the request.
      *
-     * @param path          the URL path associated with the method
-     * @param requestMethod the HTTP request method (e.g., GET, POST) tied to the handler
-     * @param instance      the object instance that owns the specified method
-     * @param method        the method to be invoked by this handler
-     * @param description   a description of the method's purpose or behavior
+     * @param path        the URL path associated with this handler
+     * @param requestMethod the HTTP request method (e.g., GET, POST, DELETE) for which this handler is valid
+     * @param instance    the instance of the class containing the target method
+     * @param method      the target method to be invoked
+     * @param description a description of this handler's purpose or behavior
+     * @param deprecated  a flag indicating whether this handler is deprecated
+     * @param parameters  an array of {@code RequestParameter} objects describing the parameters of the target method
      */
-    public MethodHandler(String path, RequestMethod requestMethod, Object instance, Method method, String description) {
+    public MethodHandler(String path, RequestMethod requestMethod, Object instance, Method method, String description, boolean deprecated, RequestParameter[] parameters) {
         this.path = path;
         this.requestMethod = requestMethod;
         this.instance = instance;
         this.method = method;
         this.description = description;
+        this.deprecated = deprecated;
+        this.parameters = parameters;
 
         method.setAccessible(true);
         MethodHandle mh;

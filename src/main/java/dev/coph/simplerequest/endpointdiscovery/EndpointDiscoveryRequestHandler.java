@@ -2,11 +2,13 @@ package dev.coph.simplerequest.endpointdiscovery;
 
 import dev.coph.simplerequest.handler.RequestHandler;
 import dev.coph.simplerequest.handler.RequestMethod;
+import dev.coph.simplerequest.handler.RequestParameter;
 import dev.coph.simplerequest.server.WebServer;
 import dev.coph.simplerequest.util.ResponseUtil;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -72,14 +74,33 @@ public record EndpointDiscoveryRequestHandler(WebServer webServer) {
             callback.succeeded();
             return;
         }
-        JSONObject handlers = new JSONObject();
+        JSONArray handlers = new JSONArray();
         webServer.requestDispatcher().handlers().forEach((pattern, route) -> {
             route.methods().forEach((method, mHandler) -> {
                 JSONObject handler = new JSONObject();
+                handler.put("path", mHandler.path());
                 handler.put("method", method);
                 handler.put("accessLevel", mHandler.accessLevel());
                 handler.put("description", mHandler.description() != null && !mHandler.description().isBlank() ? mHandler.description() : null);
-                handlers.put(mHandler.path(), handler);
+
+                if (mHandler.deprecated()) handler.put("deprecated", true);
+                
+                if (mHandler.parameters() != null && mHandler.parameters().length > 0) {
+                    JSONArray params = new JSONArray();
+                    for (RequestParameter parameter : mHandler.parameters()) {
+                        JSONObject parameterJson = new JSONObject();
+                        parameterJson.put("name", parameter.name());
+                        parameterJson.put("input", parameter.input().name().toLowerCase());
+                        parameterJson.put("required", parameter.required());
+                        
+                        if (!parameter.description().isBlank()) parameterJson.put("description", parameter.description());
+                        if (!parameter.type().isBlank()) parameterJson.put("type", parameter.type());
+                        if (!parameter.format().isBlank()) parameterJson.put("format", parameter.format());
+                        params.put(parameterJson);
+                    }
+                    if (!params.isEmpty()) handler.put("parameters", params);
+                }
+                handlers.put(handler);
             });
         });
         ResponseUtil.writeSuccessfulAnswer(response, callback, handlers);
