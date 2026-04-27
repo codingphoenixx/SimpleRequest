@@ -8,10 +8,10 @@ package dev.coph.simplerequest.authentication;
  * an endpoint-discovery requires and controlling access to resources or methods based
  * on the current request state.
  * <p>
- * Enum constants:
- * - PUBLIC: Indicates the request is publicly accessible without any authentication.
- * - AUTHENTICATED: Indicates the request requires authentication for access.
- * - DISABLED: Indicates the request is disabled or unavailable.
+ * Enum constants:<br>
+ * - PUBLIC: Indicates the request is publicly accessible without any authentication.<br>
+ * - AUTHENTICATED: Indicates the request requires authentication for access.<br>
+ * - DISABLED: Indicates the request is disabled or unavailable.<br>
  */
 public enum AccessLevel {
     /**
